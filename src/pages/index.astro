@@ -111,6 +111,17 @@ import '../styles/global.css';
 								</p>
 							</div>
 
+							<div class="grid gap-3 sm:grid-cols-2">
+								<div class="rounded-md border border-hairline bg-white px-3 py-2">
+									<p class="font-mono text-xs uppercase tracking-normal text-mute">Current Frame</p>
+									<p class="mt-1 font-mono text-sm text-ink tabular-nums" data-current-frame>0</p>
+								</div>
+								<div class="rounded-md border border-hairline bg-white px-3 py-2">
+									<p class="font-mono text-xs uppercase tracking-normal text-mute">Total Frames</p>
+									<p class="mt-1 font-mono text-sm text-ink tabular-nums" data-total-frames>0</p>
+								</div>
+							</div>
+
 							<div class="grid gap-3 sm:grid-cols-3">
 								<label class="block text-sm font-medium text-ink">
 									<span class="mb-1 block">Frame Rate</span>
@@ -224,6 +235,8 @@ import '../styles/global.css';
 				const progress = this.querySelector('[data-progress]') as HTMLElement | null;
 				const currentTime = this.querySelector('[data-current-time]') as HTMLElement | null;
 				const duration = this.querySelector('[data-duration]') as HTMLElement | null;
+				const currentFrame = this.querySelector('[data-current-frame]') as HTMLElement | null;
+				const totalFrames = this.querySelector('[data-total-frames]') as HTMLElement | null;
 				const outputWidthInput = this.querySelector('[data-output-width]') as HTMLInputElement | null;
 				const colorsInput = this.querySelector('[data-colors]') as HTMLSelectElement | null;
 				const generateGif = this.querySelector('[data-generate-gif]') as HTMLButtonElement | null;
@@ -242,13 +255,19 @@ import '../styles/global.css';
 				};
 
 				const getFrameStep = () => 1 / Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
+				const getFps = () => Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
 
 				const update = () => {
 					const safeDuration = Number.isFinite(video.duration) ? video.duration : 0;
 					const percent = safeDuration > 0 ? (video.currentTime / safeDuration) * 100 : 0;
+					const fps = getFps();
+					const frameTotal = safeDuration > 0 ? Math.max(1, Math.floor(safeDuration * fps) + 1) : 0;
+					const frameCurrent = frameTotal > 0 ? Math.min(frameTotal, Math.floor(video.currentTime * fps) + 1) : 0;
 					if (progress) progress.style.width = `${Math.min(100, Math.max(0, percent))}%`;
 					if (currentTime) currentTime.textContent = formatTime(video.currentTime);
 					if (duration) duration.textContent = formatTime(safeDuration);
+					if (currentFrame) currentFrame.textContent = frameCurrent.toString();
+					if (totalFrames) totalFrames.textContent = frameTotal.toString();
 					playToggle.textContent = video.paused ? 'Play' : 'Pause';
 					playToggle.setAttribute('aria-label', video.paused ? 'Play Video' : 'Pause Video');
 				};
@@ -292,6 +311,7 @@ import '../styles/global.css';
 
 				prevFrame.addEventListener('click', () => seekByFrame(-1));
 				nextFrame.addEventListener('click', () => seekByFrame(1));
+				fpsInput.addEventListener('input', update);
 
 				video.addEventListener('loadedmetadata', () => {
 					if (endInput) endInput.value = Number.isFinite(video.duration) ? video.duration.toFixed(3) : '0';
