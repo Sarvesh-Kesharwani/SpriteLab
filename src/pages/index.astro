@@ -89,51 +89,35 @@ import '../styles/global.css';
 							<video data-video class="aspect-video w-full bg-black object-contain" preload="metadata" playsinline></video>
 						</div>
 
-						<div class="mt-4 grid gap-3 rounded-md border border-hairline bg-canvas-soft p-3">
+						<div class="mt-4 rounded-md border border-hairline bg-canvas-soft p-3">
 							<div class="h-2 overflow-hidden rounded-full bg-hairline">
 								<div data-progress class="h-full w-0 rounded-full bg-ink transition-[width] duration-100"></div>
 							</div>
 
-							<div class="flex flex-wrap items-center justify-between gap-3">
-								<div class="flex items-center gap-2">
-									<button data-prev-frame class="focus-ring rounded-md border border-hairline bg-white px-3 py-2 text-sm font-medium hover:border-ink" type="button" aria-label="Previous Frame">
-										Prev Frame
-									</button>
-									<button data-play-toggle class="focus-ring rounded-md bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-black" type="button" aria-label="Play Video">
-										Play
-									</button>
-									<button data-next-frame class="focus-ring rounded-md border border-hairline bg-white px-3 py-2 text-sm font-medium hover:border-ink" type="button" aria-label="Next Frame">
-										Next Frame
-									</button>
-								</div>
-								<p class="font-mono text-xs text-body tabular-nums" aria-live="polite">
-									<span data-current-time>00:00.000</span> / <span data-duration>00:00.000</span>
+							<div class="mt-3 flex flex-wrap items-center gap-2">
+								<button data-prev-frame class="focus-ring h-9 rounded-md border border-hairline bg-white px-3 text-sm font-medium hover:border-ink" type="button" aria-label="Previous Frame">
+									Prev
+								</button>
+								<button data-play-toggle class="focus-ring h-9 rounded-md bg-ink px-4 text-sm font-medium text-white hover:bg-black" type="button" aria-label="Play Video">
+									Play
+								</button>
+								<button data-next-frame class="focus-ring h-9 rounded-md border border-hairline bg-white px-3 text-sm font-medium hover:border-ink" type="button" aria-label="Next Frame">
+									Next
+								</button>
+
+								<p class="rounded-md border border-hairline bg-white px-3 py-2 font-mono text-xs text-body tabular-nums" aria-live="polite">
+									<span data-current-time>00:00.000</span><span class="text-mute"> / </span><span data-duration>00:00.000</span>
 								</p>
-							</div>
 
-							<div class="grid gap-3 sm:grid-cols-2">
 								<div class="rounded-md border border-hairline bg-white px-3 py-2">
-									<p class="font-mono text-xs uppercase tracking-normal text-mute">Current Frame</p>
-									<p class="mt-1 font-mono text-sm text-ink tabular-nums" data-current-frame>0</p>
+									<p class="font-mono text-xs text-body tabular-nums">
+										<span class="text-mute">Frame</span> <span data-current-frame>0</span><span class="text-mute"> / </span><span data-total-frames>0</span>
+									</p>
 								</div>
-								<div class="rounded-md border border-hairline bg-white px-3 py-2">
-									<p class="font-mono text-xs uppercase tracking-normal text-mute">Total Frames</p>
-									<p class="mt-1 font-mono text-sm text-ink tabular-nums" data-total-frames>0</p>
-								</div>
-							</div>
 
-							<div class="grid gap-3 sm:grid-cols-3">
-								<label class="block text-sm font-medium text-ink">
-									<span class="mb-1 block">Frame Rate</span>
-									<input data-fps class="focus-ring w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" type="number" name="frame-rate" min="1" max="60" value="24" inputmode="numeric" autocomplete="off" />
-								</label>
-								<label class="block text-sm font-medium text-ink">
-									<span class="mb-1 block">Start Time</span>
-									<input data-start-time class="focus-ring w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" type="number" name="start-time" min="0" step="0.001" value="0" inputmode="decimal" autocomplete="off" />
-								</label>
-								<label class="block text-sm font-medium text-ink">
-									<span class="mb-1 block">End Time</span>
-									<input data-end-time class="focus-ring w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" type="number" name="end-time" min="0" step="0.001" value="0" inputmode="decimal" autocomplete="off" />
+								<label class="flex h-9 items-center gap-2 rounded-md border border-hairline bg-white px-3 text-sm font-medium text-ink">
+									<span class="whitespace-nowrap text-xs text-mute">FPS</span>
+									<input data-fps class="focus-ring w-14 border-0 bg-transparent p-0 text-sm tabular-nums outline-none" type="number" name="frame-rate" min="1" max="60" value="24" inputmode="numeric" autocomplete="off" />
 								</label>
 							</div>
 						</div>
@@ -147,7 +131,7 @@ import '../styles/global.css';
 				<div>
 					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 2</p>
 					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Prepare Frames</h2>
-					<p class="mt-4 leading-7 text-body">Use frame-rate and start/end fields from Step 1 to define the animation clip before export.</p>
+					<p class="mt-4 leading-7 text-body">Use frame stepping and FPS from Step 1 to inspect the animation before export.</p>
 				</div>
 				<div class="grid gap-3 rounded-lg border border-hairline bg-white p-5">
 					<div class="grid gap-3 sm:grid-cols-3">
@@ -159,7 +143,7 @@ import '../styles/global.css';
 						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
 							<p class="font-mono text-xs text-mute">02</p>
 							<p class="mt-2 font-medium">Set Clip Range</p>
-							<p class="mt-1 text-sm leading-6 text-body">Write start and end times from the preview clock.</p>
+							<p class="mt-1 text-sm leading-6 text-body">Use the preview clock and frame count to find clean loop boundaries.</p>
 						</div>
 						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
 							<p class="font-mono text-xs text-mute">03</p>
