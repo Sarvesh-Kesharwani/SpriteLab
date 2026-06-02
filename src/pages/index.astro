@@ -1,0 +1,382 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout>
+	<a
+		href="#main"
+		class="focus-ring fixed left-4 top-4 z-50 -translate-y-20 rounded-md bg-ink px-3 py-2 text-sm font-medium text-white transition-transform duration-150 focus-visible:translate-y-0"
+	>
+		Skip to Main
+	</a>
+
+	<header class="sticky top-0 z-40 border-b border-hairline bg-white/90 backdrop-blur-xl">
+		<nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+			<a href="#main" class="focus-ring flex min-w-0 items-center gap-3 rounded-md">
+				<span class="grid size-7 place-items-center rounded-md bg-ink text-sm font-semibold text-white" translate="no">V</span>
+				<span class="truncate text-sm font-semibold" translate="no">videotoanimation.com</span>
+			</a>
+			<div class="hidden items-center gap-1 text-sm text-body sm:flex">
+				<a class="focus-ring rounded-full px-3 py-2 hover:text-ink" href="#step-1">Select</a>
+				<a class="focus-ring rounded-full px-3 py-2 hover:text-ink" href="#step-2">Trim</a>
+				<a class="focus-ring rounded-full px-3 py-2 hover:text-ink" href="#step-3">Export</a>
+			</div>
+			<a
+				class="focus-ring rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-white hover:bg-black"
+				href="#step-1"
+			>
+				Start
+			</a>
+		</nav>
+	</header>
+
+	<main id="main" class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
+		<video-workbench class="contents">
+		<section class="grid gap-10 pb-12 lg:grid-cols-[1fr_360px] lg:items-end">
+			<div class="min-w-0">
+				<p class="font-mono text-xs uppercase tracking-normal text-mute">MP4 to Unity 2D Animation GIF</p>
+				<h1 class="mt-4 max-w-4xl text-balance text-5xl font-semibold leading-none tracking-normal text-ink sm:text-6xl lg:text-7xl">
+					Turn Grok-generated video into game-ready animation.
+				</h1>
+				<p class="mt-6 max-w-2xl text-pretty text-lg leading-8 text-body">
+					Select an MP4, inspect it frame by frame, trim the action, then export a GIF workflow for Unity 2D sprites.
+				</p>
+			</div>
+			<div class="rounded-lg border border-hairline bg-white p-4 shadow-[0_16px_60px_rgba(0,0,0,0.06)]">
+				<div class="aspect-[4/3] overflow-hidden rounded-md border border-hairline bg-[linear-gradient(135deg,#007cf0,#00dfd8_34%,#7928ca_67%,#ff0080)] p-px">
+					<div class="grid h-full place-items-center rounded-[5px] bg-white/92 p-6 text-center">
+						<div>
+							<p class="font-mono text-xs text-mute">UNITY LOOP</p>
+							<p class="mt-3 text-3xl font-semibold">Idle -> Run -> Attack</p>
+							<p class="mt-3 text-sm leading-6 text-body">Frame-accurate review before GIF export.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="step-1" class="scroll-mt-24 border-t border-hairline py-12">
+			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
+				<div>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 1</p>
+					<h2 class="mt-3 text-balance text-3xl font-semibold tracking-normal">Select Video</h2>
+					<p class="mt-4 text-pretty leading-7 text-body">
+						Choose a Grok-generated MP4. Browser video controls stay hidden; playback and frame stepping use the custom controls below.
+					</p>
+				</div>
+
+				<div class="block rounded-lg border border-hairline bg-white p-4 shadow-[0_16px_60px_rgba(0,0,0,0.06)] sm:p-5">
+					<label class="focus-within:ring-2 focus-within:ring-link focus-within:ring-offset-2 block rounded-md border border-dashed border-hairline-strong bg-canvas-soft p-5 text-center hover:border-ink">
+						<input
+							data-video-input
+							class="sr-only"
+							type="file"
+							name="source-video"
+							accept="video/mp4,video/*"
+							autocomplete="off"
+						/>
+						<span class="block text-sm font-medium">Select MP4 Video</span>
+						<span class="mt-1 block text-sm text-body">Local preview. File stays in this browser.</span>
+					</label>
+
+					<div data-empty-state class="mt-4 grid aspect-video place-items-center rounded-md border border-hairline bg-canvas-soft-2">
+						<p class="px-6 text-center text-sm text-body">Video player appears after selection.</p>
+					</div>
+
+					<div data-player-shell class="mt-4 hidden">
+						<div class="overflow-hidden rounded-md border border-hairline bg-black">
+							<video data-video class="aspect-video w-full bg-black object-contain" preload="metadata" playsinline></video>
+						</div>
+
+						<div class="mt-4 grid gap-3 rounded-md border border-hairline bg-canvas-soft p-3">
+							<div class="h-2 overflow-hidden rounded-full bg-hairline">
+								<div data-progress class="h-full w-0 rounded-full bg-ink transition-[width] duration-100"></div>
+							</div>
+
+							<div class="flex flex-wrap items-center justify-between gap-3">
+								<div class="flex items-center gap-2">
+									<button data-prev-frame class="focus-ring rounded-md border border-hairline bg-white px-3 py-2 text-sm font-medium hover:border-ink" type="button" aria-label="Previous Frame">
+										Prev Frame
+									</button>
+									<button data-play-toggle class="focus-ring rounded-md bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-black" type="button" aria-label="Play Video">
+										Play
+									</button>
+									<button data-next-frame class="focus-ring rounded-md border border-hairline bg-white px-3 py-2 text-sm font-medium hover:border-ink" type="button" aria-label="Next Frame">
+										Next Frame
+									</button>
+								</div>
+								<p class="font-mono text-xs text-body tabular-nums" aria-live="polite">
+									<span data-current-time>00:00.000</span> / <span data-duration>00:00.000</span>
+								</p>
+							</div>
+
+							<div class="grid gap-3 sm:grid-cols-3">
+								<label class="block text-sm font-medium text-ink">
+									<span class="mb-1 block">Frame Rate</span>
+									<input data-fps class="focus-ring w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" type="number" name="frame-rate" min="1" max="60" value="24" inputmode="numeric" autocomplete="off" />
+								</label>
+								<label class="block text-sm font-medium text-ink">
+									<span class="mb-1 block">Start Time</span>
+									<input data-start-time class="focus-ring w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" type="number" name="start-time" min="0" step="0.001" value="0" inputmode="decimal" autocomplete="off" />
+								</label>
+								<label class="block text-sm font-medium text-ink">
+									<span class="mb-1 block">End Time</span>
+									<input data-end-time class="focus-ring w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" type="number" name="end-time" min="0" step="0.001" value="0" inputmode="decimal" autocomplete="off" />
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="step-2" class="scroll-mt-24 border-t border-hairline py-12">
+			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
+				<div>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 2</p>
+					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Prepare Frames</h2>
+					<p class="mt-4 leading-7 text-body">Use frame-rate and start/end fields from Step 1 to define the animation clip before export.</p>
+				</div>
+				<div class="grid gap-3 rounded-lg border border-hairline bg-white p-5">
+					<div class="grid gap-3 sm:grid-cols-3">
+						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
+							<p class="font-mono text-xs text-mute">01</p>
+							<p class="mt-2 font-medium">Review Motion</p>
+							<p class="mt-1 text-sm leading-6 text-body">Step frame by frame until loop boundaries feel right.</p>
+						</div>
+						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
+							<p class="font-mono text-xs text-mute">02</p>
+							<p class="mt-2 font-medium">Set Clip Range</p>
+							<p class="mt-1 text-sm leading-6 text-body">Write start and end times from the preview clock.</p>
+						</div>
+						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
+							<p class="font-mono text-xs text-mute">03</p>
+							<p class="mt-2 font-medium">Choose FPS</p>
+							<p class="mt-1 text-sm leading-6 text-body">Use 12-24 FPS for compact Unity 2D loops.</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="step-3" class="scroll-mt-24 border-t border-hairline py-12">
+			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
+				<div>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 3</p>
+					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Generate GIF</h2>
+					<p class="mt-4 leading-7 text-body">Pick output size and palette, then generate a downloadable animated GIF directly in the browser.</p>
+				</div>
+				<div class="rounded-lg border border-hairline bg-ink p-5 text-white">
+					<div class="grid gap-5">
+						<div>
+							<p class="font-mono text-xs text-white/60">OUTPUT</p>
+							<p class="mt-2 text-2xl font-semibold">Unity-ready animated GIF</p>
+							<p class="mt-2 text-sm leading-6 text-white/70">Frames are sampled from your selected MP4 using the trim range and FPS settings above.</p>
+						</div>
+						<div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+							<label class="block text-sm font-medium text-white">
+								<span class="mb-1 block">Output Width</span>
+								<input data-output-width class="focus-ring w-full rounded-md border border-white/15 bg-white px-3 py-2 text-sm text-ink" type="number" name="output-width" min="64" max="1024" value="256" inputmode="numeric" autocomplete="off" />
+							</label>
+							<label class="block text-sm font-medium text-white">
+								<span class="mb-1 block">Colors</span>
+								<select data-colors class="focus-ring w-full rounded-md border border-white/15 bg-white px-3 py-2 text-sm text-ink" name="colors" autocomplete="off">
+									<option value="128">128 Colors</option>
+									<option value="256" selected>256 Colors</option>
+								</select>
+							</label>
+							<button data-generate-gif class="focus-ring rounded-md bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-canvas-soft" type="button" disabled>
+								Generate GIF
+							</button>
+						</div>
+						<div class="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+							<p data-export-status class="font-mono text-xs text-white/70" aria-live="polite">Select a video to enable export.</p>
+							<a data-download-gif class="focus-ring hidden rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10" download="unity-animation.gif" href="#">
+								Download GIF
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+		</video-workbench>
+	</main>
+
+	<script>
+		import { GIFEncoder, applyPalette, quantize } from 'gifenc';
+
+		class VideoWorkbench extends HTMLElement {
+			private objectUrl: string | null = null;
+			private gifUrl: string | null = null;
+
+			connectedCallback() {
+				const input = this.querySelector('[data-video-input]') as HTMLInputElement | null;
+				const video = this.querySelector('[data-video]') as HTMLVideoElement | null;
+				const emptyState = this.querySelector('[data-empty-state]') as HTMLElement | null;
+				const playerShell = this.querySelector('[data-player-shell]') as HTMLElement | null;
+				const playToggle = this.querySelector('[data-play-toggle]') as HTMLButtonElement | null;
+				const prevFrame = this.querySelector('[data-prev-frame]') as HTMLButtonElement | null;
+				const nextFrame = this.querySelector('[data-next-frame]') as HTMLButtonElement | null;
+				const fpsInput = this.querySelector('[data-fps]') as HTMLInputElement | null;
+				const startInput = this.querySelector('[data-start-time]') as HTMLInputElement | null;
+				const endInput = this.querySelector('[data-end-time]') as HTMLInputElement | null;
+				const progress = this.querySelector('[data-progress]') as HTMLElement | null;
+				const currentTime = this.querySelector('[data-current-time]') as HTMLElement | null;
+				const duration = this.querySelector('[data-duration]') as HTMLElement | null;
+				const outputWidthInput = this.querySelector('[data-output-width]') as HTMLInputElement | null;
+				const colorsInput = this.querySelector('[data-colors]') as HTMLSelectElement | null;
+				const generateGif = this.querySelector('[data-generate-gif]') as HTMLButtonElement | null;
+				const exportStatus = this.querySelector('[data-export-status]') as HTMLElement | null;
+				const downloadGif = this.querySelector('[data-download-gif]') as HTMLAnchorElement | null;
+
+				if (!input || !video || !emptyState || !playerShell || !playToggle || !prevFrame || !nextFrame || !fpsInput || !generateGif) {
+					return;
+				}
+
+				const formatTime = (seconds: number) => {
+					if (!Number.isFinite(seconds)) return '00:00.000';
+					const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+					const rest = (seconds % 60).toFixed(3).padStart(6, '0');
+					return `${minutes}:${rest}`;
+				};
+
+				const getFrameStep = () => 1 / Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
+
+				const update = () => {
+					const safeDuration = Number.isFinite(video.duration) ? video.duration : 0;
+					const percent = safeDuration > 0 ? (video.currentTime / safeDuration) * 100 : 0;
+					if (progress) progress.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+					if (currentTime) currentTime.textContent = formatTime(video.currentTime);
+					if (duration) duration.textContent = formatTime(safeDuration);
+					playToggle.textContent = video.paused ? 'Play' : 'Pause';
+					playToggle.setAttribute('aria-label', video.paused ? 'Play Video' : 'Pause Video');
+				};
+
+				const setStatus = (message: string) => {
+					if (exportStatus) exportStatus.textContent = message;
+				};
+
+				const seekByFrame = (direction: -1 | 1) => {
+					video.pause();
+					const nextTime = video.currentTime + direction * getFrameStep();
+					const maxTime = Number.isFinite(video.duration) ? video.duration : Number.POSITIVE_INFINITY;
+					video.currentTime = Math.min(maxTime, Math.max(0, nextTime));
+					update();
+				};
+
+				input.addEventListener('change', () => {
+					const file = input.files?.[0];
+					if (!file) return;
+					if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+					this.objectUrl = URL.createObjectURL(file);
+					video.src = this.objectUrl;
+					video.controls = false;
+					video.load();
+					emptyState.classList.add('hidden');
+					playerShell.classList.remove('hidden');
+					generateGif.disabled = true;
+					if (downloadGif) downloadGif.classList.add('hidden');
+					setStatus('Loading video metadata...');
+				});
+
+				playToggle.addEventListener('click', () => {
+					if (!video.src) return;
+					if (video.paused) {
+						void video.play();
+					} else {
+						video.pause();
+					}
+					update();
+				});
+
+				prevFrame.addEventListener('click', () => seekByFrame(-1));
+				nextFrame.addEventListener('click', () => seekByFrame(1));
+
+				video.addEventListener('loadedmetadata', () => {
+					if (endInput) endInput.value = Number.isFinite(video.duration) ? video.duration.toFixed(3) : '0';
+					if (startInput) startInput.value = '0';
+					generateGif.disabled = false;
+					setStatus('Ready to generate GIF.');
+					update();
+				});
+				video.addEventListener('timeupdate', update);
+				video.addEventListener('play', update);
+				video.addEventListener('pause', update);
+				video.addEventListener('ended', update);
+
+				const seekTo = (time: number) =>
+					new Promise<void>((resolve) => {
+						const done = () => resolve();
+						video.addEventListener('seeked', done, { once: true });
+						video.currentTime = time;
+					});
+
+				generateGif.addEventListener('click', async () => {
+					if (!video.src || !Number.isFinite(video.duration)) return;
+					generateGif.disabled = true;
+					if (downloadGif) downloadGif.classList.add('hidden');
+
+					try {
+						video.pause();
+						const fps = Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
+						const start = Math.min(video.duration, Math.max(0, Number(startInput?.value) || 0));
+						const endRaw = Number(endInput?.value) || video.duration;
+						const end = Math.min(video.duration, Math.max(start + 1 / fps, endRaw));
+						const frameCount = Math.floor((end - start) * fps) + 1;
+						if (frameCount > 180) {
+							setStatus('Clip too long. Lower FPS or trim below 180 frames.');
+							return;
+						}
+
+						const width = Math.min(1024, Math.max(64, Number(outputWidthInput?.value) || 256));
+						const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth || 1)));
+						const maxColors = Math.min(256, Math.max(2, Number(colorsInput?.value) || 256));
+						const canvas = document.createElement('canvas');
+						canvas.width = width;
+						canvas.height = height;
+						const context = canvas.getContext('2d');
+						if (!context) throw new Error('Canvas context unavailable.');
+
+						const gif = GIFEncoder();
+						for (let frame = 0; frame < frameCount; frame += 1) {
+							const time = Math.min(end, start + frame / fps);
+							setStatus(`Encoding frame ${frame + 1} of ${frameCount}...`);
+							await seekTo(time);
+							context.drawImage(video, 0, 0, width, height);
+							const { data } = context.getImageData(0, 0, width, height);
+							const palette = quantize(data, maxColors);
+							const indexed = applyPalette(data, palette);
+							gif.writeFrame(indexed, width, height, {
+								palette,
+								delay: Math.round(1000 / fps),
+								repeat: 0,
+							});
+						}
+
+						gif.finish();
+						if (this.gifUrl) URL.revokeObjectURL(this.gifUrl);
+						this.gifUrl = URL.createObjectURL(new Blob([gif.bytes()], { type: 'image/gif' }));
+						if (downloadGif) {
+							downloadGif.href = this.gifUrl;
+							downloadGif.classList.remove('hidden');
+						}
+						setStatus(`Generated ${frameCount} frames at ${width}x${height}.`);
+					} catch (error) {
+						setStatus(error instanceof Error ? error.message : 'GIF export failed.');
+					} finally {
+						generateGif.disabled = false;
+						update();
+					}
+				});
+			}
+
+			disconnectedCallback() {
+				if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+				if (this.gifUrl) URL.revokeObjectURL(this.gifUrl);
+			}
+		}
+
+		customElements.define('video-workbench', VideoWorkbench);
+	</script>
+</Layout>
