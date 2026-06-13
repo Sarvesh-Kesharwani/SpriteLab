@@ -1,0 +1,1344 @@
+---
+const pageTitle = 'Frame Grid';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta
+			name="description"
+			content="Extract video frames or load an image folder, then remove backgrounds locally."
+		/>
+		<title>{pageTitle}</title>
+		<style is:global>
+			:root {
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				color: #171917;
+				background: #f4f5f4;
+				font-synthesis: none;
+			}
+
+			* { box-sizing: border-box; }
+
+			body {
+				min-width: 320px;
+				min-height: 100vh;
+				margin: 0;
+				background: #f4f5f4;
+			}
+
+			button,
+			input { font: inherit; }
+
+			button { cursor: pointer; }
+
+			button:disabled {
+				cursor: not-allowed;
+				opacity: 0.45;
+			}
+
+			button:focus-visible,
+			input:focus-visible,
+			label:focus-within {
+				outline: 2px solid #171917;
+				outline-offset: 2px;
+			}
+
+			.utility-bar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				height: 52px;
+				padding: 0 clamp(16px, 3vw, 40px);
+				color: #f8faf8;
+				background: #171917;
+			}
+
+			.brand {
+				margin: 0;
+				font-size: 0.875rem;
+				font-weight: 680;
+				letter-spacing: 0;
+			}
+
+			.local-status {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				font-size: 0.75rem;
+				color: #bec4be;
+			}
+
+			.local-dot {
+				width: 7px;
+				height: 7px;
+				border-radius: 50%;
+				background: #52d273;
+				box-shadow: 0 0 0 3px rgba(82, 210, 115, 0.14);
+			}
+
+			main {
+				width: min(1240px, calc(100% - 32px));
+				margin: clamp(24px, 5vw, 64px) auto;
+			}
+
+			.workbench {
+				border: 1px solid #d9ddd9;
+				border-radius: 8px;
+				background: #ffffff;
+				box-shadow: 0 16px 48px rgba(20, 24, 20, 0.07);
+			}
+
+			.workbench-head {
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				gap: 24px;
+				padding: 24px 26px 20px;
+				border-bottom: 1px solid #e4e7e4;
+			}
+
+			h1 {
+				margin: 0;
+				font-size: clamp(1.25rem, 2vw, 1.6rem);
+				line-height: 1.2;
+				letter-spacing: 0;
+			}
+
+			.intro {
+				max-width: 610px;
+				margin: 7px 0 0;
+				font-size: 0.875rem;
+				line-height: 1.55;
+				color: #656b65;
+			}
+
+			.clear-button {
+				min-height: 36px;
+				padding: 0 13px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				color: #363a36;
+				background: #ffffff;
+				font-size: 0.8rem;
+				font-weight: 620;
+			}
+
+			.clear-button:hover { border-color: #8d948d; }
+
+			.setup {
+				display: grid;
+				grid-template-columns: minmax(250px, 1.4fr) minmax(430px, 2fr);
+				gap: 18px;
+				padding: 22px 26px;
+				border-bottom: 1px solid #e4e7e4;
+			}
+
+			.drop-zone {
+				display: flex;
+				align-items: center;
+				gap: 14px;
+				min-height: 92px;
+				padding: 15px 18px;
+				border: 1px dashed #aeb4ae;
+				border-radius: 6px;
+				background: #fafbfa;
+				transition: border-color 150ms ease, background 150ms ease;
+			}
+
+			.drop-zone:hover,
+			.drop-zone[data-dragging="true"] {
+				border-color: #238f43;
+				background: #f3fbf5;
+			}
+
+			.upload-mark {
+				display: grid;
+				flex: 0 0 40px;
+				width: 40px;
+				height: 40px;
+				place-items: center;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				background: #ffffff;
+				font-size: 1.1rem;
+				font-weight: 700;
+			}
+
+			.drop-copy { min-width: 0; }
+
+			.file-name {
+				display: block;
+				overflow: hidden;
+				margin-bottom: 4px;
+				font-size: 0.875rem;
+				font-weight: 650;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.file-hint {
+				display: block;
+				font-size: 0.75rem;
+				line-height: 1.45;
+				color: #747a74;
+			}
+
+			.choose-label {
+				border: 0;
+				font: inherit;
+				cursor: pointer;
+				display: inline-flex;
+				align-items: center;
+				min-height: 32px;
+				margin-top: 9px;
+				padding: 0 11px;
+				border-radius: 5px;
+				color: #ffffff;
+				background: #252825;
+				font-size: 0.75rem;
+				font-weight: 650;
+			}
+
+			.source-actions {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+			}
+
+			.choose-label.secondary {
+				border: 1px solid #cfd4cf;
+				color: #363a36;
+				background: #ffffff;
+			}
+
+			.choose-label.secondary:hover { border-color: #8d948d; }
+
+			.file-input {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				overflow: hidden;
+				clip: rect(0, 0, 0, 0);
+				white-space: nowrap;
+			}
+
+			.controls {
+				display: grid;
+				grid-template-columns: minmax(110px, 0.6fr) minmax(250px, 1.4fr) minmax(135px, 0.75fr);
+				gap: 14px;
+				align-items: end;
+			}
+
+			.control-label {
+				display: block;
+				margin-bottom: 7px;
+				font-size: 0.72rem;
+				font-weight: 680;
+				color: #545954;
+			}
+
+			.number-input {
+				width: 100%;
+				height: 40px;
+				padding: 0 11px;
+				border: 1px solid #cfd4cf;
+				border-radius: 5px;
+				background: #ffffff;
+			}
+
+			.segments {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				height: 40px;
+				padding: 3px;
+				border: 1px solid #cfd4cf;
+				border-radius: 5px;
+				background: #f5f6f5;
+			}
+
+			.segment {
+				border: 0;
+				border-radius: 3px;
+				color: #656b65;
+				background: transparent;
+				font-size: 0.75rem;
+				font-weight: 650;
+			}
+
+			.segment[aria-pressed="true"] {
+				color: #171917;
+				background: #ffffff;
+				box-shadow: 0 1px 4px rgba(20, 24, 20, 0.12);
+			}
+
+			.extract-button {
+				height: 40px;
+				border: 1px solid #21853d;
+				border-radius: 5px;
+				color: #ffffff;
+				background: #238f43;
+				font-size: 0.8rem;
+				font-weight: 700;
+			}
+
+			.extract-button:hover:not(:disabled) { background: #1d7c38; }
+
+			.processing-row {
+				display: flex;
+				align-items: end;
+				justify-content: space-between;
+				gap: 20px;
+				padding: 16px 26px;
+				border-bottom: 1px solid #e4e7e4;
+				background: #ffffff;
+			}
+
+			.background-settings,
+			.processing-actions {
+				display: flex;
+				align-items: end;
+				gap: 12px;
+			}
+
+			.color-input {
+				display: block;
+				width: 52px;
+				height: 40px;
+				padding: 4px;
+				border: 1px solid #cfd4cf;
+				border-radius: 5px;
+				background: #ffffff;
+			}
+
+			.tolerance-input {
+				width: 86px;
+				height: 40px;
+				padding: 0 10px;
+				border: 1px solid #cfd4cf;
+				border-radius: 5px;
+				background: #ffffff;
+			}
+
+			.process-button,
+			.save-button {
+				height: 40px;
+				padding: 0 15px;
+				border-radius: 5px;
+				font-size: 0.8rem;
+				font-weight: 700;
+				white-space: nowrap;
+			}
+
+			.process-button {
+				border: 1px solid #303530;
+				color: #ffffff;
+				background: #303530;
+			}
+
+			.process-button:hover:not(:disabled) { background: #171917; }
+
+			.save-button {
+				border: 1px solid #21853d;
+				color: #1d7034;
+				background: #f2fbf4;
+			}
+
+			.save-button:hover:not(:disabled) { background: #e5f7e9; }
+
+			.progress-row {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto;
+				gap: 16px;
+				align-items: center;
+				min-height: 50px;
+				padding: 10px 26px;
+				border-bottom: 1px solid #e4e7e4;
+				background: #fbfcfb;
+			}
+
+			.progress-stack {
+				display: grid;
+				grid-template-columns: minmax(120px, 190px) minmax(120px, 1fr);
+				gap: 14px;
+				align-items: center;
+			}
+
+			.status {
+				overflow: hidden;
+				font-size: 0.76rem;
+				color: #555b55;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.progress-track {
+				height: 5px;
+				overflow: hidden;
+				border-radius: 5px;
+				background: #e3e7e3;
+			}
+
+			.progress-fill {
+				width: 0;
+				height: 100%;
+				background: #2db653;
+				transition: width 120ms linear;
+			}
+
+			.summary {
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.7rem;
+				color: #747a74;
+				white-space: nowrap;
+			}
+
+			.gallery-shell {
+				padding: 20px 26px 26px;
+			}
+
+			.gallery {
+				display: grid;
+				grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr));
+				gap: 12px;
+				align-content: start;
+				min-height: 390px;
+				max-height: 61vh;
+				overflow: auto;
+				padding-right: 4px;
+				scrollbar-gutter: stable;
+			}
+
+			.gallery[data-columns="auto"] {
+				grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+			}
+
+			.empty-state {
+				display: grid;
+				grid-column: 1 / -1;
+				min-height: 390px;
+				place-items: center;
+				border: 1px solid #e1e4e1;
+				background:
+					linear-gradient(45deg, #f8f9f8 25%, transparent 25%),
+					linear-gradient(-45deg, #f8f9f8 25%, transparent 25%),
+					linear-gradient(45deg, transparent 75%, #f8f9f8 75%),
+					linear-gradient(-45deg, transparent 75%, #f8f9f8 75%);
+				background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+				background-size: 20px 20px;
+				color: #747a74;
+				text-align: center;
+			}
+
+			.empty-state strong {
+				display: block;
+				margin-bottom: 5px;
+				color: #424742;
+				font-size: 0.875rem;
+			}
+
+			.empty-state span { font-size: 0.78rem; }
+
+			.frame {
+				min-width: 0;
+				margin: 0;
+				border: 1px solid #dfe3df;
+				border-radius: 5px;
+				overflow: hidden;
+				background: #ffffff;
+			}
+
+			.frame-image {
+				display: block;
+				width: 100%;
+				aspect-ratio: 16 / 9;
+				object-fit: contain;
+				background-color: #ffffff;
+				background-image:
+					linear-gradient(45deg, #e5e8e5 25%, transparent 25%),
+					linear-gradient(-45deg, #e5e8e5 25%, transparent 25%),
+					linear-gradient(45deg, transparent 75%, #e5e8e5 75%),
+					linear-gradient(-45deg, transparent 75%, #e5e8e5 75%);
+				background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+				background-size: 16px 16px;
+			}
+
+			.frame[data-processed="true"] { border-color: #9fd9ad; }
+
+			.frame-caption {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 8px;
+				padding: 8px 9px;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.67rem;
+				color: #626862;
+			}
+
+			.frame-number { color: #222522; }
+
+			.frame-source {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.hidden-media {
+				position: fixed;
+				left: -10000px;
+				top: 0;
+				width: 1px;
+				height: 1px;
+				opacity: 0;
+				pointer-events: none;
+			}
+
+			@media (max-width: 900px) {
+				.setup { grid-template-columns: 1fr; }
+				.gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+			}
+
+			@media (max-width: 640px) {
+				main {
+					width: min(100% - 20px, 1240px);
+					margin: 10px auto 24px;
+				}
+
+				.utility-bar { padding: 0 14px; }
+				.workbench-head,
+				.setup,
+				.gallery-shell { padding-left: 15px; padding-right: 15px; }
+				.workbench-head { align-items: center; }
+				.intro { font-size: 0.8rem; }
+				.controls { grid-template-columns: 88px minmax(0, 1fr); }
+				.extract-button { grid-column: 1 / -1; }
+				.progress-row { grid-template-columns: 1fr; padding: 10px 15px; }
+				.progress-stack { grid-template-columns: 1fr; gap: 7px; }
+				.summary { display: none; }
+				.processing-row { align-items: stretch; padding: 14px 15px; }
+				.processing-row,
+				.background-settings,
+				.processing-actions { flex-wrap: wrap; }
+				.processing-actions { width: 100%; }
+				.process-button,
+				.save-button { flex: 1 1 145px; }
+				.gallery,
+				.gallery[data-columns="auto"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+				.gallery { gap: 8px; min-height: 330px; max-height: 66vh; }
+				.empty-state { min-height: 330px; padding: 24px; }
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				* { transition-duration: 0.001ms !important; }
+			}
+		</style>
+	</head>
+	<body>
+		<header class="utility-bar">
+			<p class="brand">Frame Grid</p>
+			<div class="local-status"><span class="local-dot"></span>Local processing</div>
+		</header>
+
+		<main>
+			<frame-grid-app class="workbench">
+				<div class="workbench-head">
+					<div>
+						<h1>Prepare animation frames</h1>
+						<p class="intro">Extract frames from a video or load an existing frames folder, then remove its background. Files never leave this browser.</p>
+					</div>
+					<button data-clear class="clear-button" type="button" disabled>Clear</button>
+				</div>
+
+				<section class="setup" aria-label="Frame source and extraction controls">
+					<div data-drop-zone class="drop-zone">
+						<div class="upload-mark" aria-hidden="true">+</div>
+						<div class="drop-copy">
+							<strong data-file-name class="file-name">Drop a video or choose a frames folder</strong>
+							<span data-file-hint class="file-hint">Video, or a folder containing PNG, WebP, JPEG, or GIF frames</span>
+							<div class="source-actions">
+								<button data-video-picker class="choose-label" type="button">Choose video</button>
+								<button data-folder-picker class="choose-label secondary" type="button">Choose frames folder</button>
+								<input data-file-input class="file-input" type="file" accept="video/*" hidden />
+								<input data-folder-input class="file-input" type="file" accept="image/*" webkitdirectory directory multiple hidden />
+							</div>
+						</div>
+					</div>
+
+					<div class="controls">
+						<label>
+							<span class="control-label">Frames / sec</span>
+							<input data-fps class="number-input" type="number" min="0.25" max="12" step="0.25" value="1" inputmode="decimal" />
+						</label>
+
+						<div>
+							<span class="control-label">Grid columns</span>
+							<div data-segments class="segments" aria-label="Grid columns">
+								<button class="segment" type="button" data-columns="3" aria-pressed="false">3</button>
+								<button class="segment" type="button" data-columns="4" aria-pressed="true">4</button>
+								<button class="segment" type="button" data-columns="5" aria-pressed="false">5</button>
+								<button class="segment" type="button" data-columns="auto" aria-pressed="false">Auto</button>
+							</div>
+						</div>
+
+						<button data-extract class="extract-button" type="button" disabled>Extract frames</button>
+					</div>
+				</section>
+
+				<div class="progress-row">
+					<div class="progress-stack">
+						<div data-status class="status" aria-live="polite">Waiting for a video or frames folder</div>
+						<div class="progress-track" aria-hidden="true"><div data-progress class="progress-fill"></div></div>
+					</div>
+					<div data-summary class="summary">0 frames</div>
+				</div>
+
+				<div class="processing-row">
+					<div class="background-settings">
+						<label>
+							<span class="control-label">Background</span>
+							<input data-bg-color class="color-input" type="color" value="#00ff00" aria-label="Background color" />
+						</label>
+						<label>
+							<span class="control-label">Tolerance</span>
+							<input data-bg-tolerance class="tolerance-input" type="number" min="0" max="220" step="1" value="72" inputmode="numeric" />
+						</label>
+					</div>
+					<div class="processing-actions">
+						<button data-remove-bg class="process-button" type="button" disabled>Remove background</button>
+						<button data-save-frames class="save-button" type="button" disabled>Save processed frames</button>
+					</div>
+				</div>
+
+				<section class="gallery-shell" aria-label="Animation frames">
+					<div data-gallery class="gallery" data-columns="4" style="--columns: 4">
+						<div data-empty class="empty-state">
+							<p><strong>No frames loaded</strong><span>Select a video or choose a frames folder to populate the grid.</span></p>
+						</div>
+					</div>
+				</section>
+
+				<video data-video class="hidden-media" muted playsinline preload="metadata"></video>
+				<canvas data-canvas class="hidden-media"></canvas>
+			</frame-grid-app>
+		</main>
+
+		<script>
+			class FrameGridApp extends HTMLElement {
+				file = null;
+				videoUrl = '';
+				cancelToken = 0;
+				frames = [];
+				workspaceReady = false;
+				workspaceSaveTimer = 0;
+
+				connectedCallback() {
+					this.videoPicker = this.querySelector('[data-video-picker]');
+					this.folderPicker = this.querySelector('[data-folder-picker]');
+					this.fileInput = this.querySelector('[data-file-input]');
+					this.folderInput = this.querySelector('[data-folder-input]');
+					this.dropZone = this.querySelector('[data-drop-zone]');
+					this.fileName = this.querySelector('[data-file-name]');
+					this.fileHint = this.querySelector('[data-file-hint]');
+					this.fpsInput = this.querySelector('[data-fps]');
+					this.extractButton = this.querySelector('[data-extract]');
+					this.removeBgButton = this.querySelector('[data-remove-bg]');
+					this.saveFramesButton = this.querySelector('[data-save-frames]');
+					this.bgColorInput = this.querySelector('[data-bg-color]');
+					this.bgToleranceInput = this.querySelector('[data-bg-tolerance]');
+					this.clearButton = this.querySelector('[data-clear]');
+					this.status = this.querySelector('[data-status]');
+					this.progress = this.querySelector('[data-progress]');
+					this.summary = this.querySelector('[data-summary]');
+					this.gallery = this.querySelector('[data-gallery]');
+					this.video = this.querySelector('[data-video]');
+					this.canvas = this.querySelector('[data-canvas]');
+
+					this.videoPicker?.addEventListener('click', () => this.chooseVideo());
+					this.folderPicker?.addEventListener('click', () => this.chooseFramesDirectory());
+
+					this.fileInput?.addEventListener('change', (event) => {
+						const input = event.currentTarget;
+						if (input instanceof HTMLInputElement && input.files?.[0]) void this.loadFile(input.files[0], { persistFile: true });
+					});
+
+					this.folderInput?.addEventListener('change', (event) => {
+						const input = event.currentTarget;
+						if (input instanceof HTMLInputElement && input.files) void this.loadFramesFolder([...input.files], { persistFiles: true });
+					});
+
+					for (const eventName of ['dragenter', 'dragover']) {
+						this.dropZone?.addEventListener(eventName, (event) => {
+							event.preventDefault();
+							this.dropZone?.setAttribute('data-dragging', 'true');
+						});
+					}
+
+					for (const eventName of ['dragleave', 'drop']) {
+						this.dropZone?.addEventListener(eventName, (event) => {
+							event.preventDefault();
+							this.dropZone?.removeAttribute('data-dragging');
+						});
+					}
+
+					this.dropZone?.addEventListener('drop', (event) => {
+						const file = event.dataTransfer?.files?.[0];
+						if (file) void this.loadFile(file, { persistFile: true });
+					});
+
+					this.querySelector('[data-segments]')?.addEventListener('click', (event) => {
+						const button = event.target instanceof Element ? event.target.closest('[data-columns]') : null;
+						if (!(button instanceof HTMLButtonElement)) return;
+						for (const item of this.querySelectorAll('[data-columns]')) item.setAttribute('aria-pressed', String(item === button));
+						const columns = button.dataset.columns || '4';
+						this.gallery?.setAttribute('data-columns', columns);
+						this.gallery?.style.setProperty('--columns', columns === 'auto' ? '4' : columns);
+						this.scheduleWorkspaceSave();
+					});
+					this.fpsInput?.addEventListener('change', () => this.scheduleWorkspaceSave());
+					this.bgColorInput?.addEventListener('change', () => this.scheduleWorkspaceSave());
+					this.bgToleranceInput?.addEventListener('change', () => this.scheduleWorkspaceSave());
+
+					this.extractButton?.addEventListener('click', () => this.extractFrames());
+					this.removeBgButton?.addEventListener('click', () => this.removeBackgroundFromFrames());
+					this.saveFramesButton?.addEventListener('click', () => this.saveProcessedFrames());
+					this.clearButton?.addEventListener('click', () => void this.clear());
+					window.addEventListener('pagehide', () => void this.persistWorkspaceState());
+					void this.restoreWorkspace();
+				}
+
+				async chooseVideo() {
+					if (!('showOpenFilePicker' in window)) {
+						this.fileInput?.click();
+						return;
+					}
+					try {
+						const [handle] = await window.showOpenFilePicker({
+							multiple: false,
+							types: [{ description: 'Video', accept: { 'video/*': ['.mp4', '.webm', '.mov', '.m4v', '.avi'] } }],
+						});
+						this.videoHandle = handle;
+						this.framesDirectoryHandle = null;
+						await this.storeValue('frame-grid-video-handle', handle);
+						await this.deleteValue('frame-grid-folder-handle');
+						await this.loadFile(await handle.getFile());
+					} catch (error) {
+						if (!(error instanceof DOMException && error.name === 'AbortError')) this.setStatus('Could not open the video.');
+					}
+				}
+
+				async chooseFramesDirectory() {
+					if (!('showDirectoryPicker' in window)) {
+						this.folderInput?.click();
+						return;
+					}
+					try {
+						const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+						this.framesDirectoryHandle = handle;
+						this.videoHandle = null;
+						await this.storeValue('frame-grid-folder-handle', handle);
+						await this.deleteValue('frame-grid-video-handle');
+						const files = [];
+						await this.collectDirectoryImages(handle, '', files);
+						await this.loadFramesFolder(files, { folderName: handle.name });
+					} catch (error) {
+						if (!(error instanceof DOMException && error.name === 'AbortError')) this.setStatus('Could not open the frames folder.');
+					}
+				}
+
+				async collectDirectoryImages(directory, prefix, files) {
+					for await (const entry of directory.values()) {
+						const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+						if (entry.kind === 'directory') {
+							await this.collectDirectoryImages(entry, path, files);
+						} else if (entry.kind === 'file' && /\.(png|webp|jpe?g|gif)$/i.test(entry.name)) {
+							const file = await entry.getFile();
+							Object.defineProperty(file, 'workspaceRelativePath', { value: path });
+							files.push(file);
+						}
+					}
+				}
+
+				async ensurePermission(handle, mode, request = false) {
+					const options = { mode };
+					if (await handle.queryPermission(options) === 'granted') return true;
+					return request && await handle.requestPermission(options) === 'granted';
+				}
+
+				openDatabase() {
+					return new Promise((resolve, reject) => {
+						const request = indexedDB.open('spriteanim-v2-handles', 1);
+						request.onupgradeneeded = () => {
+							if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+						};
+						request.onsuccess = () => resolve(request.result);
+						request.onerror = () => reject(request.error);
+					});
+				}
+
+				async storeValue(key, value) {
+					const database = await this.openDatabase();
+					await new Promise((resolve, reject) => {
+						const transaction = database.transaction('handles', 'readwrite');
+						transaction.objectStore('handles').put(value, key);
+						transaction.oncomplete = () => resolve();
+						transaction.onerror = () => reject(transaction.error);
+					});
+					database.close();
+				}
+
+				async getStoredValue(key) {
+					const database = await this.openDatabase();
+					const value = await new Promise((resolve, reject) => {
+						const request = database.transaction('handles').objectStore('handles').get(key);
+						request.onsuccess = () => resolve(request.result || null);
+						request.onerror = () => reject(request.error);
+					});
+					database.close();
+					return value;
+				}
+
+				async deleteValue(key) {
+					const database = await this.openDatabase();
+					await new Promise((resolve, reject) => {
+						const transaction = database.transaction('handles', 'readwrite');
+						transaction.objectStore('handles').delete(key);
+						transaction.oncomplete = () => resolve();
+						transaction.onerror = () => reject(transaction.error);
+					});
+					database.close();
+				}
+
+				async restoreWorkspace() {
+					try {
+						const state = await this.getStoredValue('frame-grid-workspace');
+						if (state) {
+							this.fpsInput.value = String(state.fps || 1);
+							this.bgColorInput.value = state.bgColor || '#00ff00';
+							this.bgToleranceInput.value = String(state.bgTolerance ?? 72);
+							const columns = state.columns || '4';
+							for (const item of this.querySelectorAll('[data-columns]')) item.setAttribute('aria-pressed', String(item.dataset.columns === columns));
+							this.gallery.dataset.columns = columns;
+							this.gallery.style.setProperty('--columns', columns === 'auto' ? '4' : columns);
+						}
+
+						const folderHandle = await this.getStoredValue('frame-grid-folder-handle');
+						if (folderHandle) {
+							this.framesDirectoryHandle = folderHandle;
+							if (await this.ensurePermission(folderHandle, 'readwrite')) {
+								const files = [];
+								await this.collectDirectoryImages(folderHandle, '', files);
+								await this.loadFramesFolder(files, { folderName: folderHandle.name, skipSnapshot: true });
+								return;
+							}
+							this.fileName.textContent = folderHandle.name;
+							this.fileHint.textContent = 'Folder remembered. Choose frames folder once if browser permission expired.';
+							this.clearButton.disabled = false;
+							return;
+						}
+
+						const videoHandle = await this.getStoredValue('frame-grid-video-handle');
+						if (videoHandle) {
+							this.videoHandle = videoHandle;
+							if (await this.ensurePermission(videoHandle, 'read')) {
+								await this.loadFile(await videoHandle.getFile(), { skipSnapshot: true });
+								return;
+							}
+							this.fileName.textContent = videoHandle.name;
+							this.fileHint.textContent = 'Video remembered. Choose video once if browser permission expired.';
+							this.clearButton.disabled = false;
+							return;
+						}
+
+						const folderFiles = await this.getStoredValue('frame-grid-folder-files');
+						if (folderFiles?.length) {
+							await this.loadFramesFolder(folderFiles, { skipSnapshot: true });
+							return;
+						}
+						const videoFile = await this.getStoredValue('frame-grid-video-file');
+						if (videoFile) await this.loadFile(videoFile, { skipSnapshot: true });
+					} catch {
+						this.setStatus('Saved workspace could not be restored.');
+					}
+				}
+
+				scheduleWorkspaceSave() {
+					if (!this.workspaceReady) return;
+					window.clearTimeout(this.workspaceSaveTimer);
+					this.workspaceSaveTimer = window.setTimeout(() => void this.persistWorkspaceState(), 120);
+				}
+
+				async persistWorkspaceState() {
+					if (!this.workspaceReady) return;
+					const selected = this.querySelector('[data-columns][aria-pressed="true"]');
+					try {
+						await this.storeValue('frame-grid-workspace', {
+							fps: Number(this.fpsInput.value) || 1,
+							columns: selected?.dataset.columns || '4',
+							bgColor: this.bgColorInput.value,
+							bgTolerance: Number(this.bgToleranceInput.value) || 0,
+						});
+					} catch {}
+				}
+
+				async persistFramesSnapshot() {
+					if (!this.workspaceReady || this.frames.length === 0) return;
+					try {
+						await this.storeValue('frame-grid-frames', {
+							sourceName: this.fileName.textContent || '',
+							frames: this.frames.map((frame) => ({
+								number: frame.number,
+								time: frame.time,
+								sourceName: frame.sourceName,
+								outputName: frame.outputName,
+								sourceBlob: frame.sourceBlob,
+								processedBlob: frame.processedBlob,
+							})),
+						});
+					} catch {}
+				}
+
+				async restoreFramesSnapshot(sourceName) {
+					const snapshot = await this.getStoredValue('frame-grid-frames');
+					if (!snapshot || snapshot.sourceName !== sourceName || !snapshot.frames?.length) return;
+					this.resetGallery(false);
+					for (const item of snapshot.frames) {
+						const frame = this.createFrame(item.sourceBlob, item.number, item.time, item.sourceName);
+						frame.outputName = item.outputName || frame.outputName;
+						if (item.processedBlob) {
+							frame.processedBlob = item.processedBlob;
+							frame.processedUrl = URL.createObjectURL(item.processedBlob);
+							frame.image.src = frame.processedUrl;
+							frame.figure.dataset.processed = 'true';
+						}
+						this.frames.push(frame);
+						this.gallery.append(frame.figure);
+					}
+					this.summary.textContent = `${this.frames.length} frame${this.frames.length === 1 ? '' : 's'}`;
+					this.removeBgButton.disabled = false;
+					this.saveFramesButton.disabled = !this.frames.some((frame) => frame.processedBlob);
+					this.setStatus('Saved workspace restored');
+				}
+
+				async loadFile(file, options = {}) {
+					if (!file.type.startsWith('video/')) {
+						this.setStatus('Choose a valid video file.');
+						return;
+					}
+
+					this.cancelToken += 1;
+					this.workspaceReady = false;
+					this.file = file;
+					this.folderInput.value = '';
+					if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
+					this.videoUrl = URL.createObjectURL(file);
+					this.video.src = this.videoUrl;
+					this.fileName.textContent = file.name;
+					this.fileHint.textContent = `${this.formatBytes(file.size)} - reading metadata`;
+					this.extractButton.disabled = true;
+					this.removeBgButton.disabled = true;
+					this.saveFramesButton.disabled = true;
+					this.clearButton.disabled = false;
+					this.resetGallery();
+
+					try {
+						await this.once(this.video, 'loadedmetadata');
+						if (this.video.readyState < 2) await this.once(this.video, 'loadeddata');
+						this.fileHint.textContent = `${this.formatBytes(file.size)} - ${this.formatTime(this.video.duration)} - ${this.video.videoWidth}x${this.video.videoHeight}`;
+						this.extractButton.disabled = false;
+						this.setStatus('Ready to extract');
+						this.workspaceReady = true;
+						if (options.persistFile) {
+							try {
+								await this.storeValue('frame-grid-video-file', file);
+								await this.deleteValue('frame-grid-folder-files');
+								await this.deleteValue('frame-grid-video-handle');
+								await this.deleteValue('frame-grid-folder-handle');
+							} catch {}
+						}
+						if (!options.skipSnapshot) await this.deleteValue('frame-grid-frames');
+						await this.restoreFramesSnapshot(file.name);
+						this.scheduleWorkspaceSave();
+					} catch {
+						this.setStatus('This browser could not read the selected video.');
+					}
+				}
+
+				async loadFramesFolder(files, options = {}) {
+					const imageFiles = Array.from(files)
+						.filter((file) => file.type.startsWith('image/') || /\.(png|webp|jpe?g|gif)$/i.test(file.name))
+						.sort((a, b) => this.naturalCompare(a.workspaceRelativePath || a.webkitRelativePath || a.name, b.workspaceRelativePath || b.webkitRelativePath || b.name));
+
+					if (imageFiles.length === 0) {
+						this.setStatus('Selected folder contains no supported image frames.');
+						return;
+					}
+
+					this.cancelToken += 1;
+					this.workspaceReady = false;
+					this.file = null;
+					this.fileInput.value = '';
+					this.video.removeAttribute('src');
+					this.video.load();
+					if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
+					this.videoUrl = '';
+					this.resetGallery(false);
+
+					const firstPath = imageFiles[0].workspaceRelativePath || imageFiles[0].webkitRelativePath || '';
+					const folderName = options.folderName || (firstPath.includes('/') ? firstPath.split('/')[0] : 'Selected frames');
+					const totalBytes = imageFiles.reduce((total, file) => total + file.size, 0);
+					this.fileName.textContent = folderName;
+					this.fileHint.textContent = `${imageFiles.length} image frame${imageFiles.length === 1 ? '' : 's'} - ${this.formatBytes(totalBytes)}`;
+
+					for (let index = 0; index < imageFiles.length; index += 1) {
+						const source = imageFiles[index];
+						const frame = this.createFrame(source, index + 1, null, source.name);
+						this.frames.push(frame);
+						this.gallery.append(frame.figure);
+					}
+
+					this.extractButton.disabled = true;
+					this.removeBgButton.disabled = false;
+					this.saveFramesButton.disabled = true;
+					this.clearButton.disabled = false;
+					this.summary.textContent = `${imageFiles.length} frame${imageFiles.length === 1 ? '' : 's'}`;
+					this.setStatus('Frames folder ready for background removal');
+					this.workspaceReady = true;
+					if (options.persistFiles) {
+						try {
+							await this.storeValue('frame-grid-folder-files', imageFiles);
+							await this.deleteValue('frame-grid-video-file');
+							await this.deleteValue('frame-grid-video-handle');
+							await this.deleteValue('frame-grid-folder-handle');
+						} catch {}
+					}
+					if (!options.skipSnapshot) await this.persistFramesSnapshot();
+					else await this.restoreFramesSnapshot(folderName);
+					this.scheduleWorkspaceSave();
+				}
+
+				async extractFrames() {
+					if (!this.file || !Number.isFinite(this.video.duration) || this.video.duration <= 0) return;
+					const fps = Math.min(12, Math.max(0.25, Number(this.fpsInput.value) || 1));
+					this.fpsInput.value = String(fps);
+					const requestedCount = Math.max(1, Math.ceil(this.video.duration * fps));
+					const frameCount = Math.min(240, requestedCount);
+					const token = ++this.cancelToken;
+
+					this.resetGallery(false);
+					this.extractButton.disabled = true;
+					this.removeBgButton.disabled = true;
+					this.saveFramesButton.disabled = true;
+					this.clearButton.disabled = false;
+					this.progress.style.width = '0%';
+					this.setStatus(`Extracting 0 of ${frameCount}`);
+
+					const sourceWidth = this.video.videoWidth;
+					const sourceHeight = this.video.videoHeight;
+					const scale = Math.min(1, 720 / sourceWidth);
+					this.canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+					this.canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+					const context = this.canvas.getContext('2d', { alpha: true });
+					if (!context) return;
+
+					for (let index = 0; index < frameCount; index += 1) {
+						if (token !== this.cancelToken) return;
+						const time = Math.min(index / fps, Math.max(0, this.video.duration - 0.001));
+						await this.seek(time);
+						context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+						context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+						const sourceBlob = await this.canvasToBlob(this.canvas, 'image/jpeg', 0.86);
+						const frame = this.createFrame(sourceBlob, index + 1, time);
+						this.frames.push(frame);
+						this.gallery.append(frame.figure);
+						const complete = index + 1;
+						this.progress.style.width = `${(complete / frameCount) * 100}%`;
+						this.setStatus(`Extracting ${complete} of ${frameCount}`);
+						this.summary.textContent = `${complete} frame${complete === 1 ? '' : 's'}`;
+					}
+
+					const capped = requestedCount > frameCount ? ' - capped at 240' : '';
+					this.setStatus(`Extraction complete${capped}`);
+					this.extractButton.disabled = false;
+					this.removeBgButton.disabled = this.frames.length === 0;
+					await this.persistFramesSnapshot();
+				}
+
+				createFrame(sourceBlob, number, time, sourceName = '') {
+					const sourceUrl = URL.createObjectURL(sourceBlob);
+					const figure = document.createElement('figure');
+					figure.className = 'frame';
+					const image = document.createElement('img');
+					image.className = 'frame-image';
+					image.src = sourceUrl;
+					image.alt = sourceName || `Frame ${number} at ${this.formatTime(time)}`;
+					const caption = document.createElement('figcaption');
+					caption.className = 'frame-caption';
+					const label = document.createElement('span');
+					label.className = 'frame-number';
+					label.textContent = `Frame ${String(number).padStart(3, '0')}`;
+					const timestamp = document.createElement('span');
+					timestamp.className = 'frame-source';
+					timestamp.textContent = sourceName || this.formatTime(time);
+					caption.append(label, timestamp);
+					figure.append(image, caption);
+					return {
+						figure,
+						image,
+						number,
+						time,
+						sourceName,
+						outputName: sourceName ? `${String(number).padStart(3, '0')}-${this.safeBaseName(sourceName)}.png` : '',
+						sourceBlob,
+						sourceUrl,
+						processedBlob: null,
+						processedUrl: '',
+					};
+				}
+
+				async removeBackgroundFromFrames() {
+					if (this.frames.length === 0) return;
+					const token = ++this.cancelToken;
+					this.extractButton.disabled = true;
+					this.removeBgButton.disabled = true;
+					this.saveFramesButton.disabled = true;
+					this.clearButton.disabled = true;
+					this.progress.style.width = '0%';
+
+					try {
+						const context = this.canvas.getContext('2d', { alpha: true });
+						if (!context) throw new Error('Canvas context unavailable.');
+						let changedFrames = 0;
+
+						for (let index = 0; index < this.frames.length; index += 1) {
+							if (token !== this.cancelToken) return;
+							const frame = this.frames[index];
+							const bitmap = await createImageBitmap(frame.sourceBlob);
+							this.canvas.width = bitmap.width;
+							this.canvas.height = bitmap.height;
+							context.clearRect(0, 0, bitmap.width, bitmap.height);
+							context.drawImage(bitmap, 0, 0);
+							bitmap.close();
+
+							const imageData = context.getImageData(0, 0, this.canvas.width, this.canvas.height);
+							if (this.removeBackgroundPixels(imageData.data)) changedFrames += 1;
+							context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+							context.putImageData(imageData, 0, 0);
+
+							const processedBlob = await this.canvasToBlob(this.canvas, 'image/png');
+							if (frame.processedUrl) URL.revokeObjectURL(frame.processedUrl);
+							frame.processedBlob = processedBlob;
+							frame.processedUrl = URL.createObjectURL(processedBlob);
+							frame.image.src = frame.processedUrl;
+							frame.figure.dataset.processed = 'true';
+
+							const complete = index + 1;
+							this.progress.style.width = `${(complete / this.frames.length) * 100}%`;
+							this.setStatus(`Removing background ${complete} of ${this.frames.length}`);
+						}
+
+						this.summary.textContent = `${this.frames.length} transparent frame${this.frames.length === 1 ? '' : 's'}`;
+						this.setStatus(changedFrames > 0
+							? `Background removed from ${changedFrames} frame${changedFrames === 1 ? '' : 's'}`
+							: 'Processing complete - no matching background pixels found');
+						this.saveFramesButton.disabled = false;
+						await this.persistFramesSnapshot();
+					} catch (error) {
+						this.setStatus(error instanceof Error ? error.message : 'Background removal failed.');
+					} finally {
+						this.extractButton.disabled = false;
+						this.removeBgButton.disabled = false;
+						this.clearButton.disabled = false;
+					}
+				}
+
+				removeBackgroundPixels(data) {
+					const key = this.hexToRgb(this.bgColorInput.value || '#00ff00');
+					const tolerance = Math.min(220, Math.max(0, Number(this.bgToleranceInput.value) || 72));
+					const softness = 24;
+					let changed = false;
+
+					for (let index = 0; index < data.length; index += 4) {
+						const originalAlpha = data[index + 3];
+						if (originalAlpha === 0) continue;
+						const dr = data[index] - key.r;
+						const dg = data[index + 1] - key.g;
+						const db = data[index + 2] - key.b;
+						const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+						if (distance <= tolerance) {
+							data[index + 3] = 0;
+							changed = true;
+						} else if (distance <= tolerance + softness) {
+							data[index + 3] = Math.min(originalAlpha, Math.round(((distance - tolerance) / softness) * 255));
+							changed = true;
+						}
+					}
+
+					return changed;
+				}
+
+				async saveProcessedFrames() {
+					const processedFrames = this.frames.filter((frame) => frame.processedBlob);
+					if (processedFrames.length === 0) return;
+					this.saveFramesButton.disabled = true;
+					this.removeBgButton.disabled = true;
+					const baseName = this.safeBaseName(this.file?.name || 'video');
+
+					try {
+						if ('showDirectoryPicker' in window) {
+							let directory = this.outputDirectoryHandle || await this.getStoredValue('frame-grid-output-handle');
+							if (!directory || !await this.ensurePermission(directory, 'readwrite', true)) {
+								directory = await window.showDirectoryPicker({ mode: 'readwrite' });
+							}
+							this.outputDirectoryHandle = directory;
+							await this.storeValue('frame-grid-output-handle', directory);
+							for (let index = 0; index < processedFrames.length; index += 1) {
+								const frame = processedFrames[index];
+								const name = frame.outputName || `${baseName}-frame-${String(frame.number).padStart(3, '0')}.png`;
+								const fileHandle = await directory.getFileHandle(name, { create: true });
+								const writable = await fileHandle.createWritable();
+								await writable.write(frame.processedBlob);
+								await writable.close();
+								this.setStatus(`Saving frame ${index + 1} of ${processedFrames.length}`);
+							}
+						} else {
+							for (const frame of processedFrames) {
+								const link = document.createElement('a');
+								link.href = frame.processedUrl;
+								link.download = frame.outputName || `${baseName}-frame-${String(frame.number).padStart(3, '0')}.png`;
+								link.click();
+								await new Promise((resolve) => window.setTimeout(resolve, 120));
+							}
+						}
+						this.setStatus(`Saved ${processedFrames.length} processed PNG frame${processedFrames.length === 1 ? '' : 's'}`);
+					} catch (error) {
+						this.setStatus(error?.name === 'AbortError' ? 'Save canceled' : 'Could not save processed frames.');
+					} finally {
+						this.saveFramesButton.disabled = false;
+						this.removeBgButton.disabled = false;
+					}
+				}
+
+				canvasToBlob(canvas, type, quality) {
+					return new Promise((resolve, reject) => {
+						canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Frame image export failed.')), type, quality);
+					});
+				}
+
+				hexToRgb(hex) {
+					const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#00ff00';
+					const value = Number.parseInt(normalized.slice(1), 16);
+					return { r: (value >> 16) & 255, g: (value >> 8) & 255, b: value & 255 };
+				}
+
+				safeBaseName(name) {
+					return name.replace(/\.[^.]+$/, '').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '') || 'video';
+				}
+
+				naturalCompare(a, b) {
+					return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+				}
+
+				seek(time) {
+					const target = time <= 0
+						? Math.min(0.001, Math.max(0, this.video.duration - 0.001))
+						: time;
+					if (Math.abs(this.video.currentTime - target) < 0.0001 && this.video.readyState >= 2) {
+						return this.waitForVideoFrame();
+					}
+					const complete = this.once(this.video, 'seeked');
+					this.video.currentTime = target;
+					return complete.then(() => this.waitForVideoFrame());
+				}
+
+				waitForVideoFrame() {
+					return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+				}
+
+				once(target, eventName) {
+					return new Promise((resolve, reject) => {
+						const timeout = window.setTimeout(() => {
+							target.removeEventListener(eventName, done);
+							reject(new Error(`Timed out waiting for ${eventName}`));
+						}, 15000);
+						const done = () => {
+							window.clearTimeout(timeout);
+							resolve();
+						};
+						target.addEventListener(eventName, done, { once: true });
+					});
+				}
+
+				resetGallery(showEmpty = true) {
+					for (const frame of this.frames) {
+						URL.revokeObjectURL(frame.sourceUrl);
+						if (frame.processedUrl) URL.revokeObjectURL(frame.processedUrl);
+					}
+					this.frames = [];
+					this.gallery.replaceChildren();
+					if (showEmpty) {
+						const empty = document.createElement('div');
+						empty.className = 'empty-state';
+						empty.innerHTML = '<p><strong>No frames loaded</strong><span>Select a video or choose a frames folder to populate the grid.</span></p>';
+						this.gallery.append(empty);
+					}
+					this.summary.textContent = '0 frames';
+					this.progress.style.width = '0%';
+					this.removeBgButton.disabled = true;
+					this.saveFramesButton.disabled = true;
+				}
+
+				async clear() {
+					this.cancelToken += 1;
+					this.workspaceReady = false;
+					window.clearTimeout(this.workspaceSaveTimer);
+					try { await Promise.all([
+						'frame-grid-video-handle',
+						'frame-grid-folder-handle',
+						'frame-grid-output-handle',
+						'frame-grid-video-file',
+						'frame-grid-folder-files',
+						'frame-grid-workspace',
+						'frame-grid-frames',
+					].map((key) => this.deleteValue(key))); } catch {}
+					this.file = null;
+					this.videoHandle = null;
+					this.framesDirectoryHandle = null;
+					this.outputDirectoryHandle = null;
+					this.video.removeAttribute('src');
+					this.video.load();
+					if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
+					this.videoUrl = '';
+					this.fileInput.value = '';
+					this.folderInput.value = '';
+					this.fileName.textContent = 'Drop a video or choose a frames folder';
+					this.fileHint.textContent = 'Video, or a folder containing PNG, WebP, JPEG, or GIF frames';
+					this.extractButton.disabled = true;
+					this.removeBgButton.disabled = true;
+					this.saveFramesButton.disabled = true;
+					this.clearButton.disabled = true;
+					this.setStatus('Waiting for a video or frames folder');
+					this.resetGallery();
+				}
+
+				setStatus(message) { this.status.textContent = message; }
+
+				formatBytes(bytes) {
+					if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+					return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+				}
+
+				formatTime(seconds) {
+					const safe = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
+					const minutes = Math.floor(safe / 60);
+					const remainder = (safe % 60).toFixed(2).padStart(5, '0');
+					return `${String(minutes).padStart(2, '0')}:${remainder}`;
+				}
+			}
+
+			customElements.define('frame-grid-app', FrameGridApp);
+		</script>
+	</body>
+</html>

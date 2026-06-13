@@ -11,62 +11,96 @@ import '../styles/global.css';
 		Skip to Main
 	</a>
 
-	<header class="sticky top-0 z-40 border-b border-hairline bg-white/90 backdrop-blur-xl">
-		<nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+	<header class="sticky top-0 z-40 border-b border-hairline bg-white/95 backdrop-blur-xl">
+		<nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
 			<a href="#main" class="focus-ring flex min-w-0 items-center gap-3 rounded-md">
-				<span class="grid size-7 place-items-center rounded-md bg-ink text-sm font-semibold text-white" translate="no">V</span>
-				<span class="truncate text-sm font-semibold" translate="no">videotoanimation.com</span>
+				<span class="grid size-8 place-items-center rounded-md border border-[#74a900] bg-[#a8ee19] text-base font-black text-ink" translate="no">V</span>
+				<span class="truncate text-sm font-semibold" translate="no">Video to Animation</span>
 			</a>
 			<div class="hidden items-center gap-1 text-sm text-body sm:flex">
-				<a class="focus-ring rounded-full px-3 py-2 hover:text-ink" href="#step-1">Select</a>
-				<a class="focus-ring rounded-full px-3 py-2 hover:text-ink" href="#step-2">Trim</a>
-				<a class="focus-ring rounded-full px-3 py-2 hover:text-ink" href="#step-3">Export</a>
+				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="/frame-grid/">Extract Frames</a>
+				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="/frame-sequencer/">Build Sequence</a>
+				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="#quick-export">GIF Export</a>
 			</div>
 			<a
-				class="focus-ring rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-white hover:bg-black"
+				class="home-cta focus-ring rounded-md border border-[#74a900] bg-[#a8ee19] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#98dc10]"
 				href="#step-1"
 			>
-				Start
+				Choose Tool
 			</a>
 		</nav>
 	</header>
 
-	<main id="main" class="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
+	<main id="main" class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
 		<video-workbench class="contents">
-		<section class="grid gap-10 pb-12 lg:grid-cols-[1fr_360px] lg:items-end">
-			<div class="min-w-0">
-				<p class="font-mono text-xs uppercase tracking-normal text-mute">MP4 to Unity 2D Animation GIF</p>
-				<h1 class="mt-4 max-w-4xl text-balance text-5xl font-semibold leading-none tracking-normal text-ink sm:text-6xl lg:text-7xl">
-					Turn Grok-generated video into game-ready animation.
+		<section class="pb-10 lg:pb-12">
+			<div class="min-w-0 max-w-4xl">
+				<h1 class="max-w-4xl text-balance text-4xl font-semibold leading-[1.02] tracking-normal text-ink sm:text-5xl lg:text-6xl">
+					Build a frame animation.
 				</h1>
-				<p class="mt-6 max-w-2xl text-pretty text-lg leading-8 text-body">
-					Select an MP4, inspect it frame by frame, trim the action, then export a GIF workflow for Unity 2D sprites.
+				<p class="mt-4 max-w-2xl text-pretty text-lg leading-8 text-body">
+					Start from video, clean the frames, then arrange and preview the final sequence.
 				</p>
-			</div>
-			<div class="rounded-lg border border-hairline bg-white p-4 shadow-[0_16px_60px_rgba(0,0,0,0.06)]">
-				<div class="aspect-[4/3] overflow-hidden rounded-md border border-hairline bg-[linear-gradient(135deg,#007cf0,#00dfd8_34%,#7928ca_67%,#ff0080)] p-px">
-					<div class="grid h-full place-items-center rounded-[5px] bg-white/92 p-6 text-center">
-						<div>
-							<p class="font-mono text-xs text-mute">UNITY LOOP</p>
-							<p class="mt-3 text-3xl font-semibold">Idle -> Run -> Attack</p>
-							<p class="mt-3 text-sm leading-6 text-body">Frame-accurate review before GIF export.</p>
-						</div>
-					</div>
-				</div>
 			</div>
 		</section>
 
-		<section id="step-1" class="scroll-mt-24 border-t border-hairline py-12">
+		<section id="step-1" class="scroll-mt-24 border-t border-hairline py-8 sm:py-10">
+			<div class="workflow-grid">
+				<article class="workflow-panel">
+					<div class="workflow-copy">
+						<span class="workflow-number" aria-hidden="true">1</span>
+						<div>
+							<h2>Extract from video</h2>
+							<p>Sample a video into frames, remove its background, and save transparent PNGs.</p>
+						</div>
+					</div>
+					<a class="tool-link focus-ring" href="/frame-grid/">Open Frame Extractor <span aria-hidden="true">-&gt;</span></a>
+					<div class="extract-preview" aria-hidden="true">
+						<img src="/assets/run-cycle-preview.png" alt="" width="1536" height="1024" />
+					</div>
+				</article>
+
+				<div class="workflow-arrow" aria-hidden="true">-&gt;</div>
+
+				<article class="workflow-panel">
+					<div class="workflow-copy">
+						<span class="workflow-number" aria-hidden="true">2</span>
+						<div>
+							<h2>Build animation sequence</h2>
+							<p>Load a frame folder, select the best takes, reorder them, and preview the loop.</p>
+						</div>
+					</div>
+					<a class="tool-link focus-ring" href="/frame-sequencer/">Open Frame Sequencer <span aria-hidden="true">-&gt;</span></a>
+					<div class="sequence-preview" aria-hidden="true">
+						<div class="sequence-strip">
+							<span class="sequence-frame frame-1"></span>
+							<span class="sequence-frame frame-2 selected"></span>
+							<span class="sequence-frame frame-3 selected"></span>
+							<span class="sequence-frame frame-4 selected"></span>
+							<span class="sequence-frame frame-5"></span>
+							<span class="sequence-frame frame-6 selected"></span>
+						</div>
+						<div class="sequence-controls">
+							<span class="play-symbol">▶</span>
+							<span class="sequence-track"><span></span></span>
+							<span class="font-mono text-[11px] text-body">4 / 6</span>
+						</div>
+					</div>
+				</article>
+			</div>
+		</section>
+
+		<section id="quick-export" class="scroll-mt-24 border-t border-hairline py-12">
 			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
 				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 1</p>
-					<h2 class="mt-3 text-balance text-3xl font-semibold tracking-normal">Select Video</h2>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Quick GIF Export</p>
+					<h2 class="mt-3 text-balance text-3xl font-semibold tracking-normal">Load Source Video</h2>
 					<p class="mt-4 text-pretty leading-7 text-body">
-						Choose a Grok-generated MP4. Browser video controls stay hidden; playback and frame stepping use the custom controls below.
+						Need a fast one-off GIF? Use the original all-in-one workbench below without leaving this page.
 					</p>
 				</div>
 
-				<div class="block rounded-lg border border-hairline bg-white p-4 shadow-[0_16px_60px_rgba(0,0,0,0.06)] sm:p-5">
+				<div class="grid gap-4 rounded-lg border border-hairline bg-white p-5 shadow-[0_16px_60px_rgba(0,0,0,0.06)]">
 					<label class="focus-within:ring-2 focus-within:ring-link focus-within:ring-offset-2 block rounded-md border border-dashed border-hairline-strong bg-canvas-soft p-5 text-center hover:border-ink">
 						<input
 							data-video-input
@@ -77,11 +111,81 @@ import '../styles/global.css';
 							autocomplete="off"
 						/>
 						<span class="block text-sm font-medium">Select MP4 Video</span>
-						<span class="mt-1 block text-sm text-body">Local preview. File stays in this browser.</span>
+						<span class="mt-1 block text-sm text-body">Local background removal. File stays in this browser.</span>
 					</label>
 
-					<div data-empty-state class="mt-4 grid aspect-video place-items-center rounded-md border border-hairline bg-canvas-soft-2">
-						<p class="px-6 text-center text-sm text-body">Video player appears after selection.</p>
+					<label class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-hairline bg-canvas-soft p-4">
+						<span>
+							<span class="block text-sm font-medium text-ink">Enable background removal</span>
+							<span class="mt-1 block text-sm text-body">Applied while frames are sampled for export.</span>
+						</span>
+						<input data-bg-enabled class="focus-ring size-5 accent-black" type="checkbox" name="background-removal" checked autocomplete="off" />
+					</label>
+
+					<div class="grid gap-4 sm:grid-cols-[auto_1fr_1fr] sm:items-end">
+						<label class="block text-sm font-medium text-ink">
+							<span class="mb-1 block">Background Color</span>
+							<input data-bg-color class="focus-ring h-10 w-16 rounded-md border border-hairline bg-white p-1" type="color" name="background-color" value="#00ff00" autocomplete="off" />
+						</label>
+						<label class="block text-sm font-medium text-ink">
+							<span class="mb-1 block">Tolerance</span>
+							<input data-bg-tolerance class="focus-ring w-full accent-black" type="range" name="background-tolerance" min="0" max="220" value="72" autocomplete="off" />
+						</label>
+						<label class="block text-sm font-medium text-ink">
+							<span class="mb-1 block">Edge Softness</span>
+							<input data-bg-softness class="focus-ring w-full accent-black" type="range" name="background-softness" min="0" max="120" value="24" autocomplete="off" />
+						</label>
+					</div>
+
+					<p class="rounded-md border border-hairline bg-canvas-soft px-3 py-2 font-mono text-xs text-body">
+						Default targets green-screen output. Change the swatch for white, black, or other flat backgrounds.
+					</p>
+
+					<div class="grid gap-3 rounded-md border border-hairline bg-canvas-soft p-4">
+						<div class="flex flex-wrap items-center justify-between gap-3">
+							<div>
+								<p class="text-sm font-medium text-ink">Frame View</p>
+								<p data-frame-status class="mt-1 font-mono text-xs text-body" aria-live="polite">Select a video to view processed frames.</p>
+							</div>
+							<div class="flex flex-wrap items-center gap-2">
+								<label class="flex h-9 items-center gap-2 rounded-md border border-hairline bg-white px-3 text-sm font-medium text-ink">
+									<span class="whitespace-nowrap text-xs text-mute">FPS</span>
+									<input data-fps class="focus-ring w-14 border-0 bg-transparent p-0 text-sm tabular-nums outline-none" type="number" name="frame-rate" min="1" max="60" value="24" inputmode="numeric" autocomplete="off" />
+								</label>
+								<button data-build-frames class="focus-ring rounded-md bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:cursor-not-allowed disabled:bg-hairline-strong" type="button" disabled>
+									View All Frames
+								</button>
+								<button data-save-video class="focus-ring rounded-md border border-hairline bg-white px-4 py-2 text-sm font-medium text-ink hover:border-ink disabled:cursor-not-allowed disabled:text-mute" type="button" disabled>
+									Save Transparent Video
+								</button>
+								<a data-download-video class="focus-ring hidden rounded-md border border-hairline bg-white px-4 py-2 text-sm font-medium text-ink hover:border-ink" download="transparent-animation.webm" href="#">
+									Download WebM
+								</a>
+							</div>
+						</div>
+						<div
+							data-frame-gallery
+							class="frame-gallery"
+							style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));grid-auto-rows:auto;align-content:start;gap:1rem;height:min(32rem,62vh);min-height:24rem;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:0.25rem;contain:layout paint;"
+						></div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section id="step-2" class="scroll-mt-24 border-t border-hairline py-12">
+			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
+				<div>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 2</p>
+					<h2 class="mt-3 text-balance text-3xl font-semibold tracking-normal">Preview Video</h2>
+					<p class="mt-4 text-pretty leading-7 text-body">
+						Preview the selected MP4. Browser video controls stay hidden; playback and frame stepping use the custom controls below.
+					</p>
+				</div>
+
+				<div class="block rounded-lg border border-hairline bg-white p-4 shadow-[0_16px_60px_rgba(0,0,0,0.06)] sm:p-5">
+					<div data-empty-state class="grid aspect-video place-items-center rounded-md border border-hairline bg-canvas-soft-2">
+						<p class="px-6 text-center text-sm text-body">Video player appears after Step 1 selection.</p>
 					</div>
 
 					<div data-player-shell class="mt-4 hidden">
@@ -115,10 +219,6 @@ import '../styles/global.css';
 									</p>
 								</div>
 
-								<label class="flex h-9 items-center gap-2 rounded-md border border-hairline bg-white px-3 text-sm font-medium text-ink">
-									<span class="whitespace-nowrap text-xs text-mute">FPS</span>
-									<input data-fps class="focus-ring w-14 border-0 bg-transparent p-0 text-sm tabular-nums outline-none" type="number" name="frame-rate" min="1" max="60" value="24" inputmode="numeric" autocomplete="off" />
-								</label>
 							</div>
 						</div>
 					</div>
@@ -126,10 +226,10 @@ import '../styles/global.css';
 			</div>
 		</section>
 
-		<section id="step-2" class="scroll-mt-24 border-t border-hairline py-12">
+		<section id="step-3" class="scroll-mt-24 border-t border-hairline py-12">
 			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
 				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 2</p>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 3</p>
 					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Prepare Frames</h2>
 					<p class="mt-4 leading-7 text-body">Use frame stepping and FPS from Step 1 to inspect the animation before export.</p>
 				</div>
@@ -155,10 +255,10 @@ import '../styles/global.css';
 			</div>
 		</section>
 
-		<section id="step-3" class="scroll-mt-24 border-t border-hairline py-12">
+		<section id="step-4" class="scroll-mt-24 border-t border-hairline py-12">
 			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
 				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 3</p>
+					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 4</p>
 					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Generate GIF</h2>
 					<p class="mt-4 leading-7 text-body">Pick output size and palette, then generate a downloadable animated GIF directly in the browser.</p>
 				</div>
@@ -166,8 +266,8 @@ import '../styles/global.css';
 					<div class="grid gap-5">
 						<div>
 							<p class="font-mono text-xs text-white/60">OUTPUT</p>
-							<p class="mt-2 text-2xl font-semibold">Unity-ready animated GIF</p>
-							<p class="mt-2 text-sm leading-6 text-white/70">Frames are sampled from your selected MP4 using the trim range and FPS settings above.</p>
+							<p class="mt-2 text-2xl font-semibold">Unity-ready transparent GIF</p>
+							<p class="mt-2 text-sm leading-6 text-white/70">Frames are sampled from your selected MP4 using the FPS and background removal settings above.</p>
 						</div>
 						<div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
 							<label class="block text-sm font-medium text-white">
@@ -198,12 +298,222 @@ import '../styles/global.css';
 		</video-workbench>
 	</main>
 
+	<style>
+		.workflow-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) 3rem minmax(0, 1fr);
+			align-items: center;
+		}
+
+		.workflow-panel {
+			display: grid;
+			min-width: 0;
+			gap: 1rem;
+			border: 1px solid var(--color-hairline-strong);
+			border-radius: 0.5rem;
+			background: #fff;
+			padding: 1.5rem;
+		}
+
+		.workflow-copy {
+			display: grid;
+			grid-template-columns: 2.5rem minmax(0, 1fr);
+			gap: 0.875rem;
+			align-items: start;
+		}
+
+		.workflow-number {
+			display: grid;
+			width: 2.5rem;
+			height: 2.5rem;
+			place-items: center;
+			border: 1px solid #74a900;
+			border-radius: 0.375rem;
+			background: #a8ee19;
+			color: var(--color-ink);
+			font-size: 1.125rem;
+			font-weight: 800;
+		}
+
+		.workflow-copy h2 {
+			margin: 0;
+			font-size: clamp(1.25rem, 2vw, 1.65rem);
+			line-height: 1.2;
+			font-weight: 650;
+		}
+
+		.workflow-copy p {
+			margin: 0.5rem 0 0;
+			max-width: 34rem;
+			color: var(--color-body);
+			font-size: 0.9375rem;
+			line-height: 1.55;
+		}
+
+		.tool-link {
+			display: flex;
+			min-height: 3rem;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			border: 1px solid #74a900;
+			border-radius: 0.375rem;
+			background: #a8ee19;
+			padding: 0.75rem 1rem;
+			color: var(--color-ink);
+			font-size: 0.9375rem;
+			font-weight: 700;
+			text-decoration: none;
+			transition: background 140ms ease, transform 140ms ease;
+		}
+
+		.tool-link:hover {
+			background: #98dc10;
+			transform: translateY(-1px);
+		}
+
+		.workflow-arrow {
+			text-align: center;
+			font-family: var(--font-mono);
+			font-size: 1.5rem;
+			font-weight: 700;
+		}
+
+		.extract-preview,
+		.sequence-preview {
+			overflow: hidden;
+			border: 1px solid var(--color-hairline);
+			border-radius: 0.375rem;
+			background: var(--color-canvas-soft);
+		}
+
+		.extract-preview {
+			aspect-ratio: 3 / 1.36;
+		}
+
+		.extract-preview img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.sequence-preview {
+			display: grid;
+			min-height: 0;
+			aspect-ratio: 3 / 1.36;
+			grid-template-rows: 1fr auto;
+			padding: 0.875rem;
+		}
+
+		.sequence-strip {
+			display: grid;
+			grid-template-columns: repeat(6, minmax(0, 1fr));
+			gap: 0.375rem;
+			min-height: 0;
+		}
+
+		.sequence-frame {
+			min-width: 0;
+			border: 1px solid #d4d4d4;
+			border-radius: 0.25rem;
+			background-image: url('/assets/run-cycle-preview.png');
+			background-repeat: no-repeat;
+			background-size: 300% 200%;
+		}
+
+		.sequence-frame.selected {
+			border: 2px solid #74a900;
+		}
+
+		.frame-1 { background-position: 0 0; }
+		.frame-2 { background-position: 50% 0; }
+		.frame-3 { background-position: 100% 0; }
+		.frame-4 { background-position: 0 100%; }
+		.frame-5 { background-position: 50% 100%; }
+		.frame-6 { background-position: 100% 100%; }
+
+		.sequence-controls {
+			display: grid;
+			grid-template-columns: auto 1fr auto;
+			align-items: center;
+			gap: 0.75rem;
+			border-top: 1px solid var(--color-hairline);
+			margin-top: 0.75rem;
+			padding-top: 0.75rem;
+		}
+
+		.play-symbol {
+			display: grid;
+			width: 1.75rem;
+			height: 1.75rem;
+			place-items: center;
+			border-radius: 50%;
+			background: var(--color-ink);
+			color: #fff;
+			font-size: 0.625rem;
+		}
+
+		.sequence-track {
+			height: 0.25rem;
+			overflow: hidden;
+			border-radius: 999px;
+			background: #d4d4d4;
+		}
+
+		.sequence-track span {
+			display: block;
+			width: 62%;
+			height: 100%;
+			background: #74a900;
+		}
+
+		@media (max-width: 820px) {
+			.workflow-grid {
+				width: 100%;
+				max-width: 100%;
+				grid-template-columns: 1fr;
+				gap: 1rem;
+			}
+
+			.workflow-panel {
+				width: 100%;
+				max-width: 100%;
+			}
+
+			.workflow-arrow {
+				display: none;
+			}
+		}
+
+		@media (max-width: 520px) {
+			.home-cta {
+				display: none;
+			}
+
+			.workflow-panel {
+				padding: 1rem;
+			}
+
+			.workflow-copy {
+				grid-template-columns: 2.25rem minmax(0, 1fr);
+			}
+
+			.workflow-number {
+				width: 2.25rem;
+				height: 2.25rem;
+			}
+		}
+	</style>
+
 	<script>
 		import { GIFEncoder, applyPalette, quantize } from 'gifenc';
 
 		class VideoWorkbench extends HTMLElement {
 			private objectUrl: string | null = null;
 			private gifUrl: string | null = null;
+			private videoUrl: string | null = null;
+			private frameUrls: string[] = [];
 
 			connectedCallback() {
 				const input = this.querySelector('[data-video-input]') as HTMLInputElement | null;
@@ -223,12 +533,37 @@ import '../styles/global.css';
 				const totalFrames = this.querySelector('[data-total-frames]') as HTMLElement | null;
 				const outputWidthInput = this.querySelector('[data-output-width]') as HTMLInputElement | null;
 				const colorsInput = this.querySelector('[data-colors]') as HTMLSelectElement | null;
+				const bgEnabledInput = this.querySelector('[data-bg-enabled]') as HTMLInputElement | null;
+				const bgColorInput = this.querySelector('[data-bg-color]') as HTMLInputElement | null;
+				const bgToleranceInput = this.querySelector('[data-bg-tolerance]') as HTMLInputElement | null;
+				const bgSoftnessInput = this.querySelector('[data-bg-softness]') as HTMLInputElement | null;
+				const buildFrames = this.querySelector('[data-build-frames]') as HTMLButtonElement | null;
+				const saveVideo = this.querySelector('[data-save-video]') as HTMLButtonElement | null;
+				const frameStatus = this.querySelector('[data-frame-status]') as HTMLElement | null;
+				const frameGallery = this.querySelector('[data-frame-gallery]') as HTMLElement | null;
 				const generateGif = this.querySelector('[data-generate-gif]') as HTMLButtonElement | null;
 				const exportStatus = this.querySelector('[data-export-status]') as HTMLElement | null;
 				const downloadGif = this.querySelector('[data-download-gif]') as HTMLAnchorElement | null;
+				const downloadVideo = this.querySelector('[data-download-video]') as HTMLAnchorElement | null;
 
 				if (!input || !video || !emptyState || !playerShell || !playToggle || !prevFrame || !nextFrame || !fpsInput || !generateGif) {
 					return;
+				}
+
+				if (frameGallery) {
+					frameGallery.style.display = 'grid';
+					frameGallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
+					frameGallery.style.gridAutoRows = 'auto';
+					frameGallery.style.alignContent = 'start';
+					frameGallery.style.gap = '1rem';
+					frameGallery.style.height = 'min(32rem, 62vh)';
+					frameGallery.style.minHeight = '24rem';
+					frameGallery.style.overflowY = 'auto';
+					frameGallery.style.overflowX = 'hidden';
+					frameGallery.style.overscrollBehavior = 'contain';
+					frameGallery.style.scrollbarGutter = 'stable';
+					frameGallery.style.paddingRight = '0.25rem';
+					frameGallery.style.contain = 'layout paint';
 				}
 
 				const formatTime = (seconds: number) => {
@@ -240,6 +575,43 @@ import '../styles/global.css';
 
 				const getFrameStep = () => 1 / Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
 				const getFps = () => Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
+				const hexToRgb = (hex: string) => {
+					const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#00ff00';
+					const value = Number.parseInt(normalized.slice(1), 16);
+					return {
+						r: (value >> 16) & 255,
+						g: (value >> 8) & 255,
+						b: value & 255,
+					};
+				};
+
+				const removeBackground = (data: Uint8ClampedArray) => {
+					if (!bgEnabledInput?.checked) return false;
+					const key = hexToRgb(bgColorInput?.value || '#00ff00');
+					const tolerance = Math.min(220, Math.max(0, Number(bgToleranceInput?.value) || 72));
+					const softness = Math.min(120, Math.max(0, Number(bgSoftnessInput?.value) || 24));
+					let changed = false;
+
+					for (let index = 0; index < data.length; index += 4) {
+						const dr = data[index] - key.r;
+						const dg = data[index + 1] - key.g;
+						const db = data[index + 2] - key.b;
+						const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+						if (distance <= tolerance) {
+							data[index + 3] = 0;
+							changed = true;
+						} else if (softness > 0 && distance <= tolerance + softness) {
+							data[index + 3] = Math.round(((distance - tolerance) / softness) * 255);
+							changed = true;
+						} else {
+							data[index + 3] = 255;
+						}
+					}
+
+					return changed;
+				};
+
+				const findTransparentIndex = (palette: number[][]) => palette.findIndex((color) => (color[3] ?? 255) <= 127);
 
 				const update = () => {
 					const safeDuration = Number.isFinite(video.duration) ? video.duration : 0;
@@ -258,6 +630,16 @@ import '../styles/global.css';
 
 				const setStatus = (message: string) => {
 					if (exportStatus) exportStatus.textContent = message;
+				};
+
+				const setFrameStatus = (message: string) => {
+					if (frameStatus) frameStatus.textContent = message;
+				};
+
+				const clearFrameGallery = () => {
+					for (const url of this.frameUrls) URL.revokeObjectURL(url);
+					this.frameUrls = [];
+					if (frameGallery) frameGallery.replaceChildren();
 				};
 
 				const seekByFrame = (direction: -1 | 1) => {
@@ -279,8 +661,13 @@ import '../styles/global.css';
 					emptyState.classList.add('hidden');
 					playerShell.classList.remove('hidden');
 					generateGif.disabled = true;
+					if (buildFrames) buildFrames.disabled = true;
+					if (saveVideo) saveVideo.disabled = true;
+					clearFrameGallery();
 					if (downloadGif) downloadGif.classList.add('hidden');
+					if (downloadVideo) downloadVideo.classList.add('hidden');
 					setStatus('Loading video metadata...');
+					setFrameStatus('Loading video metadata...');
 				});
 
 				playToggle.addEventListener('click', () => {
@@ -301,7 +688,10 @@ import '../styles/global.css';
 					if (endInput) endInput.value = Number.isFinite(video.duration) ? video.duration.toFixed(3) : '0';
 					if (startInput) startInput.value = '0';
 					generateGif.disabled = false;
+					if (buildFrames) buildFrames.disabled = false;
+					if (saveVideo) saveVideo.disabled = false;
 					setStatus('Ready to generate GIF.');
+					setFrameStatus('Ready to build transparent frame view.');
 					update();
 				});
 				video.addEventListener('timeupdate', update);
@@ -315,6 +705,175 @@ import '../styles/global.css';
 						video.addEventListener('seeked', done, { once: true });
 						video.currentTime = time;
 					});
+
+				const appendFrameThumb = async (data: Uint8ClampedArray, width: number, height: number, frame: number, time: number) => {
+					if (!frameGallery) return;
+					const canvas = document.createElement('canvas');
+					canvas.width = width;
+					canvas.height = height;
+					const context = canvas.getContext('2d');
+					if (!context) throw new Error('Canvas context unavailable.');
+					context.putImageData(new ImageData(data, width, height), 0, 0);
+					const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+					if (!blob) throw new Error('Frame image export failed.');
+					const url = URL.createObjectURL(blob);
+					this.frameUrls.push(url);
+
+					const item = document.createElement('figure');
+					item.className = 'frame-thumb';
+					item.style.cssText = 'min-width:0;margin:0;overflow:hidden;border:1px solid var(--color-hairline);border-radius:0.375rem;background:var(--color-canvas);';
+
+					const imageShell = document.createElement('div');
+					imageShell.className = 'frame-thumb-preview';
+					imageShell.style.cssText = [
+						'display:grid',
+						'place-items:center',
+						'height:128px',
+						'min-height:128px',
+						'padding:0.5rem',
+						'background-color:#fff',
+						'background-image:linear-gradient(45deg,#e5e5e5 25%,transparent 25%),linear-gradient(-45deg,#e5e5e5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e5e5 75%),linear-gradient(-45deg,transparent 75%,#e5e5e5 75%)',
+						'background-position:0 0,0 8px,8px -8px,-8px 0',
+						'background-size:16px 16px',
+					].join(';');
+
+					const image = document.createElement('img');
+					image.className = 'frame-thumb-image';
+					image.style.cssText = 'display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;';
+					image.src = url;
+					image.alt = `Processed frame ${frame}`;
+					image.loading = 'eager';
+					imageShell.append(image);
+
+					const caption = document.createElement('figcaption');
+					caption.className = 'frame-thumb-caption';
+					caption.style.cssText = 'border-top:1px solid var(--color-hairline);padding:0.25rem 0.5rem;color:var(--color-body);font-family:var(--font-mono);font-size:0.6875rem;line-height:1.25rem;white-space:nowrap;';
+					caption.textContent = `#${frame} ${formatTime(time)}`;
+
+					item.append(imageShell, caption);
+					frameGallery.append(item);
+				};
+
+				buildFrames?.addEventListener('click', async () => {
+					if (!video.src || !Number.isFinite(video.duration)) return;
+					buildFrames.disabled = true;
+					generateGif.disabled = true;
+					if (saveVideo) saveVideo.disabled = true;
+					clearFrameGallery();
+
+					try {
+						video.pause();
+						const fps = getFps();
+						const frameCount = Math.floor(video.duration * fps) + 1;
+						const width = Math.min(320, Math.max(96, Number(outputWidthInput?.value) || 256));
+						const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth || 1)));
+						const canvas = document.createElement('canvas');
+						canvas.width = width;
+						canvas.height = height;
+						const context = canvas.getContext('2d');
+						if (!context) throw new Error('Canvas context unavailable.');
+
+						for (let frame = 0; frame < frameCount; frame += 1) {
+							const time = Math.min(video.duration, frame / fps);
+							setFrameStatus(`Removing background from frame ${frame + 1} of ${frameCount}...`);
+							await seekTo(time);
+							context.clearRect(0, 0, width, height);
+							context.drawImage(video, 0, 0, width, height);
+							const imageData = context.getImageData(0, 0, width, height);
+							removeBackground(imageData.data);
+							await appendFrameThumb(imageData.data, width, height, frame + 1, time);
+							if (frame % 8 === 0) await new Promise((resolve) => window.setTimeout(resolve, 0));
+						}
+
+						setFrameStatus(`Showing ${frameCount} processed frames with transparent background.`);
+					} catch (error) {
+						setFrameStatus(error instanceof Error ? error.message : 'Frame processing failed.');
+					} finally {
+						buildFrames.disabled = false;
+						generateGif.disabled = false;
+						if (saveVideo) saveVideo.disabled = false;
+						update();
+					}
+				});
+
+				saveVideo?.addEventListener('click', async () => {
+					if (!video.src || !Number.isFinite(video.duration)) return;
+					if (!('MediaRecorder' in window) || !HTMLCanvasElement.prototype.captureStream) {
+						setFrameStatus('Transparent video export is not supported in this browser.');
+						return;
+					}
+
+					const mimeType = [
+						'video/webm;codecs=vp9',
+						'video/webm;codecs=vp8',
+						'video/webm',
+					].find((type) => MediaRecorder.isTypeSupported(type));
+
+					if (!mimeType) {
+						setFrameStatus('WebM recording is not supported in this browser.');
+						return;
+					}
+
+					saveVideo.disabled = true;
+					generateGif.disabled = true;
+					if (buildFrames) buildFrames.disabled = true;
+					if (downloadVideo) downloadVideo.classList.add('hidden');
+
+					try {
+						video.pause();
+						const fps = getFps();
+						const frameCount = Math.floor(video.duration * fps) + 1;
+						const width = Math.min(1024, Math.max(64, Number(outputWidthInput?.value) || 256));
+						const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth || 1)));
+						const canvas = document.createElement('canvas');
+						canvas.width = width;
+						canvas.height = height;
+						const context = canvas.getContext('2d', { alpha: true });
+						if (!context) throw new Error('Canvas context unavailable.');
+
+						const stream = canvas.captureStream(fps);
+						const chunks: Blob[] = [];
+						const recorder = new MediaRecorder(stream, { mimeType });
+						const stopped = new Promise<void>((resolve) => {
+							recorder.addEventListener('stop', () => resolve(), { once: true });
+						});
+						recorder.addEventListener('dataavailable', (event) => {
+							if (event.data.size > 0) chunks.push(event.data);
+						});
+
+						recorder.start();
+						for (let frame = 0; frame < frameCount; frame += 1) {
+							const time = Math.min(video.duration, frame / fps);
+							setFrameStatus(`Saving transparent video frame ${frame + 1} of ${frameCount}...`);
+							await seekTo(time);
+							context.clearRect(0, 0, width, height);
+							context.drawImage(video, 0, 0, width, height);
+							const imageData = context.getImageData(0, 0, width, height);
+							removeBackground(imageData.data);
+							context.clearRect(0, 0, width, height);
+							context.putImageData(imageData, 0, 0);
+							await new Promise((resolve) => window.setTimeout(resolve, Math.max(16, Math.round(1000 / fps))));
+						}
+
+						recorder.stop();
+						await stopped;
+						for (const track of stream.getTracks()) track.stop();
+						if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
+						this.videoUrl = URL.createObjectURL(new Blob(chunks, { type: mimeType }));
+						if (downloadVideo) {
+							downloadVideo.href = this.videoUrl;
+							downloadVideo.classList.remove('hidden');
+						}
+						setFrameStatus(`Saved ${frameCount} transparent frames as WebM.`);
+					} catch (error) {
+						setFrameStatus(error instanceof Error ? error.message : 'Transparent video export failed.');
+					} finally {
+						saveVideo.disabled = false;
+						generateGif.disabled = false;
+						if (buildFrames) buildFrames.disabled = false;
+						update();
+					}
+				});
 
 				generateGif.addEventListener('click', async () => {
 					if (!video.src || !Number.isFinite(video.duration)) return;
@@ -347,14 +906,32 @@ import '../styles/global.css';
 							const time = Math.min(end, start + frame / fps);
 							setStatus(`Encoding frame ${frame + 1} of ${frameCount}...`);
 							await seekTo(time);
+							context.clearRect(0, 0, width, height);
 							context.drawImage(video, 0, 0, width, height);
 							const { data } = context.getImageData(0, 0, width, height);
-							const palette = quantize(data, maxColors);
-							const indexed = applyPalette(data, palette);
+							const hasTransparency = removeBackground(data);
+							let palette = quantize(data, maxColors, {
+								format: hasTransparency ? 'rgba4444' : 'rgb565',
+								oneBitAlpha: 127,
+								clearAlpha: true,
+							});
+							let transparentIndex = hasTransparency ? findTransparentIndex(palette) : -1;
+							if (hasTransparency && transparentIndex === -1) {
+								palette = palette.slice();
+								if (palette.length < maxColors) {
+									transparentIndex = palette.push([0, 0, 0, 0]) - 1;
+								} else {
+									transparentIndex = 0;
+									palette[transparentIndex] = [0, 0, 0, 0];
+								}
+							}
+							const indexed = applyPalette(data, palette, hasTransparency ? 'rgba4444' : 'rgb565');
 							gif.writeFrame(indexed, width, height, {
 								palette,
 								delay: Math.round(1000 / fps),
 								repeat: 0,
+								transparent: hasTransparency,
+								transparentIndex,
 							});
 						}
 
@@ -378,6 +955,8 @@ import '../styles/global.css';
 			disconnectedCallback() {
 				if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
 				if (this.gifUrl) URL.revokeObjectURL(this.gifUrl);
+				if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
+				for (const url of this.frameUrls) URL.revokeObjectURL(url);
 			}
 		}
 
