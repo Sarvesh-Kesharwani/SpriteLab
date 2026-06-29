@@ -1,0 +1,25 @@
+
+> spriteanim-v2@0.0.1 dev
+> astro dev --host 127.0.0.1 --port 4322
+
+[vite] connected.
+[2m10:23:07[22m [34m[types][39m Generated [2m1ms[22m
+[2m10:23:07[22m [34m[vite][39m Re-optimizing dependencies because vite config has changed
+[42m[1m astro [22m[49m [32mv6.4.2[39m [2mready in[22m 1484 [2mms[22m
+[2m┃[22m Local    [36mhttp://127.0.0.1:4322/[39m
+[2m10:23:07[22m [32mwatching for file changes...[39m
+
+[43m[30m update [39m[49m [33m▶ New version of Astro available: 7.0.3[39m
+  Run [36mnpx @astrojs/upgrade[39m to update
+
+[2m10:23:11[22m [34m[200][39m / [2m125ms[22m
+[2m10:23:29[22m [34m[200][39m / [2m25ms[22m
+[2m10:23:43[22m [34m[200][39m / [2m21ms[22m
+[2m10:23:45[22m [34m[vite][39m [32m✨ new dependencies optimized: [33mgifenc[32m[39m
+[2m10:23:45[22m [34m[vite][39m [32m✨ optimized dependencies changed. reloading[39m
+[2m10:23:45[22m [34m[200][39m / [2m30ms[22m
+[2m10:23:46[22m [34m[200][39m /frame-grid/ [2m50ms[22m
+[2m10:23:48[22m [34m[200][39m /sprite-extractor/ [2m37ms[22m
+[2m10:23:50[22m [34m[200][39m /frame-sequencer/ [2m52ms[22m
+[2m10:23:51[22m [34m[200][39m / [2m14ms[22m
+[2m10:24:02[22m [34m[200][39m / [2m16ms[22m
