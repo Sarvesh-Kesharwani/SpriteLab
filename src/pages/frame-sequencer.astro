@@ -482,10 +482,13 @@ const pageTitle = 'Frame Sequencer';
 
 			.preview-stage {
 				display: grid;
+				position: relative;
 				aspect-ratio: 1 / 1;
 				place-items: center;
 				isolation: isolate;
 				overflow: hidden;
+				touch-action: none;
+				user-select: none;
 				background-color: #ffffff;
 				background-image:
 					linear-gradient(45deg, #e5e8e5 25%, transparent 25%),
@@ -496,35 +499,103 @@ const pageTitle = 'Frame Sequencer';
 				background-size: 20px 20px;
 			}
 
-			.preview-image,
-			.onion-image {
+			.preview-scene {
+				position: relative;
 				grid-area: 1 / 1;
+				width: 100%;
+				height: 100%;
+				z-index: 1;
+			}
+
+			.sprite-layer {
+				position: absolute;
+				inset: 0;
+				pointer-events: none;
+				will-change: transform;
+			}
+
+			.sprite-box {
+				position: absolute;
+				left: 50%;
+				bottom: 0;
 				max-width: 100%;
 				max-height: 100%;
+				transform: translateX(-50%);
+				transform-origin: center;
+				will-change: transform;
+			}
+
+			.preview-image,
+			.onion-image {
+				display: block;
+				width: 100%;
+				height: auto;
 				background: transparent;
 				object-fit: contain;
-				pointer-events: none;
 			}
+
+			.preview-layer { z-index: 3; }
 
 			.preview-image {
-				position: relative;
-				z-index: 2;
+				pointer-events: auto;
+				cursor: grab;
 			}
 
-			.onion-image {
+			.preview-image:active { cursor: grabbing; }
+
+			.onion-layer {
 				z-index: 1;
 				opacity: 0.24;
 			}
 
 			.onion-previous {
-				filter: sepia(1) saturate(7) hue-rotate(125deg);
-			}
-
-			.onion-next {
 				filter: sepia(1) saturate(7) hue-rotate(305deg);
 			}
 
+			.onion-next {
+				filter: sepia(1) saturate(7) hue-rotate(75deg);
+			}
+
+			.scene-ground {
+				position: absolute;
+				inset: auto 0 0;
+				z-index: 2;
+				border-top: 1px dashed rgba(35, 143, 67, 0.55);
+				pointer-events: none;
+			}
+
+			.rotate-handle {
+				position: absolute;
+				left: 50%;
+				top: 7px;
+				z-index: 4;
+				display: grid;
+				width: 18px;
+				height: 18px;
+				place-items: center;
+				border: 2px solid #ffffff;
+				border-radius: 50%;
+				color: #ffffff;
+				background: #238f43;
+				box-shadow: 0 1px 4px rgba(23, 25, 23, 0.35);
+				cursor: crosshair;
+				pointer-events: auto;
+				transform: translateX(-50%);
+			}
+
+			.rotate-handle::after {
+				position: absolute;
+				top: 16px;
+				left: 50%;
+				width: 1px;
+				height: 10px;
+				content: "";
+				background: #238f43;
+			}
+
 			.preview-empty {
+				position: relative;
+				z-index: 5;
 				padding: 30px;
 				font-size: 0.78rem;
 				line-height: 1.5;
@@ -535,6 +606,23 @@ const pageTitle = 'Frame Sequencer';
 			.playback {
 				padding: 14px;
 				border-top: 1px solid #dfe3df;
+			}
+
+			.scene-edit-meta {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 10px;
+				margin-bottom: 11px;
+				font-size: 0.66rem;
+				line-height: 1.4;
+				color: #687068;
+			}
+
+			.transform-status {
+				flex: 0 0 auto;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				color: #3d433d;
 			}
 
 			.progress-track {
@@ -644,8 +732,8 @@ const pageTitle = 'Frame Sequencer';
 				border-radius: 50%;
 			}
 
-			.onion-dot.previous { background: #20a7a0; }
-			.onion-dot.next { background: #dc5b72; }
+			.onion-dot.previous { background: #dc5b72; }
+			.onion-dot.next { background: #2db653; }
 
 			@media (max-width: 980px) {
 				.frame-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -680,6 +768,7 @@ const pageTitle = 'Frame Sequencer';
 				.playback-controls { flex-wrap: wrap; }
 				.fps-control { margin-left: 0; }
 				.onion-key { width: 100%; margin-left: 0; }
+				.scene-edit-meta { align-items: flex-start; flex-direction: column; }
 			}
 
 			@media (prefers-reduced-motion: reduce) {
@@ -754,11 +843,27 @@ const pageTitle = 'Frame Sequencer';
 						<aside class="preview-panel" aria-label="Animation preview">
 							<div data-preview-stage class="preview-stage">
 								<p data-preview-empty class="preview-empty">Select at least one frame to preview the animation.</p>
-								<img data-onion-previous class="onion-image onion-previous" alt="Previous onion-skin frame" hidden />
-								<img data-onion-next class="onion-image onion-next" alt="Next onion-skin frame" hidden />
-								<img data-preview-image class="preview-image" alt="Current animation frame" hidden />
+								<div data-preview-scene class="preview-scene" hidden>
+									<div class="scene-ground" aria-hidden="true"></div>
+									<div data-onion-previous-layer class="sprite-layer onion-layer">
+										<div class="sprite-box"><img data-onion-previous class="onion-image onion-previous" alt="Previous onion-skin frame" /></div>
+									</div>
+									<div data-onion-next-layer class="sprite-layer onion-layer">
+										<div class="sprite-box"><img data-onion-next class="onion-image onion-next" alt="Next onion-skin frame" /></div>
+									</div>
+									<div data-preview-layer class="sprite-layer preview-layer">
+										<div class="sprite-box">
+											<img data-preview-image class="preview-image" alt="Current animation frame" draggable="false" />
+											<span data-rotate-handle class="rotate-handle" title="Drag to rotate" aria-label="Drag to rotate current sprite"></span>
+										</div>
+									</div>
+								</div>
 							</div>
 							<div class="playback">
+				<div class="scene-edit-meta">
+					<span>Drag to move; green handle rotates. Hold Shift for precision. Arrow keys nudge. Ctrl+Z undoes. Double-click resets.</span>
+									<span data-transform-status class="transform-status">X 0% / Y 0% / 0deg</span>
+								</div>
 								<div class="progress-track" aria-hidden="true"><div data-progress class="progress-fill"></div></div>
 								<div class="playback-controls">
 									<button data-prev class="step-button" type="button" disabled>Prev</button>
@@ -793,8 +898,12 @@ const pageTitle = 'Frame Sequencer';
 				pointerStart = null;
 				pointerMoved = false;
 				suppressSequenceClick = false;
+				sceneGesture = null;
+				transformUndoStack = [];
+				keyboardNudge = null;
 				workspaceReady = false;
 				workspaceSaveTimer = 0;
+				previewLayoutFrame = 0;
 
 				connectedCallback() {
 					this.folderButton = this.querySelector('[data-folder-picker]');
@@ -811,6 +920,11 @@ const pageTitle = 'Frame Sequencer';
 					this.duplicateFrameButton = this.querySelector('[data-duplicate-frame]');
 					this.saveUnityButton = this.querySelector('[data-save-unity]');
 					this.exportStatus = this.querySelector('[data-export-status]');
+					this.previewStage = this.querySelector('[data-preview-stage]');
+					this.previewScene = this.querySelector('[data-preview-scene]');
+					this.previewLayer = this.querySelector('[data-preview-layer]');
+					this.onionPreviousLayer = this.querySelector('[data-onion-previous-layer]');
+					this.onionNextLayer = this.querySelector('[data-onion-next-layer]');
 					this.previewImage = this.querySelector('[data-preview-image]');
 					this.onionPreviousImage = this.querySelector('[data-onion-previous]');
 					this.onionNextImage = this.querySelector('[data-onion-next]');
@@ -823,6 +937,7 @@ const pageTitle = 'Frame Sequencer';
 					this.onionSkinInput = this.querySelector('[data-onion-skin]');
 					this.frameStatus = this.querySelector('[data-frame-status]');
 					this.progress = this.querySelector('[data-progress]');
+					this.transformStatus = this.querySelector('[data-transform-status]');
 
 					this.folderButton?.addEventListener('click', () => this.chooseFramesDirectory());
 					this.folderInput?.addEventListener('change', (event) => {
@@ -893,6 +1008,14 @@ const pageTitle = 'Frame Sequencer';
 					this.sequenceGrid?.addEventListener('pointermove', (event) => this.onPointerMove(event));
 					this.sequenceGrid?.addEventListener('pointerup', (event) => this.onPointerUp(event));
 					this.sequenceGrid?.addEventListener('pointercancel', () => this.clearDragState());
+					this.previewScene?.addEventListener('pointerdown', (event) => this.onScenePointerDown(event));
+					this.previewScene?.addEventListener('pointermove', (event) => this.onScenePointerMove(event));
+					this.previewScene?.addEventListener('pointerup', (event) => this.onScenePointerUp(event));
+					this.previewScene?.addEventListener('pointercancel', () => this.finishSceneGesture());
+					this.previewImage?.addEventListener('dblclick', (event) => this.resetCurrentTransform(event));
+					window.addEventListener('keydown', (event) => this.onTransformKeyDown(event));
+					window.addEventListener('keyup', (event) => this.onTransformKeyUp(event));
+					window.addEventListener('resize', () => this.schedulePreviewLayout());
 					window.addEventListener('pagehide', () => void this.persistWorkspaceState());
 					void this.restoreFramesDirectory();
 
@@ -953,6 +1076,8 @@ const pageTitle = 'Frame Sequencer';
 
 				async loadDirectoryHandle(directory) {
 					this.workspaceReady = false;
+					this.transformUndoStack = [];
+					this.keyboardNudge = null;
 					this.clearFrameUrls();
 					const entries = [];
 					await this.collectDirectoryImages(directory, '', entries);
@@ -1076,6 +1201,7 @@ const pageTitle = 'Frame Sequencer';
 						const source = sources.get(item.sourcePath);
 						if (!source) continue;
 						if (!item.duplicate) {
+							source.transform = this.normalizeTransform(item.transform);
 							this.selectedIds.push(source.id);
 							continue;
 						}
@@ -1086,6 +1212,7 @@ const pageTitle = 'Frame Sequencer';
 							isSequenceDuplicate: true,
 							duplicateOf: source.id,
 							sourcePath: item.sourcePath,
+							transform: this.normalizeTransform(item.transform),
 						};
 						this.frames.push(duplicate);
 						this.selectedIds.push(duplicate.id);
@@ -1112,6 +1239,7 @@ const pageTitle = 'Frame Sequencer';
 							sourcePath: frame.sourcePath || frame.path,
 							duplicate: Boolean(frame.isSequenceDuplicate),
 							name: frame.name,
+							transform: this.normalizeTransform(frame.transform),
 						})),
 						currentIndex: this.currentIndex,
 						fps: this.getFps(),
@@ -1123,6 +1251,8 @@ const pageTitle = 'Frame Sequencer';
 
 				async loadFiles(files) {
 					this.workspaceReady = false;
+					this.transformUndoStack = [];
+					this.keyboardNudge = null;
 					this.clearFrameUrls();
 					const imageFiles = files
 						.filter((file) => file.type.startsWith('image/'))
@@ -1240,6 +1370,11 @@ const pageTitle = 'Frame Sequencer';
 					image.src = frame.url;
 					image.alt = frame.name;
 					image.draggable = false;
+					image.addEventListener('load', () => {
+						frame.width = image.naturalWidth;
+						frame.height = image.naturalHeight;
+						this.schedulePreviewLayout();
+					}, { once: true });
 					return image;
 				}
 
@@ -1313,6 +1448,7 @@ const pageTitle = 'Frame Sequencer';
 						isSequenceDuplicate: true,
 						duplicateOf: frame.duplicateOf || frame.id,
 						sourcePath: frame.sourcePath || frame.path,
+						transform: { ...this.normalizeTransform(frame.transform) },
 					};
 					this.frames.push(duplicate);
 					this.selectedIds.splice(this.currentIndex + 1, 0, duplicate.id);
@@ -1365,6 +1501,168 @@ const pageTitle = 'Frame Sequencer';
 					}
 				}
 
+				onScenePointerDown(event) {
+					if (event.button !== 0) return;
+					const target = event.target instanceof Element ? event.target : null;
+					const type = target?.closest('[data-rotate-handle]') ? 'rotate'
+						: target?.closest('[data-preview-image]') ? 'move' : '';
+					if (!type) return;
+					const frame = this.getSelectedFrames()[this.currentIndex];
+					if (!frame || !(this.previewScene instanceof HTMLElement)) return;
+					this.stopPlayback();
+					const transform = this.normalizeTransform(frame.transform);
+					const imageRect = this.previewImage.getBoundingClientRect();
+					const centerX = imageRect.left + imageRect.width / 2;
+					const centerY = imageRect.top + imageRect.height / 2;
+					this.sceneGesture = {
+						type,
+						precision: event.shiftKey,
+						pointerId: event.pointerId,
+						frame,
+						startX: event.clientX,
+						startY: event.clientY,
+						startTransform: transform,
+						startAngle: Math.atan2(event.clientY - centerY, event.clientX - centerX),
+						changed: false,
+					};
+					this.previewScene.setPointerCapture?.(event.pointerId);
+					event.preventDefault();
+				}
+
+				onScenePointerMove(event) {
+					const gesture = this.sceneGesture;
+					if (!gesture || event.pointerId !== gesture.pointerId || !(this.previewScene instanceof HTMLElement)) return;
+					const rect = this.previewScene.getBoundingClientRect();
+					if (!rect.width || !rect.height) return;
+					const sensitivity = gesture.precision ? 0.2 : 1;
+					let transform;
+					if (gesture.type === 'move') {
+						transform = {
+							...gesture.startTransform,
+							x: gesture.startTransform.x + ((event.clientX - gesture.startX) / rect.width) * 100 * sensitivity,
+							y: gesture.startTransform.y + ((event.clientY - gesture.startY) / rect.height) * 100 * sensitivity,
+						};
+					} else {
+						const imageRect = this.previewImage.getBoundingClientRect();
+						const centerX = imageRect.left + imageRect.width / 2;
+						const centerY = imageRect.top + imageRect.height / 2;
+						const angle = Math.atan2(event.clientY - centerY, event.clientX - centerX);
+						let delta = (angle - gesture.startAngle) * (180 / Math.PI);
+						if (delta > 180) delta -= 360;
+						if (delta < -180) delta += 360;
+						transform = { ...gesture.startTransform, rotation: gesture.startTransform.rotation + delta * sensitivity };
+					}
+					gesture.frame.transform = this.normalizeTransform(transform);
+					gesture.changed = !this.transformsEqual(gesture.frame.transform, gesture.startTransform);
+					this.applySpriteLayer(this.previewLayer, gesture.frame);
+					this.updateTransformStatus(gesture.frame);
+					this.scheduleWorkspaceSave();
+					event.preventDefault();
+				}
+
+				onScenePointerUp(event) {
+					if (!this.sceneGesture || event.pointerId !== this.sceneGesture.pointerId) return;
+					this.finishSceneGesture();
+				}
+
+				finishSceneGesture() {
+					if (!this.sceneGesture) return;
+					if (this.sceneGesture.changed) {
+						this.pushTransformUndo(this.sceneGesture.frame, this.sceneGesture.startTransform);
+						this.exportStatus.textContent = `Adjusted frame ${this.currentIndex + 1} in the scene.`;
+					}
+					this.sceneGesture = null;
+					this.scheduleWorkspaceSave();
+				}
+
+				resetCurrentTransform(event) {
+					event.preventDefault();
+					const frame = this.getSelectedFrames()[this.currentIndex];
+					if (!frame) return;
+					this.stopPlayback();
+					const transform = this.normalizeTransform(frame.transform);
+					if (this.transformsEqual(transform, { x: 0, y: 0, rotation: 0 })) return;
+					this.pushTransformUndo(frame, transform);
+					frame.transform = { x: 0, y: 0, rotation: 0 };
+					this.updatePreview();
+					this.exportStatus.textContent = `Reset frame ${this.currentIndex + 1} scene position.`;
+					this.scheduleWorkspaceSave();
+				}
+
+				onTransformKeyDown(event) {
+					if (this.isEditableTarget(event.target)) return;
+					if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && this.transformUndoStack.length > 0) {
+						event.preventDefault();
+						this.undoTransform();
+						return;
+					}
+					const movement = {
+						ArrowLeft: [-1, 0],
+						ArrowRight: [1, 0],
+						ArrowUp: [0, -1],
+						ArrowDown: [0, 1],
+					}[event.key];
+					if (!movement) return;
+					const frame = this.getSelectedFrames()[this.currentIndex];
+					if (!frame) return;
+					event.preventDefault();
+					this.stopPlayback();
+					if (!this.keyboardNudge || this.keyboardNudge.frameId !== frame.id) {
+						this.pushTransformUndo(frame, this.normalizeTransform(frame.transform));
+						this.keyboardNudge = { frameId: frame.id };
+					}
+					const step = event.shiftKey ? 0.1 : 1;
+					const transform = this.normalizeTransform(frame.transform);
+					frame.transform = this.normalizeTransform({
+						...transform,
+						x: transform.x + movement[0] * step,
+						y: transform.y + movement[1] * step,
+					});
+					this.applySpriteLayer(this.previewLayer, frame);
+					this.updateTransformStatus(frame);
+					this.updateOnionFrames(this.getSelectedFrames());
+					this.exportStatus.textContent = `Nudged frame ${this.currentIndex + 1} with arrow keys.`;
+					this.scheduleWorkspaceSave();
+				}
+
+				onTransformKeyUp(event) {
+					if (event.key.startsWith('Arrow')) this.keyboardNudge = null;
+				}
+
+				isEditableTarget(target) {
+					return target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
+				}
+
+				transformsEqual(first, second) {
+					const a = this.normalizeTransform(first);
+					const b = this.normalizeTransform(second);
+					return Math.abs(a.x - b.x) < 0.0001
+						&& Math.abs(a.y - b.y) < 0.0001
+						&& Math.abs(a.rotation - b.rotation) < 0.0001;
+				}
+
+				pushTransformUndo(frame, transform) {
+					if (!frame) return;
+					this.transformUndoStack.push({ frameId: frame.id, transform: { ...this.normalizeTransform(transform) } });
+					if (this.transformUndoStack.length > 100) this.transformUndoStack.shift();
+				}
+
+				undoTransform() {
+					this.stopPlayback();
+					let entry = this.transformUndoStack.pop();
+					let frame = entry ? this.frames.find((item) => item.id === entry.frameId) : null;
+					while (entry && !frame) {
+						entry = this.transformUndoStack.pop();
+						frame = entry ? this.frames.find((item) => item.id === entry.frameId) : null;
+					}
+					if (!entry || !frame) return;
+					frame.transform = { ...entry.transform };
+					this.keyboardNudge = null;
+					this.updatePreview();
+					this.exportStatus.textContent = `Undid frame ${this.selectedIds.indexOf(frame.id) + 1} transform.`;
+					this.scheduleWorkspaceSave();
+				}
+
 				togglePlayback() {
 					if (this.animationTimer) this.stopPlayback();
 					else this.startPlayback();
@@ -1409,11 +1707,12 @@ const pageTitle = 'Frame Sequencer';
 						item.removeAttribute('data-current');
 					}
 					if (selectedFrames.length === 0) {
-						this.previewImage.hidden = true;
+						this.previewScene.hidden = true;
 						this.previewImage.removeAttribute('src');
 						this.hideOnionFrames();
 						this.previewEmpty.hidden = false;
 						this.frameStatus.textContent = 'Frame 0 / 0';
+						this.transformStatus.textContent = 'X 0% / Y 0% / 0deg';
 						this.progress.style.width = '0%';
 						return;
 					}
@@ -1422,13 +1721,82 @@ const pageTitle = 'Frame Sequencer';
 					const frame = selectedFrames[this.currentIndex];
 					this.previewImage.src = frame.url;
 					this.previewImage.alt = `Preview ${frame.name}`;
-					this.previewImage.hidden = false;
+					this.previewImage.onload = () => {
+						frame.width = this.previewImage.naturalWidth;
+						frame.height = this.previewImage.naturalHeight;
+						this.layoutPreviewScene();
+						this.applySpriteLayer(this.previewLayer, frame);
+					};
+					this.previewScene.hidden = false;
 					this.previewEmpty.hidden = true;
+					this.layoutPreviewScene();
+					this.applySpriteLayer(this.previewLayer, frame);
 					this.updateOnionFrames(selectedFrames);
 					const currentTile = this.sequenceGrid.querySelector(`[data-sequence-id="${CSS.escape(frame.id)}"]`);
 					if (currentTile instanceof HTMLElement) currentTile.dataset.current = 'true';
 					this.frameStatus.textContent = `Frame ${this.currentIndex + 1} / ${selectedFrames.length}`;
+					this.updateTransformStatus(frame);
 					this.progress.style.width = `${((this.currentIndex + 1) / selectedFrames.length) * 100}%`;
+				}
+
+				normalizeTransform(transform) {
+					return {
+						x: Math.min(100, Math.max(-100, Number(transform?.x) || 0)),
+						y: Math.min(100, Math.max(-100, Number(transform?.y) || 0)),
+						rotation: Number(transform?.rotation) || 0,
+					};
+				}
+
+				getSceneDimensions() {
+					let width = 0;
+					let height = 0;
+					for (const frame of this.getSelectedFrames()) {
+						width = Math.max(width, Number(frame.width) || 0);
+						height = Math.max(height, Number(frame.height) || 0);
+					}
+					return { width: width || 1, height: height || 1 };
+				}
+
+				schedulePreviewLayout() {
+					if (this.previewLayoutFrame) return;
+					this.previewLayoutFrame = window.requestAnimationFrame(() => {
+						this.previewLayoutFrame = 0;
+						if (!this.previewScene?.hidden) this.updatePreview();
+					});
+				}
+
+				layoutPreviewScene() {
+					if (!(this.previewStage instanceof HTMLElement) || !(this.previewScene instanceof HTMLElement)) return;
+					const stage = this.previewStage.getBoundingClientRect();
+					if (!stage.width || !stage.height) return;
+					const scene = this.getSceneDimensions();
+					const sceneRatio = scene.width / scene.height;
+					const stageRatio = stage.width / stage.height;
+					if (sceneRatio >= stageRatio) {
+						this.previewScene.style.width = '100%';
+						this.previewScene.style.height = `${Math.min(100, (stage.width / sceneRatio / stage.height) * 100)}%`;
+					} else {
+						this.previewScene.style.height = '100%';
+						this.previewScene.style.width = `${Math.min(100, (stage.height * sceneRatio / stage.width) * 100)}%`;
+					}
+				}
+
+				applySpriteLayer(layer, frame) {
+					if (!(layer instanceof HTMLElement) || !frame) return;
+					const transform = this.normalizeTransform(frame.transform);
+					const box = layer.querySelector('.sprite-box');
+					const scene = this.getSceneDimensions();
+					const width = Number(frame.width) || scene.width;
+					layer.style.transform = `translate(${transform.x}%, ${transform.y}%)`;
+					if (box instanceof HTMLElement) {
+						box.style.width = `${Math.min(100, (width / scene.width) * 100)}%`;
+						box.style.transform = `translateX(-50%) rotate(${transform.rotation}deg)`;
+					}
+				}
+
+				updateTransformStatus(frame) {
+					const transform = this.normalizeTransform(frame?.transform);
+					this.transformStatus.textContent = `X ${transform.x.toFixed(1)}% / Y ${transform.y.toFixed(1)}% / ${transform.rotation.toFixed(1)}deg`;
 				}
 
 				updateOnionFrames(selectedFrames) {
@@ -1445,25 +1813,28 @@ const pageTitle = 'Frame Sequencer';
 						? this.currentIndex + 1
 						: wraps ? 0 : -1;
 
-					this.setOnionFrame(this.onionPreviousImage, previousIndex >= 0 ? selectedFrames[previousIndex] : null);
-					this.setOnionFrame(this.onionNextImage, nextIndex >= 0 ? selectedFrames[nextIndex] : null);
+					this.setOnionFrame(this.onionPreviousLayer, this.onionPreviousImage, previousIndex >= 0 ? selectedFrames[previousIndex] : null);
+					this.setOnionFrame(this.onionNextLayer, this.onionNextImage, nextIndex >= 0 ? selectedFrames[nextIndex] : null);
 				}
 
-				setOnionFrame(image, frame) {
+				setOnionFrame(layer, image, frame) {
 					if (!(image instanceof HTMLImageElement)) return;
 					if (!frame) {
-						image.hidden = true;
+						if (layer instanceof HTMLElement) layer.hidden = true;
 						image.removeAttribute('src');
 						return;
 					}
 					image.src = frame.url;
 					image.alt = `${image === this.onionPreviousImage ? 'Previous' : 'Next'} onion-skin frame: ${frame.name}`;
-					image.hidden = false;
+					if (layer instanceof HTMLElement) {
+						layer.hidden = false;
+						this.applySpriteLayer(layer, frame);
+					}
 				}
 
 				hideOnionFrames() {
-					this.setOnionFrame(this.onionPreviousImage, null);
-					this.setOnionFrame(this.onionNextImage, null);
+					this.setOnionFrame(this.onionPreviousLayer, this.onionPreviousImage, null);
+					this.setOnionFrame(this.onionNextLayer, this.onionNextImage, null);
 				}
 
 				updateControls() {
@@ -1491,7 +1862,7 @@ const pageTitle = 'Frame Sequencer';
 					try {
 						const unityPackage = await this.buildUnityPackage();
 						await this.saveUnityFiles(unityPackage);
-						this.exportStatus.textContent = `Saved ${unityPackage.frameCount} frames at ${unityPackage.fps} FPS for Unity.`;
+						this.exportStatus.textContent = `Saved one Unity sprite sheet: ${unityPackage.frameCount} equal ${unityPackage.metadata.sheet.cellWidth} x ${unityPackage.metadata.sheet.cellHeight}px cells.`;
 					} catch (error) {
 						if (error instanceof DOMException && error.name === 'AbortError') {
 							this.exportStatus.textContent = 'Save cancelled.';
@@ -1506,8 +1877,25 @@ const pageTitle = 'Frame Sequencer';
 				async buildUnityPackage() {
 					const selectedFrames = this.getSelectedFrames();
 					const images = await Promise.all(selectedFrames.map((frame) => this.loadImage(frame.url)));
-					const cellWidth = Math.max(...images.map((image) => image.naturalWidth));
-					const cellHeight = Math.max(...images.map((image) => image.naturalHeight));
+					const sceneWidth = Math.max(...images.map((image) => image.naturalWidth));
+					const sceneHeight = Math.max(...images.map((image) => image.naturalHeight));
+					const placements = images.map((image, index) => {
+						const transform = this.normalizeTransform(selectedFrames[index].transform);
+						const radians = transform.rotation * (Math.PI / 180);
+						const centerX = sceneWidth / 2 + (transform.x / 100) * sceneWidth;
+						const centerY = sceneHeight - image.naturalHeight / 2 + (transform.y / 100) * sceneHeight;
+						const halfWidth = Math.abs(Math.cos(radians)) * image.naturalWidth / 2
+							+ Math.abs(Math.sin(radians)) * image.naturalHeight / 2;
+						const halfHeight = Math.abs(Math.sin(radians)) * image.naturalWidth / 2
+							+ Math.abs(Math.cos(radians)) * image.naturalHeight / 2;
+						return { image, transform, radians, centerX, centerY, halfWidth, halfHeight };
+					});
+					const minX = Math.floor(Math.min(0, ...placements.map((placement) => placement.centerX - placement.halfWidth)));
+					const minY = Math.floor(Math.min(0, ...placements.map((placement) => placement.centerY - placement.halfHeight)));
+					const maxX = Math.ceil(Math.max(sceneWidth, ...placements.map((placement) => placement.centerX + placement.halfWidth)));
+					const maxY = Math.ceil(Math.max(sceneHeight, ...placements.map((placement) => placement.centerY + placement.halfHeight)));
+					const cellWidth = maxX - minX;
+					const cellHeight = maxY - minY;
 					const layout = this.findSheetLayout(selectedFrames.length, cellWidth, cellHeight);
 					const canvas = document.createElement('canvas');
 					canvas.width = layout.columns * cellWidth;
@@ -1516,12 +1904,17 @@ const pageTitle = 'Frame Sequencer';
 					if (!context) throw new Error('Canvas context unavailable.');
 					context.imageSmoothingEnabled = false;
 
-					const frames = images.map((image, index) => {
+					const frames = placements.map((placement, index) => {
+						const { image, transform, radians, centerX, centerY } = placement;
 						const column = index % layout.columns;
 						const row = Math.floor(index / layout.columns);
-						const offsetX = Math.floor((cellWidth - image.naturalWidth) / 2);
-						const offsetY = cellHeight - image.naturalHeight;
-						context.drawImage(image, column * cellWidth + offsetX, row * cellHeight + offsetY);
+						const drawCenterX = column * cellWidth + centerX - minX;
+						const drawCenterY = row * cellHeight + centerY - minY;
+						context.save();
+						context.translate(drawCenterX, drawCenterY);
+						context.rotate(radians);
+						context.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
+						context.restore();
 						return {
 							index: index + 1,
 							source: selectedFrames[index].name,
@@ -1533,8 +1926,9 @@ const pageTitle = 'Frame Sequencer';
 							height: cellHeight,
 							sourceWidth: image.naturalWidth,
 							sourceHeight: image.naturalHeight,
-							offsetX,
-							offsetY,
+							offsetX: centerX - minX - image.naturalWidth / 2,
+							offsetY: centerY - minY - image.naturalHeight / 2,
+							transform,
 						};
 					});
 
@@ -1544,7 +1938,7 @@ const pageTitle = 'Frame Sequencer';
 					const fps = this.getFps();
 					const metadata = {
 						format: 'video-to-animation-unity-sprite-sheet',
-						version: 1,
+						version: 2,
 						name: baseName,
 						frameCount: selectedFrames.length,
 						fps,
@@ -1558,6 +1952,12 @@ const pageTitle = 'Frame Sequencer';
 							rows: layout.rows,
 							cellWidth,
 							cellHeight,
+						},
+						scene: {
+							width: sceneWidth,
+							height: sceneHeight,
+							originOffsetX: -minX,
+							originOffsetY: -minY,
 						},
 						unityImport: {
 							textureType: 'Sprite (2D and UI)',
@@ -1573,7 +1973,6 @@ const pageTitle = 'Frame Sequencer';
 						frameCount: selectedFrames.length,
 						fps,
 						sheetBlob,
-						metadataBlob: new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }),
 						metadata,
 					};
 				}
@@ -1613,14 +2012,10 @@ const pageTitle = 'Frame Sequencer';
 						}
 						this.directoryHandle = directory;
 						await this.storeDirectoryHandle(directory);
-						await Promise.all([
-							this.writeFile(directory, `${unityPackage.baseName}-spritesheet.png`, unityPackage.sheetBlob),
-							this.writeFile(directory, `${unityPackage.baseName}-sequence.json`, unityPackage.metadataBlob),
-						]);
+						await this.writeFile(directory, `${unityPackage.baseName}-spritesheet.png`, unityPackage.sheetBlob);
 						return;
 					}
 					this.downloadBlob(`${unityPackage.baseName}-spritesheet.png`, unityPackage.sheetBlob);
-					window.setTimeout(() => this.downloadBlob(`${unityPackage.baseName}-sequence.json`, unityPackage.metadataBlob), 150);
 				}
 
 				async writeFile(directory, name, blob) {
@@ -1671,6 +2066,8 @@ const pageTitle = 'Frame Sequencer';
 				async clear() {
 					this.stopPlayback();
 					this.workspaceReady = false;
+					this.transformUndoStack = [];
+					this.keyboardNudge = null;
 					window.clearTimeout(this.workspaceSaveTimer);
 					try { await this.deleteStoredWorkspace(); } catch {}
 					this.clearFrameUrls();

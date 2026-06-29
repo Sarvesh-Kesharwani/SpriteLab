@@ -1,0 +1,876 @@
+---
+const pageTitle = 'Sprite Sheet Extractor';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="Extract, resize, preview, and save animation frames from one image." />
+		<title>{pageTitle}</title>
+		<style is:global>
+			:root {
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				color: #171917;
+				background: #f4f5f4;
+				font-synthesis: none;
+			}
+
+			* { box-sizing: border-box; }
+			[hidden] { display: none !important; }
+
+			body {
+				min-width: 320px;
+				min-height: 100vh;
+				margin: 0;
+				background: #f4f5f4;
+			}
+
+			button,
+			input { font: inherit; }
+			button { cursor: pointer; }
+			button:disabled { cursor: not-allowed; opacity: 0.45; }
+			button:focus-visible,
+			input:focus-visible,
+			label:focus-within { outline: 2px solid #171917; outline-offset: 2px; }
+
+			.utility-bar {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				height: 52px;
+				padding: 0 clamp(16px, 3vw, 40px);
+				color: #f8faf8;
+				background: #171917;
+			}
+
+			.brand-link { color: inherit; text-decoration: none; }
+			.brand { margin: 0; font-size: 0.875rem; font-weight: 680; }
+			.local-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #bec4be; }
+			.local-dot { width: 7px; height: 7px; border-radius: 50%; background: #52d273; box-shadow: 0 0 0 3px rgba(82, 210, 115, 0.14); }
+
+			main { width: min(1500px, calc(100% - 28px)); margin: clamp(18px, 3vw, 38px) auto; }
+			.workbench { overflow: hidden; border: 1px solid #d9ddd9; border-radius: 8px; background: #fff; box-shadow: 0 16px 48px rgba(20, 24, 20, 0.07); }
+			.workbench-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 22px 24px 18px; border-bottom: 1px solid #e4e7e4; }
+			h1, h2, p { margin-top: 0; }
+			h1 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.2; }
+			.intro { max-width: 710px; margin: 7px 0 0; color: #656b65; font-size: 0.875rem; line-height: 1.55; }
+
+			.button,
+			.tool-button {
+				display: inline-flex;
+				min-height: 36px;
+				align-items: center;
+				justify-content: center;
+				gap: 7px;
+				padding: 0 13px;
+				border: 1px solid #cfd4cf;
+				border-radius: 6px;
+				color: #363a36;
+				background: #fff;
+				font-size: 0.78rem;
+				font-weight: 650;
+			}
+
+			.button:hover:not(:disabled), .tool-button:hover:not(:disabled) { border-color: #8d948d; }
+			.button.primary { border-color: #21853d; color: #fff; background: #238f43; }
+			.button.primary:hover:not(:disabled) { background: #1d7938; }
+			.button.dark { border-color: #171917; color: #fff; background: #171917; }
+			.button.danger { color: #a52727; }
+			.tool-button[aria-pressed="true"] { border-color: #238f43; color: #176b30; background: #eef8f0; box-shadow: inset 0 0 0 1px #238f43; }
+
+			.source-bar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 24px; border-bottom: 1px solid #e4e7e4; background: #fbfcfb; }
+			.source-copy { min-width: 0; }
+			.source-name { display: block; overflow: hidden; max-width: 640px; margin-bottom: 3px; font-size: 0.84rem; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
+			.source-meta, .status { color: #747a74; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.68rem; line-height: 1.45; }
+			.source-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+			.file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+			.editor-grid { display: grid; grid-template-columns: 244px minmax(420px, 1fr) 310px; height: clamp(620px, calc(100vh - 190px), 760px); }
+			.sidebar { min-width: 0; background: #fbfcfb; }
+			.sidebar.left { border-right: 1px solid #e4e7e4; }
+			.sidebar.right { display: grid; min-height: 0; grid-template-rows: auto minmax(210px, 1fr) auto; border-left: 1px solid #e4e7e4; }
+			.panel-section { padding: 17px 16px; border-bottom: 1px solid #e4e7e4; }
+			.panel-section h2 { margin-bottom: 12px; font-size: 0.78rem; letter-spacing: 0.01em; text-transform: uppercase; }
+			.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+			.tool-grid .tool-button:first-child { grid-column: 1 / -1; }
+			.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+			.field { display: block; min-width: 0; }
+			.field.wide { grid-column: 1 / -1; }
+			.field-label { display: block; margin-bottom: 6px; color: #545954; font-size: 0.7rem; font-weight: 680; }
+			.number-input, .text-input { width: 100%; height: 36px; padding: 0 9px; border: 1px solid #cfd4cf; border-radius: 5px; color: #171917; background: #fff; font-size: 0.78rem; }
+			.range-input { width: 100%; accent-color: #238f43; }
+			.check-row { display: flex; align-items: flex-start; gap: 9px; color: #4d534d; font-size: 0.74rem; line-height: 1.45; }
+			.check-row input { flex: 0 0 auto; margin-top: 2px; accent-color: #238f43; }
+			.hint { margin: 8px 0 0; color: #747a74; font-size: 0.69rem; line-height: 1.5; }
+			.color-input { width: 100%; height: 36px; padding: 3px; border: 1px solid #cfd4cf; border-radius: 5px; background: #fff; }
+			.action-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+
+			.stage { display: grid; min-width: 0; grid-template-rows: auto minmax(420px, 1fr) auto; background: #e9ebe9; }
+			.stage-toolbar, .stage-status { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 14px; border-bottom: 1px solid #d7dbd7; background: #f8f9f8; }
+			.stage-status { border-top: 1px solid #d7dbd7; border-bottom: 0; }
+			.zoom-actions { display: flex; gap: 6px; }
+			.icon-button { width: 32px; height: 30px; border: 1px solid #cfd4cf; border-radius: 5px; background: #fff; font-weight: 700; }
+			.canvas-shell { position: relative; min-height: 0; overflow: hidden; }
+			.editor-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+			.empty-canvas { position: absolute; inset: 0; display: grid; place-items: center; padding: 32px; pointer-events: none; }
+			.empty-card { max-width: 360px; padding: 24px; border: 1px dashed #aeb4ae; border-radius: 7px; color: #656b65; background: rgba(255,255,255,0.88); text-align: center; }
+			.empty-card strong { display: block; margin-bottom: 7px; color: #171917; font-size: 0.9rem; }
+
+			.frames-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 14px 12px; border-bottom: 1px solid #e4e7e4; }
+			.frames-head h2 { margin: 0; font-size: 0.86rem; }
+			.count-badge { min-width: 25px; padding: 3px 7px; border-radius: 999px; color: #176b30; background: #e9f7ed; font-size: 0.68rem; font-weight: 700; text-align: center; }
+			.frame-list { min-height: 0; overflow: auto; padding: 10px; }
+			.frame-list-empty { padding: 28px 14px; color: #747a74; font-size: 0.75rem; line-height: 1.55; text-align: center; }
+			.frame-item { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 10px; margin-bottom: 8px; padding: 8px; border: 1px solid #d9ddd9; border-radius: 6px; background: #fff; }
+			.frame-item[data-active="true"] { border-color: #238f43; box-shadow: inset 0 0 0 1px #238f43; }
+			.frame-thumb { display: block; width: 70px; height: 70px; border: 1px solid #e0e3e0; border-radius: 4px; background-color: #fff; background-image: linear-gradient(45deg,#e8e8e8 25%,transparent 25%),linear-gradient(-45deg,#e8e8e8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8e8e8 75%),linear-gradient(-45deg,transparent 75%,#e8e8e8 75%); background-position: 0 0,0 6px,6px -6px,-6px 0; background-size: 12px 12px; }
+			.frame-info { min-width: 0; }
+			.frame-title { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-bottom: 7px; }
+			.frame-title button { overflow: hidden; padding: 0; border: 0; color: #171917; background: transparent; font-size: 0.75rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+			.frame-actions { display: flex; gap: 3px; }
+			.mini-button { width: 24px; height: 23px; padding: 0; border: 1px solid #d9ddd9; border-radius: 4px; color: #505650; background: #fff; font-size: 0.65rem; }
+			.frame-size { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 5px; }
+			.frame-size input { width: 100%; height: 29px; padding: 0 5px; border: 1px solid #d9ddd9; border-radius: 4px; font-size: 0.68rem; }
+			.frame-offset { display: grid; grid-template-columns: auto 1fr auto 1fr; align-items: center; gap: 4px; margin-top: 6px; }
+			.frame-offset input { width: 100%; min-width: 0; height: 27px; padding: 0 4px; border: 1px solid #d9ddd9; border-radius: 4px; font-size: 0.65rem; }
+			.axis-label { color: #747a74; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.62rem; }
+
+			.preview-panel { padding: 14px; border-top: 1px solid #e4e7e4; background: #fff; }
+			.preview-panel h2 { margin-bottom: 10px; font-size: 0.82rem; }
+			.preview-canvas { display: block; width: 100%; height: 150px; border: 1px solid #d9ddd9; border-radius: 6px; background-color: #fff; background-image: linear-gradient(45deg,#e8e8e8 25%,transparent 25%),linear-gradient(-45deg,#e8e8e8 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8e8e8 75%),linear-gradient(-45deg,transparent 75%,#e8e8e8 75%); background-position: 0 0,0 8px,8px -8px,-8px 0; background-size: 16px 16px; }
+			.preview-canvas[data-aligning="true"] { cursor: grabbing; }
+			.scene-grid { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 8px; margin-bottom: 10px; }
+			.nudge-grid { display: grid; grid-template-columns: repeat(3, 31px); grid-template-rows: repeat(3, 28px); justify-content: center; gap: 4px; margin-top: 10px; }
+			.nudge-button { padding: 0; border: 1px solid #cfd4cf; border-radius: 4px; color: #363a36; background: #fff; font-size: 0.72rem; font-weight: 700; }
+			.nudge-button[data-nudge="up"] { grid-column: 2; grid-row: 1; }
+			.nudge-button[data-nudge="left"] { grid-column: 1; grid-row: 2; }
+			.nudge-button[data-action="center-frame"] { grid-column: 2; grid-row: 2; font-size: 0.58rem; }
+			.nudge-button[data-nudge="right"] { grid-column: 3; grid-row: 2; }
+			.nudge-button[data-nudge="down"] { grid-column: 2; grid-row: 3; }
+			.alignment-note { margin: 8px 0 0; color: #747a74; font-size: 0.68rem; line-height: 1.45; text-align: center; }
+			.playback-row { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 8px; margin-top: 10px; }
+			.playback-row .button { min-width: 66px; }
+			.save-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+			.save-stack .status { grid-column: 1 / -1; min-height: 1.5em; margin: 0; }
+
+			@media (max-width: 1120px) {
+				.editor-grid { height: auto; min-height: 620px; grid-template-columns: 220px minmax(380px, 1fr); }
+				.sidebar.right { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) 310px; grid-template-rows: auto minmax(220px, 360px); border-top: 1px solid #e4e7e4; border-left: 0; }
+				.sidebar.right .frames-head { grid-column: 1; }
+				.sidebar.right .frame-list { grid-column: 1; }
+				.preview-panel { grid-column: 2; grid-row: 1 / 3; border-top: 0; border-left: 1px solid #e4e7e4; }
+			}
+
+			@media (max-width: 760px) {
+				main { width: min(100% - 16px, 1500px); margin: 8px auto; }
+				.workbench-head, .source-bar { align-items: stretch; flex-direction: column; }
+				.source-actions { justify-content: stretch; }
+				.source-actions .button { flex: 1; }
+				.editor-grid { display: block; }
+				.sidebar.left { border-right: 0; border-bottom: 1px solid #e4e7e4; }
+				.stage { min-height: 580px; }
+				.sidebar.right { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 330px auto; }
+				.preview-panel { grid-column: 1; grid-row: auto; border-top: 1px solid #e4e7e4; border-left: 0; }
+			}
+		</style>
+	</head>
+	<body>
+		<header class="utility-bar">
+			<a class="brand-link" href="/"><p class="brand">Video to Animation / Sprite Sheet Extractor</p></a>
+			<div class="local-status"><span class="local-dot"></span><span>Local only</span></div>
+		</header>
+
+		<main>
+			<sprite-extractor-app class="workbench">
+				<section class="workbench-head">
+					<div>
+						<h1>Sprite Sheet Extractor</h1>
+						<p class="intro">Load one image with scattered poses. Detect frames automatically, refine them with rectangle or lasso selections, resize each output, preview the loop, then save PNGs to a folder.</p>
+					</div>
+					<button data-clear class="button danger" type="button" disabled>Clear Project</button>
+				</section>
+
+				<section class="source-bar">
+					<div class="source-copy">
+						<span data-source-name class="source-name">No image selected</span>
+						<span data-source-meta class="source-meta">PNG, WebP, or JPEG. Processing stays in this browser.</span>
+					</div>
+					<div class="source-actions">
+						<label class="button dark" for="sprite-source">Choose Image</label>
+						<input data-file-input class="file-input" id="sprite-source" type="file" accept="image/png,image/webp,image/jpeg" />
+						<button data-load-example class="button" type="button">Load Example</button>
+						<button data-auto-detect class="button primary" type="button" disabled>Auto Detect</button>
+					</div>
+				</section>
+
+				<div class="editor-grid">
+					<aside class="sidebar left">
+						<section class="panel-section">
+							<h2>Selection Tools</h2>
+							<div class="tool-grid">
+								<button data-tool="select" class="tool-button" type="button" aria-pressed="true">Select</button>
+								<button data-tool="rectangle" class="tool-button" type="button" aria-pressed="false">Rectangle</button>
+								<button data-tool="lasso" class="tool-button" type="button" aria-pressed="false">Lasso</button>
+							</div>
+							<p class="hint">Draw around one pose. Lasso exports pixels inside the freehand path only.</p>
+						</section>
+
+						<section class="panel-section">
+							<h2>Framesheet Background</h2>
+							<div class="field-grid">
+								<label class="field"><span class="field-label">Background color</span><input data-bg-color class="color-input" type="color" value="#ffffff" /></label>
+								<label class="field"><span class="field-label">Tolerance</span><input data-bg-tolerance class="number-input" type="number" min="0" max="255" value="36" /></label>
+							</div>
+							<div class="action-stack">
+								<button data-pick-background class="button" type="button" disabled>Pick Color</button>
+								<button data-remove-background class="button primary" type="button" disabled>Remove</button>
+								<button data-reset-background class="button wide" style="grid-column:1 / -1" type="button" disabled>Reset Background</button>
+							</div>
+							<p class="hint">Pick a background pixel from the sheet. Only matching pixels connected to image edges are removed, protecting enclosed light details.</p>
+						</section>
+
+						<section class="panel-section">
+							<h2>Auto Detection</h2>
+							<div class="field-grid">
+								<label class="field"><span class="field-label">Light cutoff</span><input data-light-cutoff class="number-input" type="number" min="160" max="254" value="225" /></label>
+								<label class="field"><span class="field-label">Padding</span><input data-padding class="number-input" type="number" min="0" max="128" value="12" /></label>
+								<label class="field wide"><span class="field-label">Minimum object area</span><input data-min-area class="range-input" type="range" min="20" max="2000" value="180" /></label>
+							</div>
+							<p class="hint">Transparent images use alpha. Opaque checkerboard images use brightness and color contrast.</p>
+						</section>
+
+						<section class="panel-section">
+							<h2>Extracted Frame Size</h2>
+							<div class="field-grid">
+								<label class="field"><span class="field-label">Width</span><input data-default-width class="number-input" type="number" min="1" max="4096" value="256" /></label>
+								<label class="field"><span class="field-label">Height</span><input data-default-height class="number-input" type="number" min="1" max="4096" value="256" /></label>
+							</div>
+							<label class="check-row" style="margin-top:12px"><input data-preserve-ratio type="checkbox" checked /> Preserve crop aspect ratio while resizing each extracted frame</label>
+							<label class="check-row" style="margin-top:10px"><input data-remove-light type="checkbox" checked /> Fallback: remove light crop-edge background when full sheet removal is off</label>
+						</section>
+					</aside>
+
+					<section class="stage">
+						<div class="stage-toolbar">
+							<span data-stage-label class="status">Canvas ready</span>
+							<div class="zoom-actions">
+								<button data-zoom-out class="icon-button" type="button" aria-label="Zoom out">-</button>
+								<button data-fit class="button" type="button">Fit</button>
+								<button data-zoom-in class="icon-button" type="button" aria-label="Zoom in">+</button>
+							</div>
+						</div>
+						<div data-canvas-shell class="canvas-shell">
+							<canvas data-editor-canvas class="editor-canvas"></canvas>
+							<div data-empty-canvas class="empty-canvas"><div class="empty-card"><strong>Choose an image to begin</strong>Auto Detect works with transparent sprites and light checkerboard backgrounds.</div></div>
+						</div>
+						<div class="stage-status">
+							<span data-pointer-status class="status">X 0 / Y 0</span>
+							<span data-frame-status class="status" aria-live="polite">0 frames</span>
+						</div>
+					</section>
+
+					<aside class="sidebar right">
+						<div class="frames-head"><h2>Detected Frames</h2><span data-count class="count-badge">0</span></div>
+						<div data-frame-list class="frame-list"><div class="frame-list-empty">Detected and hand-drawn frames appear here. Select a frame to resize or inspect it.</div></div>
+						<section class="preview-panel">
+							<h2>Animation Preview</h2>
+							<div class="scene-grid">
+								<label class="field"><span class="field-label">Scene width</span><input data-scene-width class="number-input" type="number" min="1" max="4096" value="512" /></label>
+								<label class="field"><span class="field-label">Scene height</span><input data-scene-height class="number-input" type="number" min="1" max="4096" value="512" /></label>
+								<button data-action="fit-scene" class="button" type="button">Fit</button>
+							</div>
+							<canvas data-preview-canvas class="preview-canvas" tabindex="0" aria-label="Scene alignment canvas. Drag selected frame or use arrow keys to reposition it."></canvas>
+							<div class="nudge-grid" aria-label="Frame position controls">
+								<button data-nudge="up" class="nudge-button" type="button" title="Move frame up">&uarr;</button>
+								<button data-nudge="left" class="nudge-button" type="button" title="Move frame left">&larr;</button>
+								<button data-action="center-frame" class="nudge-button" type="button" title="Center active frame">Center</button>
+								<button data-nudge="right" class="nudge-button" type="button" title="Move frame right">&rarr;</button>
+								<button data-nudge="down" class="nudge-button" type="button" title="Move frame down">&darr;</button>
+							</div>
+							<p class="alignment-note">Select a frame, then drag it inside the scene or use arrow controls. Shift = 10 px.</p>
+							<div class="playback-row">
+								<button data-play class="button dark" type="button" disabled>Play</button>
+								<label class="field"><span class="field-label">FPS</span><input data-fps class="number-input" type="number" min="1" max="60" value="12" /></label>
+								<span data-preview-count class="status">0 / 0</span>
+							</div>
+							<div class="save-stack">
+								<button data-folder class="button" type="button">Choose Folder</button>
+								<button data-save class="button primary" type="button" disabled>Save All Frames</button>
+								<p data-save-status class="status" aria-live="polite">No output folder selected.</p>
+							</div>
+						</section>
+					</aside>
+				</div>
+			</sprite-extractor-app>
+		</main>
+
+		<script>
+			class SpriteExtractorApp extends HTMLElement {
+				image = null;
+				imageUrl = '';
+				frames = [];
+				activeId = '';
+				tool = 'select';
+				drawing = null;
+				viewZoom = 1;
+				view = { x: 0, y: 0, scale: 1 };
+				directoryHandle = null;
+				animationTimer = null;
+				previewIndex = 0;
+				frameCounter = 0;
+				previewDrag = null;
+				previewView = { x: 0, y: 0, scale: 1 };
+				sourceCanvas = null;
+				backgroundRemoved = false;
+
+				connectedCallback() {
+					this.fileInput = this.querySelector('[data-file-input]');
+					this.canvas = this.querySelector('[data-editor-canvas]');
+					this.canvasShell = this.querySelector('[data-canvas-shell]');
+					this.previewCanvas = this.querySelector('[data-preview-canvas]');
+					this.frameList = this.querySelector('[data-frame-list]');
+					this.fileInput?.addEventListener('change', (event) => this.loadFile(event.target.files?.[0]));
+					this.querySelector('[data-load-example]')?.addEventListener('click', () => this.loadExample());
+					this.querySelector('[data-auto-detect]')?.addEventListener('click', () => this.autoDetect());
+					this.querySelector('[data-clear]')?.addEventListener('click', () => this.clearProject());
+					this.querySelector('[data-pick-background]')?.addEventListener('click', () => this.setTool('background'));
+					this.querySelector('[data-remove-background]')?.addEventListener('click', () => this.removeFramesheetBackground());
+					this.querySelector('[data-reset-background]')?.addEventListener('click', () => this.resetFramesheetBackground());
+					this.querySelector('[data-fit]')?.addEventListener('click', () => { this.viewZoom = 1; this.drawEditor(); });
+					this.querySelector('[data-zoom-in]')?.addEventListener('click', () => { this.viewZoom = Math.min(4, this.viewZoom * 1.2); this.drawEditor(); });
+					this.querySelector('[data-zoom-out]')?.addEventListener('click', () => { this.viewZoom = Math.max(0.35, this.viewZoom / 1.2); this.drawEditor(); });
+					this.querySelector('[data-play]')?.addEventListener('click', () => this.togglePlayback());
+					this.querySelector('[data-fps]')?.addEventListener('change', () => { if (this.animationTimer) { this.stopPlayback(false); this.startPlayback(); } });
+					this.querySelector('[data-folder]')?.addEventListener('click', () => this.chooseFolder());
+					this.querySelector('[data-save]')?.addEventListener('click', () => this.saveAll());
+					this.querySelector('[data-action="fit-scene"]')?.addEventListener('click', () => this.fitSceneToFrames());
+					this.querySelector('[data-action="center-frame"]')?.addEventListener('click', () => this.centerActiveFrame());
+					for (const input of this.querySelectorAll('[data-scene-width], [data-scene-height]')) input.addEventListener('input', () => this.drawPreview());
+					for (const button of this.querySelectorAll('[data-nudge]')) button.addEventListener('click', (event) => this.nudgeActiveFrame(event.currentTarget.dataset.nudge, event.shiftKey ? 10 : 1));
+					for (const button of this.querySelectorAll('[data-tool]')) button.addEventListener('click', () => this.setTool(button.dataset.tool));
+					this.frameList?.addEventListener('click', (event) => this.onFrameListClick(event));
+					this.frameList?.addEventListener('input', (event) => event.target.matches?.('[data-size]') ? this.onFrameSizeChange(event) : this.onFrameOffsetChange(event));
+					this.frameList?.addEventListener('keydown', (event) => {
+						if (event.key === 'Enter' && event.target.matches?.('[data-size]')) event.target.blur();
+					});
+					this.canvas?.addEventListener('pointerdown', (event) => this.onPointerDown(event));
+					this.canvas?.addEventListener('pointermove', (event) => this.onPointerMove(event));
+					this.canvas?.addEventListener('pointerup', (event) => this.onPointerUp(event));
+					this.canvas?.addEventListener('pointercancel', () => { this.drawing = null; this.drawEditor(); });
+					this.previewCanvas?.addEventListener('pointerdown', (event) => this.onPreviewPointerDown(event));
+					this.previewCanvas?.addEventListener('pointermove', (event) => this.onPreviewPointerMove(event));
+					this.previewCanvas?.addEventListener('pointerup', (event) => this.onPreviewPointerUp(event));
+					this.previewCanvas?.addEventListener('pointercancel', () => this.endPreviewDrag());
+					this.previewCanvas?.addEventListener('keydown', (event) => {
+						const direction = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' }[event.key];
+						if (!direction) return; event.preventDefault(); this.nudgeActiveFrame(direction, event.shiftKey ? 10 : 1);
+					});
+					this.resizeObserver = new ResizeObserver(() => { this.drawEditor(); this.drawPreview(); });
+					this.resizeObserver.observe(this.canvasShell);
+					this.resizeObserver.observe(this.previewCanvas);
+					this.drawEditor();
+					this.drawPreview();
+					if (new URLSearchParams(window.location.search).get('demo') === '1') {
+						this.loadExample().then(() => this.autoDetect());
+					}
+				}
+
+				disconnectedCallback() {
+					this.resizeObserver?.disconnect();
+					this.stopPlayback();
+					if (this.imageUrl) URL.revokeObjectURL(this.imageUrl);
+				}
+
+				async loadFile(file) {
+					if (!file?.type.startsWith('image/')) return;
+					await this.loadImageSource(URL.createObjectURL(file), file.name, file.size);
+				}
+
+				async loadExample() {
+					const response = await fetch('/assets/sprite-extractor-example.png');
+					const blob = await response.blob();
+					await this.loadImageSource(URL.createObjectURL(blob), 'sprite-extractor-example.png', blob.size);
+				}
+
+				async loadImageSource(url, name, size) {
+					this.stopPlayback();
+					if (this.imageUrl) URL.revokeObjectURL(this.imageUrl);
+					this.imageUrl = url;
+					const image = new Image();
+					image.decoding = 'async';
+					image.src = this.imageUrl;
+					try { await image.decode(); } catch { await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; }); }
+					this.image = image;
+					this.sourceCanvas = document.createElement('canvas');
+					this.sourceCanvas.width = image.naturalWidth; this.sourceCanvas.height = image.naturalHeight;
+					this.sourceCanvas.getContext('2d', { alpha: true }).drawImage(image, 0, 0);
+					this.backgroundRemoved = false;
+					this.frames = [];
+					this.activeId = '';
+					this.viewZoom = 1;
+					this.querySelector('[data-source-name]').textContent = name;
+					this.querySelector('[data-source-meta]').textContent = `${image.naturalWidth} x ${image.naturalHeight} px / ${(size / 1024 / 1024).toFixed(2)} MB`;
+					this.querySelector('[data-empty-canvas]').hidden = true;
+					this.querySelector('[data-auto-detect]').disabled = false;
+					this.querySelector('[data-pick-background]').disabled = false;
+					this.querySelector('[data-remove-background]').disabled = false;
+					this.querySelector('[data-reset-background]').disabled = true;
+					this.querySelector('[data-clear]').disabled = false;
+					this.querySelector('[data-stage-label]').textContent = 'Image loaded. Run Auto Detect or draw a selection.';
+					this.renderFrames();
+					this.drawEditor();
+				}
+
+				clearProject() {
+					this.stopPlayback();
+					if (this.imageUrl) URL.revokeObjectURL(this.imageUrl);
+					this.image = null;
+					this.sourceCanvas = null;
+					this.backgroundRemoved = false;
+					this.imageUrl = '';
+					this.frames = [];
+					this.activeId = '';
+					this.fileInput.value = '';
+					this.querySelector('[data-source-name]').textContent = 'No image selected';
+					this.querySelector('[data-source-meta]').textContent = 'PNG, WebP, or JPEG. Processing stays in this browser.';
+					this.querySelector('[data-empty-canvas]').hidden = false;
+					this.querySelector('[data-auto-detect]').disabled = true;
+					this.querySelector('[data-pick-background]').disabled = true;
+					this.querySelector('[data-remove-background]').disabled = true;
+					this.querySelector('[data-reset-background]').disabled = true;
+					this.querySelector('[data-clear]').disabled = true;
+					this.querySelector('[data-stage-label]').textContent = 'Canvas ready';
+					this.renderFrames();
+					this.drawEditor();
+				}
+
+				setTool(tool) {
+					this.tool = tool;
+					for (const button of this.querySelectorAll('[data-tool]')) button.setAttribute('aria-pressed', String(button.dataset.tool === tool));
+					this.canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+					if (tool === 'background') this.querySelector('[data-stage-label]').textContent = 'Background picker active. Click a background pixel on the framesheet.';
+					else this.querySelector('[data-stage-label]').textContent = tool === 'select' ? 'Select a frame on the canvas.' : `${tool === 'rectangle' ? 'Rectangle' : 'Lasso'} tool active. Draw around one pose.`;
+				}
+
+				canvasPoint(event) {
+					const rect = this.canvas.getBoundingClientRect();
+					return { x: (event.clientX - rect.left - this.view.x) / this.view.scale, y: (event.clientY - rect.top - this.view.y) / this.view.scale };
+				}
+
+				clampPoint(point) {
+					return { x: Math.max(0, Math.min(this.image.naturalWidth, point.x)), y: Math.max(0, Math.min(this.image.naturalHeight, point.y)) };
+				}
+
+				onPointerDown(event) {
+					if (!this.image) return;
+					const point = this.clampPoint(this.canvasPoint(event));
+					if (this.tool === 'background') {
+						this.sampleBackgroundColor(point); this.removeFramesheetBackground(); this.setTool('select'); return;
+					}
+					if (this.tool === 'select') {
+						const hit = [...this.frames].reverse().find((frame) => point.x >= frame.x && point.x <= frame.x + frame.w && point.y >= frame.y && point.y <= frame.y + frame.h);
+						if (hit) { this.activeId = hit.id; this.renderFrames(); this.drawEditor(); }
+						return;
+					}
+					this.canvas.setPointerCapture?.(event.pointerId);
+					this.drawing = this.tool === 'lasso' ? { type: 'lasso', points: [point] } : { type: 'rectangle', start: point, end: point };
+					this.drawEditor();
+				}
+
+				onPointerMove(event) {
+					if (!this.image) return;
+					const point = this.clampPoint(this.canvasPoint(event));
+					this.querySelector('[data-pointer-status]').textContent = `X ${Math.round(point.x)} / Y ${Math.round(point.y)}`;
+					if (!this.drawing) return;
+					if (this.drawing.type === 'lasso') {
+						const last = this.drawing.points[this.drawing.points.length - 1];
+						if (Math.hypot(point.x - last.x, point.y - last.y) > 3 / this.view.scale) this.drawing.points.push(point);
+					} else this.drawing.end = point;
+					this.drawEditor();
+				}
+
+				onPointerUp(event) {
+					if (!this.drawing || !this.image) return;
+					const point = this.clampPoint(this.canvasPoint(event));
+					let frame = null;
+					if (this.drawing.type === 'rectangle') {
+						const start = this.drawing.start;
+						const x = Math.min(start.x, point.x);
+						const y = Math.min(start.y, point.y);
+						const w = Math.abs(point.x - start.x);
+						const h = Math.abs(point.y - start.y);
+						if (w >= 4 && h >= 4) frame = this.makeFrame(x, y, w, h, null);
+					} else {
+						this.drawing.points.push(point);
+						const points = this.drawing.points;
+						if (points.length >= 3) {
+							const xs = points.map((item) => item.x);
+							const ys = points.map((item) => item.y);
+							const x = Math.min(...xs); const y = Math.min(...ys); const w = Math.max(...xs) - x; const h = Math.max(...ys) - y;
+							if (w >= 4 && h >= 4) frame = this.makeFrame(x, y, w, h, points);
+						}
+					}
+					this.drawing = null;
+					if (frame) { this.frames.push(frame); this.activeId = frame.id; this.renderFrames(); }
+					this.drawEditor();
+				}
+
+				makeFrame(x, y, w, h, polygon) {
+					const defaultWidth = Math.max(1, Number(this.querySelector('[data-default-width]').value) || Math.round(w));
+					const preserve = this.querySelector('[data-preserve-ratio]').checked;
+					const defaultHeight = preserve ? Math.max(1, Math.round(defaultWidth * h / w)) : Math.max(1, Number(this.querySelector('[data-default-height]').value) || Math.round(h));
+					this.frameCounter += 1;
+					return { id: `frame-${this.frameCounter}`, x: Math.round(x), y: Math.round(y), w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)), polygon, outputWidth: defaultWidth, outputHeight: defaultHeight, offsetX: 0, offsetY: 0 };
+				}
+
+				sampleBackgroundColor(point) {
+					if (!this.image) return;
+					const sample = document.createElement('canvas'); sample.width = this.image.naturalWidth; sample.height = this.image.naturalHeight;
+					const context = sample.getContext('2d', { willReadFrequently: true }); context.drawImage(this.image, 0, 0);
+					const pixel = context.getImageData(Math.min(sample.width - 1, Math.max(0, Math.floor(point.x))), Math.min(sample.height - 1, Math.max(0, Math.floor(point.y))), 1, 1).data;
+					this.querySelector('[data-bg-color]').value = `#${[pixel[0], pixel[1], pixel[2]].map((value) => value.toString(16).padStart(2, '0')).join('')}`;
+				}
+
+				removeFramesheetBackground() {
+					if (!this.image) return;
+					const width = this.image.naturalWidth; const height = this.image.naturalHeight;
+					const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+					const context = canvas.getContext('2d', { alpha: true, willReadFrequently: true }); context.drawImage(this.image, 0, 0);
+					const imageData = context.getImageData(0, 0, width, height); const data = imageData.data;
+					const color = this.querySelector('[data-bg-color]').value.slice(1); const target = [0, 2, 4].map((offset) => parseInt(color.slice(offset, offset + 2), 16));
+					const tolerance = Math.max(0, Math.min(255, Number(this.querySelector('[data-bg-tolerance]').value) || 0));
+					const candidates = new Uint8Array(width * height); const queue = new Int32Array(width * height); let head = 0; let tail = 0;
+					for (let pixel = 0, offset = 0; pixel < candidates.length; pixel += 1, offset += 4) {
+						const distance = Math.max(Math.abs(data[offset] - target[0]), Math.abs(data[offset + 1] - target[1]), Math.abs(data[offset + 2] - target[2]));
+						candidates[pixel] = data[offset + 3] === 0 || distance <= tolerance ? 1 : 0;
+					}
+					const enqueue = (index) => { if (candidates[index] !== 1) return; candidates[index] = 2; queue[tail++] = index; };
+					for (let x = 0; x < width; x += 1) { enqueue(x); enqueue((height - 1) * width + x); }
+					for (let y = 1; y < height - 1; y += 1) { enqueue(y * width); enqueue(y * width + width - 1); }
+					while (head < tail) {
+						const index = queue[head++]; const x = index % width; const y = (index / width) | 0;
+						for (let dy = -1; dy <= 1; dy += 1) for (let dx = -1; dx <= 1; dx += 1) { if ((!dx && !dy) || x + dx < 0 || x + dx >= width || y + dy < 0 || y + dy >= height) continue; enqueue(index + dy * width + dx); }
+					}
+					let removedPixels = 0;
+					for (let pixel = 0, offset = 3; pixel < candidates.length; pixel += 1, offset += 4) if (candidates[pixel] === 2) { data[offset] = 0; removedPixels += 1; }
+					context.putImageData(imageData, 0, 0); this.sourceCanvas = canvas; this.backgroundRemoved = true;
+					this.querySelector('[data-reset-background]').disabled = false;
+					this.querySelector('[data-stage-label]').textContent = `${removedPixels.toLocaleString()} background pixels removed. Auto Detect and exports now use transparency.`;
+					this.renderFrames(); this.drawEditor();
+				}
+
+				resetFramesheetBackground() {
+					if (!this.image) return;
+					this.sourceCanvas = document.createElement('canvas'); this.sourceCanvas.width = this.image.naturalWidth; this.sourceCanvas.height = this.image.naturalHeight;
+					this.sourceCanvas.getContext('2d', { alpha: true }).drawImage(this.image, 0, 0); this.backgroundRemoved = false;
+					this.querySelector('[data-reset-background]').disabled = true;
+					this.querySelector('[data-stage-label]').textContent = 'Original framesheet background restored.';
+					this.renderFrames(); this.drawEditor();
+				}
+
+				async autoDetect() {
+					if (!this.image) return;
+					const button = this.querySelector('[data-auto-detect]');
+					button.disabled = true;
+					button.textContent = 'Detecting...';
+					this.querySelector('[data-stage-label]').textContent = 'Scanning image for separate objects...';
+					try {
+						const maxWidth = 1000;
+						const scale = Math.min(1, maxWidth / this.image.naturalWidth);
+						const width = Math.max(1, Math.round(this.image.naturalWidth * scale));
+						const height = Math.max(1, Math.round(this.image.naturalHeight * scale));
+						const scan = document.createElement('canvas');
+						scan.width = width; scan.height = height;
+						const context = scan.getContext('2d', { willReadFrequently: true });
+						context.drawImage(this.sourceCanvas || this.image, 0, 0, width, height);
+						const pixels = context.getImageData(0, 0, width, height).data;
+						const mask = new Uint8Array(width * height);
+						let hasTransparency = false;
+						for (let i = 3; i < pixels.length; i += 4) if (pixels[i] < 245) { hasTransparency = true; break; }
+						const cutoff = Number(this.querySelector('[data-light-cutoff]').value) || 225;
+						for (let pixel = 0, offset = 0; pixel < mask.length; pixel += 1, offset += 4) {
+							const r = pixels[offset]; const g = pixels[offset + 1]; const b = pixels[offset + 2]; const a = pixels[offset + 3];
+							const chroma = Math.max(r, g, b) - Math.min(r, g, b);
+							mask[pixel] = hasTransparency ? (a > 24 ? 1 : 0) : ((Math.min(r, g, b) < cutoff || chroma > 24) ? 1 : 0);
+						}
+						const queue = new Int32Array(mask.length);
+						const boxes = [];
+						const minArea = Number(this.querySelector('[data-min-area]').value) || 180;
+						for (let start = 0; start < mask.length; start += 1) {
+							if (mask[start] !== 1) continue;
+							let head = 0; let tail = 0; let count = 0;
+							let minX = width; let minY = height; let maxX = 0; let maxY = 0;
+							queue[tail++] = start; mask[start] = 2;
+							while (head < tail) {
+								const index = queue[head++]; const x = index % width; const y = (index / width) | 0; count += 1;
+								if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+								if (x > 0 && mask[index - 1] === 1) { mask[index - 1] = 2; queue[tail++] = index - 1; }
+								if (x + 1 < width && mask[index + 1] === 1) { mask[index + 1] = 2; queue[tail++] = index + 1; }
+								if (y > 0 && mask[index - width] === 1) { mask[index - width] = 2; queue[tail++] = index - width; }
+								if (y + 1 < height && mask[index + width] === 1) { mask[index + width] = 2; queue[tail++] = index + width; }
+							}
+							if (count >= minArea && maxX - minX > 3 && maxY - minY > 3) boxes.push({ minX, minY, maxX, maxY, count });
+						}
+						const padding = Math.max(0, Number(this.querySelector('[data-padding]').value) || 0);
+						const candidates = boxes
+							.filter((box) => box.count < width * height * 0.7)
+							.map((box) => ({ x: Math.max(0, box.minX / scale - padding), y: Math.max(0, box.minY / scale - padding), w: Math.min(this.image.naturalWidth, (box.maxX + 1) / scale + padding) - Math.max(0, box.minX / scale - padding), h: Math.min(this.image.naturalHeight, (box.maxY + 1) / scale + padding) - Math.max(0, box.minY / scale - padding) }))
+							.sort((a, b) => a.x - b.x || a.y - b.y)
+							.slice(0, 100);
+						this.frames = candidates.map((box) => this.makeFrame(box.x, box.y, box.w, box.h, null));
+						this.activeId = this.frames[0]?.id || '';
+						this.querySelector('[data-stage-label]').textContent = this.frames.length ? `${this.frames.length} separate frames detected. Add or remove selections as needed.` : 'No separate objects found. Lower Light cutoff or Minimum object area, or use Rectangle/Lasso.';
+						this.renderFrames();
+						this.drawEditor();
+					} finally {
+						button.disabled = false;
+						button.textContent = 'Auto Detect';
+					}
+				}
+
+				sizeCanvas(canvas) {
+					const rect = canvas.getBoundingClientRect();
+					const ratio = window.devicePixelRatio || 1;
+					const width = Math.max(1, Math.round(rect.width * ratio));
+					const height = Math.max(1, Math.round(rect.height * ratio));
+					if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+					const context = canvas.getContext('2d');
+					context.setTransform(ratio, 0, 0, ratio, 0, 0);
+					return { context, width: rect.width, height: rect.height };
+				}
+
+				drawChecker(context, width, height) {
+					context.fillStyle = '#f7f8f7'; context.fillRect(0, 0, width, height);
+					context.fillStyle = '#e5e7e5';
+					for (let y = 0; y < height; y += 16) for (let x = 0; x < width; x += 16) if (((x / 16) + (y / 16)) % 2 === 0) context.fillRect(x, y, 16, 16);
+				}
+
+				drawEditor() {
+					const { context, width, height } = this.sizeCanvas(this.canvas);
+					context.clearRect(0, 0, width, height);
+					this.drawChecker(context, width, height);
+					if (!this.image) return;
+					const baseScale = Math.min((width - 48) / this.image.naturalWidth, (height - 48) / this.image.naturalHeight);
+					const scale = Math.max(0.02, baseScale * this.viewZoom);
+					const drawWidth = this.image.naturalWidth * scale; const drawHeight = this.image.naturalHeight * scale;
+					const x = (width - drawWidth) / 2; const y = (height - drawHeight) / 2;
+					this.view = { x, y, scale };
+					context.save(); context.imageSmoothingEnabled = true; context.drawImage(this.sourceCanvas || this.image, x, y, drawWidth, drawHeight); context.restore();
+					for (let index = 0; index < this.frames.length; index += 1) this.drawSelection(context, this.frames[index], index + 1, this.frames[index].id === this.activeId);
+					if (this.drawing) this.drawDraft(context);
+				}
+
+				drawSelection(context, frame, number, active) {
+					context.save(); context.translate(this.view.x, this.view.y); context.scale(this.view.scale, this.view.scale);
+					context.strokeStyle = active ? '#a8ee19' : '#238f43'; context.fillStyle = active ? 'rgba(168,238,25,.12)' : 'rgba(35,143,67,.08)'; context.lineWidth = (active ? 3 : 2) / this.view.scale;
+					context.beginPath();
+					if (frame.polygon?.length) { context.moveTo(frame.polygon[0].x, frame.polygon[0].y); for (const point of frame.polygon.slice(1)) context.lineTo(point.x, point.y); context.closePath(); }
+					else context.rect(frame.x, frame.y, frame.w, frame.h);
+					context.fill(); context.stroke();
+					const labelSize = 22 / this.view.scale; context.fillStyle = active ? '#171917' : '#238f43'; context.fillRect(frame.x, frame.y, labelSize, labelSize); context.fillStyle = '#fff'; context.font = `700 ${12 / this.view.scale}px Inter, sans-serif`; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(String(number), frame.x + labelSize / 2, frame.y + labelSize / 2);
+					context.restore();
+				}
+
+				drawDraft(context) {
+					context.save(); context.translate(this.view.x, this.view.y); context.scale(this.view.scale, this.view.scale); context.strokeStyle = '#171917'; context.fillStyle = 'rgba(168,238,25,.12)'; context.lineWidth = 2 / this.view.scale; context.setLineDash([7 / this.view.scale, 5 / this.view.scale]); context.beginPath();
+					if (this.drawing.type === 'lasso') { const points = this.drawing.points; if (points.length) { context.moveTo(points[0].x, points[0].y); for (const point of points.slice(1)) context.lineTo(point.x, point.y); } }
+					else { const { start, end } = this.drawing; context.rect(Math.min(start.x, end.x), Math.min(start.y, end.y), Math.abs(end.x - start.x), Math.abs(end.y - start.y)); }
+					context.fill(); context.stroke(); context.restore();
+				}
+
+				renderFrames() {
+					this.querySelector('[data-count]').textContent = String(this.frames.length);
+					this.querySelector('[data-frame-status]').textContent = `${this.frames.length} frame${this.frames.length === 1 ? '' : 's'}`;
+					this.querySelector('[data-play]').disabled = this.frames.length === 0;
+					this.querySelector('[data-save]').disabled = this.frames.length === 0;
+					if (!this.frames.length) this.frameList.innerHTML = '<div class="frame-list-empty">Detected and hand-drawn frames appear here. Select a frame to resize or inspect it.</div>';
+					else this.frameList.innerHTML = this.frames.map((frame, index) => `<article class="frame-item" data-frame-id="${frame.id}" data-active="${frame.id === this.activeId}"><canvas class="frame-thumb" width="140" height="140"></canvas><div class="frame-info"><div class="frame-title"><button type="button" data-action="select">Frame ${String(index + 1).padStart(2, '0')}</button><span class="frame-actions"><button class="mini-button" data-action="up" type="button" title="Move earlier">&uarr;</button><button class="mini-button" data-action="down" type="button" title="Move later">&darr;</button><button class="mini-button" data-action="delete" type="button" title="Delete">x</button></span></div><div class="frame-size"><input data-size="width" type="number" min="1" max="4096" value="${frame.outputWidth}" aria-label="Crop width"/><span class="status">x</span><input data-size="height" type="number" min="1" max="4096" value="${frame.outputHeight}" aria-label="Crop height"/></div><div class="frame-offset"><span class="axis-label">X</span><input data-offset="x" type="number" min="-4096" max="4096" value="${frame.offsetX}" aria-label="Scene offset X"/><span class="axis-label">Y</span><input data-offset="y" type="number" min="-4096" max="4096" value="${frame.offsetY}" aria-label="Scene offset Y"/></div></div></article>`).join('');
+					for (const item of this.frameList.querySelectorAll('[data-frame-id]')) {
+						const frame = this.frames.find((candidate) => candidate.id === item.dataset.frameId);
+						this.drawFrameIntoCanvas(frame, item.querySelector('canvas'), false);
+					}
+					this.previewIndex = Math.min(this.previewIndex, Math.max(0, this.frames.length - 1));
+					this.drawPreview(); this.drawEditor();
+				}
+
+				onFrameListClick(event) {
+					const action = event.target.closest('[data-action]'); const item = event.target.closest('[data-frame-id]');
+					if (!action || !item) return;
+					const index = this.frames.findIndex((frame) => frame.id === item.dataset.frameId); if (index < 0) return;
+					if (action.dataset.action === 'select') { this.activeId = this.frames[index].id; this.previewIndex = index; this.stopPlayback(); }
+					if (action.dataset.action === 'delete') { this.frames.splice(index, 1); if (this.activeId === item.dataset.frameId) this.activeId = this.frames[Math.min(index, this.frames.length - 1)]?.id || ''; }
+					if (action.dataset.action === 'up' && index > 0) [this.frames[index - 1], this.frames[index]] = [this.frames[index], this.frames[index - 1]];
+					if (action.dataset.action === 'down' && index < this.frames.length - 1) [this.frames[index + 1], this.frames[index]] = [this.frames[index], this.frames[index + 1]];
+					this.renderFrames();
+				}
+
+				onFrameSizeChange(event) {
+					const input = event.target.closest('[data-size]'); const item = event.target.closest('[data-frame-id]'); if (!input || !item) return;
+					const frame = this.frames.find((candidate) => candidate.id === item.dataset.frameId); if (!frame) return;
+					const value = Math.max(1, Math.min(4096, Number(input.value) || 1)); const preserve = this.querySelector('[data-preserve-ratio]').checked;
+					if (input.dataset.size === 'width') { frame.outputWidth = value; if (preserve) frame.outputHeight = Math.max(1, Math.round(value * frame.h / frame.w)); }
+					else { frame.outputHeight = value; if (preserve) frame.outputWidth = Math.max(1, Math.round(value * frame.w / frame.h)); }
+					const counterpart = item.querySelector(input.dataset.size === 'width' ? '[data-size="height"]' : '[data-size="width"]');
+					if (counterpart) counterpart.value = input.dataset.size === 'width' ? frame.outputHeight : frame.outputWidth;
+					this.drawPreview();
+				}
+
+				onFrameOffsetChange(event) {
+					const input = event.target.closest('[data-offset]'); const item = event.target.closest('[data-frame-id]'); if (!input || !item) return;
+					const frame = this.frames.find((candidate) => candidate.id === item.dataset.frameId); if (!frame) return;
+					const value = Math.max(-4096, Math.min(4096, Math.round(Number(input.value) || 0)));
+					if (input.dataset.offset === 'x') frame.offsetX = value; else frame.offsetY = value;
+					this.activeId = frame.id; this.previewIndex = this.frames.indexOf(frame); this.stopPlayback(); this.drawPreview();
+				}
+
+				drawFrameIntoCanvas(frame, canvas, useOutputSize = true) {
+					if (!frame || !canvas || !this.image) return;
+					const width = useOutputSize ? frame.outputWidth : canvas.width; const height = useOutputSize ? frame.outputHeight : canvas.height;
+					if (useOutputSize) { canvas.width = width; canvas.height = height; }
+					const context = canvas.getContext('2d', { alpha: true }); context.clearRect(0, 0, canvas.width, canvas.height); context.save();
+					const scaleX = canvas.width / frame.w; const scaleY = canvas.height / frame.h;
+					if (frame.polygon?.length) { context.beginPath(); const first = frame.polygon[0]; context.moveTo((first.x - frame.x) * scaleX, (first.y - frame.y) * scaleY); for (const point of frame.polygon.slice(1)) context.lineTo((point.x - frame.x) * scaleX, (point.y - frame.y) * scaleY); context.closePath(); context.clip(); }
+					context.drawImage(this.sourceCanvas || this.image, frame.x, frame.y, frame.w, frame.h, 0, 0, canvas.width, canvas.height); context.restore();
+					if (!this.backgroundRemoved && this.querySelector('[data-remove-light]').checked) this.removeLightBackground(context, canvas.width, canvas.height);
+				}
+
+				removeLightBackground(context, width, height) {
+					const cutoff = Number(this.querySelector('[data-light-cutoff]').value) || 225; const imageData = context.getImageData(0, 0, width, height); const data = imageData.data;
+					const candidates = new Uint8Array(width * height); const queue = new Int32Array(width * height); let head = 0; let tail = 0;
+					for (let pixel = 0, offset = 0; pixel < candidates.length; pixel += 1, offset += 4) { const min = Math.min(data[offset], data[offset + 1], data[offset + 2]); const chroma = Math.max(data[offset], data[offset + 1], data[offset + 2]) - min; candidates[pixel] = min >= cutoff && chroma < 24 ? 1 : 0; }
+					const enqueue = (index) => { if (candidates[index] !== 1) return; candidates[index] = 2; queue[tail++] = index; };
+					for (let x = 0; x < width; x += 1) { enqueue(x); enqueue((height - 1) * width + x); }
+					for (let y = 1; y < height - 1; y += 1) { enqueue(y * width); enqueue(y * width + width - 1); }
+					while (head < tail) { const index = queue[head++]; const x = index % width; const y = (index / width) | 0; if (x > 0) enqueue(index - 1); if (x + 1 < width) enqueue(index + 1); if (y > 0) enqueue(index - width); if (y + 1 < height) enqueue(index + width); }
+					for (let pixel = 0, offset = 3; pixel < candidates.length; pixel += 1, offset += 4) if (candidates[pixel] === 2) data[offset] = 0;
+					context.putImageData(imageData, 0, 0);
+				}
+
+				getSceneSize() {
+					return {
+						width: Math.max(1, Math.min(4096, Math.round(Number(this.querySelector('[data-scene-width]').value) || 512))),
+						height: Math.max(1, Math.min(4096, Math.round(Number(this.querySelector('[data-scene-height]').value) || 512))),
+					};
+				}
+
+				createSceneCanvas(frame) {
+					const scene = this.getSceneSize(); const canvas = document.createElement('canvas'); canvas.width = scene.width; canvas.height = scene.height;
+					if (!frame || !this.image) return canvas;
+					const sprite = document.createElement('canvas'); this.drawFrameIntoCanvas(frame, sprite, true);
+					const context = canvas.getContext('2d', { alpha: true }); context.imageSmoothingEnabled = false;
+					context.drawImage(sprite, Math.round((scene.width - sprite.width) / 2 + frame.offsetX), Math.round((scene.height - sprite.height) / 2 + frame.offsetY));
+					return canvas;
+				}
+
+				fitSceneToFrames() {
+					if (!this.frames.length) return;
+					let width = 1; let height = 1;
+					for (const frame of this.frames) { width = Math.max(width, frame.outputWidth + Math.abs(frame.offsetX) * 2); height = Math.max(height, frame.outputHeight + Math.abs(frame.offsetY) * 2); }
+					this.querySelector('[data-scene-width]').value = String(Math.min(4096, Math.ceil((width + 32) / 16) * 16));
+					this.querySelector('[data-scene-height]').value = String(Math.min(4096, Math.ceil((height + 32) / 16) * 16));
+					this.drawPreview();
+				}
+
+				activeFrame() {
+					return this.frames.find((frame) => frame.id === this.activeId) || this.frames[this.previewIndex] || null;
+				}
+
+				centerActiveFrame() {
+					const frame = this.activeFrame(); if (!frame) return;
+					frame.offsetX = 0; frame.offsetY = 0; this.syncOffsetInputs(frame); this.stopPlayback(); this.drawPreview();
+				}
+
+				nudgeActiveFrame(direction, amount = 1) {
+					const frame = this.activeFrame(); if (!frame) return;
+					if (direction === 'left') frame.offsetX -= amount; if (direction === 'right') frame.offsetX += amount;
+					if (direction === 'up') frame.offsetY -= amount; if (direction === 'down') frame.offsetY += amount;
+					this.syncOffsetInputs(frame); this.stopPlayback(); this.drawPreview();
+				}
+
+				syncOffsetInputs(frame) {
+					const item = this.frameList.querySelector(`[data-frame-id="${CSS.escape(frame.id)}"]`); if (!item) return;
+					const x = item.querySelector('[data-offset="x"]'); const y = item.querySelector('[data-offset="y"]');
+					if (x) x.value = String(frame.offsetX); if (y) y.value = String(frame.offsetY);
+				}
+
+				previewScenePoint(event) {
+					const rect = this.previewCanvas.getBoundingClientRect();
+					return { x: (event.clientX - rect.left - this.previewView.x) / this.previewView.scale, y: (event.clientY - rect.top - this.previewView.y) / this.previewView.scale };
+				}
+
+				onPreviewPointerDown(event) {
+					if (this.animationTimer) this.stopPlayback();
+					const frame = this.activeFrame(); if (!frame || !this.previewView.scale) return;
+					this.previewCanvas.setPointerCapture?.(event.pointerId); const point = this.previewScenePoint(event);
+					this.previewDrag = { pointerId: event.pointerId, x: point.x, y: point.y, offsetX: frame.offsetX, offsetY: frame.offsetY, frame };
+					this.previewCanvas.dataset.aligning = 'true';
+				}
+
+				onPreviewPointerMove(event) {
+					if (!this.previewDrag || event.pointerId !== this.previewDrag.pointerId) return;
+					const point = this.previewScenePoint(event); const frame = this.previewDrag.frame;
+					frame.offsetX = Math.round(this.previewDrag.offsetX + point.x - this.previewDrag.x); frame.offsetY = Math.round(this.previewDrag.offsetY + point.y - this.previewDrag.y);
+					this.syncOffsetInputs(frame); this.drawPreview();
+				}
+
+				onPreviewPointerUp(event) {
+					if (this.previewDrag && event.pointerId === this.previewDrag.pointerId) this.endPreviewDrag();
+				}
+
+				endPreviewDrag() {
+					this.previewDrag = null; delete this.previewCanvas.dataset.aligning;
+				}
+
+				drawPreview() {
+					const { context, width, height } = this.sizeCanvas(this.previewCanvas); context.clearRect(0, 0, width, height);
+					if (!this.frames.length || !this.image) { this.querySelector('[data-preview-count]').textContent = '0 / 0'; return; }
+					const frame = this.frames[this.previewIndex % this.frames.length]; const buffer = this.createSceneCanvas(frame);
+					const scale = Math.min((width - 18) / buffer.width, (height - 18) / buffer.height); const drawWidth = buffer.width * scale; const drawHeight = buffer.height * scale; const x = (width - drawWidth) / 2; const y = (height - drawHeight) / 2;
+					this.previewView = { x, y, scale };
+					context.imageSmoothingEnabled = false; context.drawImage(buffer, x, y, drawWidth, drawHeight);
+					context.save(); context.strokeStyle = 'rgba(35,143,67,.42)'; context.lineWidth = 1; context.setLineDash([4, 4]); context.beginPath(); context.moveTo(width / 2, y); context.lineTo(width / 2, y + drawHeight); context.moveTo(x, height / 2); context.lineTo(x + drawWidth, height / 2); context.stroke(); context.restore();
+					this.querySelector('[data-preview-count]').textContent = `${this.previewIndex + 1} / ${this.frames.length}`;
+				}
+
+				togglePlayback() { this.animationTimer ? this.stopPlayback() : this.startPlayback(); }
+				startPlayback() {
+					if (!this.frames.length) return; const fps = Math.max(1, Math.min(60, Number(this.querySelector('[data-fps]').value) || 12));
+					this.querySelector('[data-play]').textContent = 'Pause'; this.animationTimer = window.setInterval(() => { this.previewIndex = (this.previewIndex + 1) % this.frames.length; this.drawPreview(); }, 1000 / fps);
+				}
+				stopPlayback(resetLabel = true) { if (this.animationTimer) window.clearInterval(this.animationTimer); this.animationTimer = null; if (resetLabel) this.querySelector('[data-play]').textContent = 'Play'; }
+
+				async chooseFolder() {
+					const status = this.querySelector('[data-save-status]');
+					if (!('showDirectoryPicker' in window)) { status.textContent = 'Folder API unavailable. Save uses browser downloads.'; return null; }
+					try { this.directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); status.textContent = `Folder: ${this.directoryHandle.name}`; return this.directoryHandle; }
+					catch (error) { if (error?.name !== 'AbortError') status.textContent = `Folder error: ${error.message}`; return null; }
+				}
+
+				async frameBlob(frame) {
+					const canvas = this.createSceneCanvas(frame);
+					return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG export failed.')), 'image/png'));
+				}
+
+				async saveAll() {
+					if (!this.frames.length) return;
+					const status = this.querySelector('[data-save-status]'); const button = this.querySelector('[data-save]'); button.disabled = true;
+					try {
+						let directory = this.directoryHandle;
+						if (!directory && 'showDirectoryPicker' in window) directory = await this.chooseFolder();
+						for (let index = 0; index < this.frames.length; index += 1) {
+							status.textContent = `Saving ${index + 1} of ${this.frames.length}...`; const blob = await this.frameBlob(this.frames[index]); const name = `frame-${String(index + 1).padStart(3, '0')}.png`;
+							if (directory) { const file = await directory.getFileHandle(name, { create: true }); const writable = await file.createWritable(); await writable.write(blob); await writable.close(); }
+							else { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); await new Promise((resolve) => setTimeout(resolve, 140)); }
+						}
+						status.textContent = directory ? `${this.frames.length} PNG frames saved to ${directory.name}.` : `${this.frames.length} PNG downloads started.`;
+					} catch (error) { status.textContent = error?.name === 'AbortError' ? 'Save cancelled.' : `Save failed: ${error.message}`; }
+					finally { button.disabled = false; }
+				}
+			}
+
+			customElements.define('sprite-extractor-app', SpriteExtractorApp);
+		</script>
+	</body>
+</html>
