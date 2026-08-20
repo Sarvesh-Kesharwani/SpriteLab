@@ -1,5 +1,7 @@
 ---
-const pageTitle = 'Frame Sequencer';
+import PipelineHeader from '../components/PipelineHeader.astro';
+
+const pageTitle = 'Frame Sequencer · SpriteLab';
 ---
 
 <!doctype html>
@@ -7,6 +9,8 @@ const pageTitle = 'Frame Sequencer';
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<meta name="description" content="Load, select, reorder, and play local animation frames." />
 		<title>{pageTitle}</title>
 		<style is:global>
@@ -88,19 +92,11 @@ const pageTitle = 'Frame Sequencer';
 				box-shadow: 0 16px 48px rgba(20, 24, 20, 0.07);
 			}
 
-			.workbench-head,
-			.folder-row,
 			.section-head {
 				display: flex;
 				align-items: center;
 				justify-content: space-between;
 				gap: 20px;
-			}
-
-			.workbench-head {
-				align-items: flex-start;
-				padding: 24px 26px 20px;
-				border-bottom: 1px solid #e4e7e4;
 			}
 
 			h1,
@@ -119,15 +115,65 @@ const pageTitle = 'Frame Sequencer';
 				line-height: 1.3;
 			}
 
-			.intro {
-				max-width: 650px;
-				margin: 7px 0 0;
-				font-size: 0.875rem;
-				line-height: 1.55;
-				color: #656b65;
+			.info-tip {
+				position: relative;
+				display: inline-grid;
+				width: 17px;
+				height: 17px;
+				place-items: center;
+				margin-left: 7px;
+				padding: 0;
+				border: 1px solid #c9cec9;
+				border-radius: 999px;
+				background: #fff;
+				color: #7a817a;
+				font-size: 0.6rem;
+				font-weight: 800;
+				line-height: 1;
+				vertical-align: middle;
+				cursor: help;
 			}
 
-			.clear-button,
+			.info-tip-text {
+				position: absolute;
+				z-index: 60;
+				bottom: calc(100% + 7px);
+				left: 50%;
+				width: max-content;
+				max-width: 250px;
+				padding: 8px 10px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				background: #fff;
+				color: #4d534d;
+				font-size: 0.72rem;
+				font-weight: 500;
+				line-height: 1.5;
+				text-align: left;
+				text-transform: none;
+				letter-spacing: 0;
+				box-shadow: 0 10px 30px rgba(20, 24, 20, 0.14);
+				opacity: 0;
+				visibility: hidden;
+				transform: translate(-50%, 4px);
+				transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+				pointer-events: none;
+			}
+
+			.info-tip:hover .info-tip-text,
+			.info-tip:focus-visible .info-tip-text,
+			.info-tip:focus .info-tip-text {
+				opacity: 1;
+				visibility: visible;
+				transform: translate(-50%, 0);
+				transition-delay: 0s;
+			}
+
+			.info-tip.tip-down .info-tip-text {
+				bottom: auto;
+				top: calc(100% + 7px);
+			}
+
 			.utility-button {
 				min-height: 36px;
 				padding: 0 13px;
@@ -139,105 +185,17 @@ const pageTitle = 'Frame Sequencer';
 				font-weight: 650;
 			}
 
-			.clear-button:hover:not(:disabled),
 			.utility-button:hover:not(:disabled) { border-color: #8d948d; }
 
-			.unity-button {
-				display: inline-flex;
-				min-height: 36px;
-				align-items: center;
-				justify-content: center;
-				padding: 0 13px;
-				border: 1px solid #21853d;
-				border-radius: 6px;
-				color: #ffffff;
-				background: #238f43;
-				font-size: 0.78rem;
-				font-weight: 700;
+			.save-sequence-button {
+				background: #171917;
+				color: #fff;
+				border-color: #171917;
 			}
 
-			.unity-button:hover:not(:disabled) { background: #1d7938; }
-
-			.unity-button:disabled {
-				cursor: not-allowed;
-				opacity: 0.48;
-			}
-
-			.export-status {
-				flex-basis: 100%;
-				margin: -1px 0 0;
-				font-family: "SFMono-Regular", Consolas, monospace;
-				font-size: 0.67rem;
-				line-height: 1.45;
-				color: #687068;
-				text-align: right;
-			}
-
-			.folder-row {
-				padding: 20px 26px;
-				border-bottom: 1px solid #e4e7e4;
-				background: #fbfcfb;
-			}
-
-			.folder-picker {
-				display: flex;
-				align-items: center;
-				gap: 14px;
-				min-width: 0;
-			}
-
-			.folder-mark {
-				display: grid;
-				flex: 0 0 42px;
-				width: 42px;
-				height: 42px;
-				place-items: center;
-				border: 1px solid #d9ddd9;
-				border-radius: 6px;
-				background: #ffffff;
-				font-size: 1rem;
-				font-weight: 760;
-			}
-
-			.folder-copy { min-width: 0; }
-
-			.folder-name {
-				display: block;
-				overflow: hidden;
-				margin-bottom: 4px;
-				font-size: 0.875rem;
-				font-weight: 680;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-			}
-
-			.folder-meta {
-				display: block;
-				font-size: 0.75rem;
-				color: #747a74;
-			}
-
-			.choose-label {
-				display: inline-flex;
-				align-items: center;
-				min-height: 36px;
-				padding: 0 13px;
-				border-radius: 5px;
-				color: #ffffff;
-				background: #252825;
-				font-size: 0.78rem;
-				font-weight: 680;
-				white-space: nowrap;
-				border: 0;
-			}
-
-			.folder-input {
-				position: absolute;
-				width: 1px;
-				height: 1px;
-				overflow: hidden;
-				clip: rect(0, 0, 0, 0);
-				white-space: nowrap;
+			.save-sequence-button:hover:not(:disabled) {
+				background: #2c312c;
+				border-color: #2c312c;
 			}
 
 			.panel {
@@ -247,12 +205,8 @@ const pageTitle = 'Frame Sequencer';
 
 			.panel:last-child { border-bottom: 0; }
 
-			.section-head { margin-bottom: 14px; }
-
-			.section-copy {
-				margin: 4px 0 0;
-				font-size: 0.75rem;
-				color: #747a74;
+			.section-head {
+				margin-bottom: 14px;
 			}
 
 			.section-actions {
@@ -266,6 +220,27 @@ const pageTitle = 'Frame Sequencer';
 				font-size: 0.7rem;
 				color: #6f756f;
 				white-space: nowrap;
+			}
+
+			.version-picker {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				color: #6f756f;
+				font-size: 0.72rem;
+				font-weight: 650;
+				white-space: nowrap;
+			}
+
+			.version-picker select {
+				height: 30px;
+				max-width: 200px;
+				padding: 0 6px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				background: #fff;
+				color: #333933;
+				font-size: 0.72rem;
 			}
 
 			.frame-grid {
@@ -351,8 +326,7 @@ const pageTitle = 'Frame Sequencer';
 
 			.source-frame[aria-pressed="true"] .selection-check { display: grid; }
 
-			.frame-image,
-			.preview-image {
+			.frame-image {
 				display: block;
 				width: 100%;
 				object-fit: contain;
@@ -517,10 +491,8 @@ const pageTitle = 'Frame Sequencer';
 			.sprite-box {
 				position: absolute;
 				left: 50%;
-				bottom: 0;
-				max-width: 100%;
-				max-height: 100%;
-				transform: translateX(-50%);
+				top: 50%;
+				transform: translate(-50%, -50%);
 				transform-origin: center;
 				will-change: transform;
 			}
@@ -529,9 +501,9 @@ const pageTitle = 'Frame Sequencer';
 			.onion-image {
 				display: block;
 				width: 100%;
-				height: auto;
-				background: transparent;
-				object-fit: contain;
+				height: 100%;
+				background: transparent !important;
+				object-fit: fill;
 			}
 
 			.preview-layer { z-index: 3; }
@@ -567,7 +539,7 @@ const pageTitle = 'Frame Sequencer';
 			.rotate-handle {
 				position: absolute;
 				left: 50%;
-				top: 7px;
+				top: -30px;
 				z-index: 4;
 				display: grid;
 				width: 18px;
@@ -578,7 +550,7 @@ const pageTitle = 'Frame Sequencer';
 				color: #ffffff;
 				background: #238f43;
 				box-shadow: 0 1px 4px rgba(23, 25, 23, 0.35);
-				cursor: crosshair;
+				cursor: grab;
 				pointer-events: auto;
 				transform: translateX(-50%);
 			}
@@ -592,6 +564,21 @@ const pageTitle = 'Frame Sequencer';
 				content: "";
 				background: #238f43;
 			}
+
+			.resize-outline { position: absolute; inset: 0; z-index: 3; border: 1px solid #238f43; pointer-events: none; }
+			.resize-handle { position: absolute; z-index: 5; width: 10px; height: 10px; border: 1px solid #fff; background: #238f43; box-shadow: 0 1px 3px rgba(23,25,23,.35); pointer-events: auto; }
+			.resize-handle[data-resize-handle="nw"] { left: 0; top: 0; cursor: nwse-resize; transform: translate(-50%,-50%); }
+			.resize-handle[data-resize-handle="n"] { left: 50%; top: 0; cursor: ns-resize; transform: translate(-50%,-50%); }
+			.resize-handle[data-resize-handle="ne"] { right: 0; top: 0; cursor: nesw-resize; transform: translate(50%,-50%); }
+			.resize-handle[data-resize-handle="e"] { right: 0; top: 50%; cursor: ew-resize; transform: translate(50%,-50%); }
+			.resize-handle[data-resize-handle="se"] { right: 0; bottom: 0; cursor: nwse-resize; transform: translate(50%,50%); }
+			.resize-handle[data-resize-handle="s"] { left: 50%; bottom: 0; cursor: ns-resize; transform: translate(-50%,50%); }
+			.resize-handle[data-resize-handle="sw"] { left: 0; bottom: 0; cursor: nesw-resize; transform: translate(-50%,50%); }
+			.resize-handle[data-resize-handle="w"] { left: 0; top: 50%; cursor: ew-resize; transform: translate(-50%,-50%); }
+			.preview-panel[data-playing] .resize-outline,
+			.preview-panel[data-playing] .resize-handle,
+			.preview-panel[data-playing] .rotate-handle { display: none; }
+			.preview-panel[data-playing] .preview-image { cursor: default; pointer-events: none; }
 
 			.preview-empty {
 				position: relative;
@@ -686,6 +673,108 @@ const pageTitle = 'Frame Sequencer';
 				border-radius: 5px;
 			}
 
+			.nudge-control {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				font-size: 0.7rem;
+				font-weight: 650;
+				color: #656b65;
+			}
+
+			.nudge-input {
+				width: 46px;
+				height: 36px;
+				padding: 0 7px;
+				border: 1px solid #cfd4cf;
+				border-radius: 5px;
+			}
+
+			.fullscreen-button {
+				flex: 0 0 auto;
+				height: 26px;
+				padding: 0 9px;
+				border: 1px solid #d9ddd9;
+				border-radius: 5px;
+				background: #fff;
+				color: #3d433d;
+				font-size: 0.68rem;
+				font-weight: 680;
+				cursor: pointer;
+			}
+
+			.fullscreen-button:hover {
+				border-color: #8d948d;
+			}
+
+			.fullscreen-row {
+				flex: 1 1 0;
+				height: 30px;
+			}
+
+			.fullscreen-actions { display: flex; gap: 8px; width: 100%; margin-top: 10px; }
+			.fullscreen-delete { display: none; color: #b42318; border-color: #e8b4af; }
+			.preview-panel:fullscreen .fullscreen-delete { display: block; }
+			.preview-panel:fullscreen .fullscreen-delete:hover:not(:disabled) { color: #fff; background: #b42318; border-color: #b42318; }
+
+			.bg-control {
+				display: inline-flex;
+				align-items: center;
+				gap: 6px;
+				font-size: 0.66rem;
+				font-weight: 650;
+				color: #687068;
+			}
+
+			.bg-control select {
+				max-width: 150px;
+				height: 24px;
+				padding: 0 4px;
+				border: 1px solid #d9ddd9;
+				border-radius: 5px;
+				background: #fff;
+				color: #3d433d;
+				font-size: 0.66rem;
+			}
+
+			.preview-panel:fullscreen {
+				position: static;
+				display: grid;
+				grid-template-rows: minmax(0, 1fr) auto;
+				width: 100vw;
+				height: 100vh;
+				max-width: 100vw;
+				max-height: 100vh;
+				padding: 18px;
+				border: 0;
+				border-radius: 0;
+				box-sizing: border-box;
+				background: #171917;
+			}
+
+			.preview-panel:fullscreen .preview-stage {
+				aspect-ratio: auto;
+				width: 100%;
+				height: 100%;
+				min-height: 0;
+				background-color: #1d211d;
+			}
+
+			.preview-panel:fullscreen .playback {
+				border-top: 1px solid #333833;
+			}
+
+			.preview-panel:fullscreen .scene-edit-meta,
+			.preview-panel:fullscreen .transform-status,
+			.preview-panel:fullscreen .playback-meta,
+			.preview-panel:fullscreen .fps-control,
+			.preview-panel:fullscreen .nudge-control,
+			.preview-panel:fullscreen .bg-control,
+			.preview-panel:fullscreen .onion-control,
+			.preview-panel:fullscreen .loop-control {
+				color: #cfd4cf;
+			}
+
 			.playback-meta {
 				display: flex;
 				align-items: center;
@@ -714,6 +803,21 @@ const pageTitle = 'Frame Sequencer';
 				font-size: 0.72rem;
 				font-weight: 650;
 				color: #3d433d;
+			}
+
+			.onion-mode {
+				display: inline-flex;
+				align-items: center;
+			}
+
+			.onion-mode select {
+				height: 24px;
+				padding: 0 4px;
+				border: 1px solid #d9ddd9;
+				border-radius: 5px;
+				background: #fff;
+				color: #3d433d;
+				font-size: 0.68rem;
 			}
 
 			.onion-key {
@@ -749,18 +853,10 @@ const pageTitle = 'Frame Sequencer';
 				}
 
 				.utility-bar { padding: 0 14px; }
-				.workbench-head,
-				.folder-row,
 				.panel { padding-left: 15px; padding-right: 15px; }
-				.workbench-head { align-items: center; }
-				.folder-row { align-items: flex-start; flex-direction: column; }
-				.folder-picker { width: 100%; }
-				.choose-label { width: 100%; justify-content: center; }
 				.section-head { align-items: flex-start; flex-direction: column; }
 				.section-actions { width: 100%; flex-wrap: wrap; }
 				.utility-button { flex: 1 1 120px; }
-				.unity-button { flex: 1 1 150px; }
-				.export-status { text-align: left; }
 				.frame-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 300px; }
 				.sequence-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 280px; }
 				.empty-state { min-height: 296px; padding: 24px; }
@@ -774,64 +870,43 @@ const pageTitle = 'Frame Sequencer';
 			@media (prefers-reduced-motion: reduce) {
 				* { transition-duration: 0.001ms !important; }
 			}
+
 		</style>
 	</head>
 	<body>
-		<header class="utility-bar">
-			<p class="brand">Frame Sequencer</p>
-			<div class="local-status"><span class="local-dot"></span>Local processing</div>
-		</header>
+		<PipelineHeader active="sequence" />
 
 		<main>
 			<frame-sequencer-app class="workbench">
-				<div class="workbench-head">
-					<div>
-						<h1>Build frame animation</h1>
-						<p class="intro">Load a folder of image frames, select the ones you need, arrange their order, and preview the animation locally.</p>
-					</div>
-					<button data-clear class="clear-button" type="button" disabled>Clear</button>
-				</div>
-
-				<section class="folder-row" aria-label="Frame folder">
-					<div class="folder-picker">
-						<div class="folder-mark" aria-hidden="true">DIR</div>
-						<div class="folder-copy">
-							<strong data-folder-name class="folder-name">No folder selected</strong>
-							<span data-folder-meta class="folder-meta">Choose a folder containing PNG, WebP, JPEG, or GIF frames.</span>
-						</div>
-					</div>
-					<button data-folder-picker class="choose-label" type="button">Choose frames folder</button>
-					<input data-folder-input class="folder-input" type="file" accept="image/*" multiple webkitdirectory directory hidden />
-				</section>
-
 				<section class="panel" aria-labelledby="folder-frames-heading">
 					<div class="section-head">
 						<div>
-							<h2 id="folder-frames-heading">Folder frames</h2>
-							<p class="section-copy">Click frames to add or remove them from the animation sequence.</p>
+							<h2 id="folder-frames-heading">Folder frames <button class="info-tip" type="button" aria-label="Click frames to add or remove them from the animation sequence."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Click frames to add or remove them from the animation sequence.</span></button></h2>
 						</div>
 						<div class="section-actions">
+							<label class="version-picker" data-version-picker hidden>
+								<span>Version</span>
+								<select data-version-select aria-label="Choose saved version"></select>
+							</label>
 							<span data-source-count class="count">0 frames</span>
 							<button data-select-all class="utility-button" type="button" disabled>Select all</button>
 							<button data-clear-selection class="utility-button" type="button" disabled>Clear selection</button>
 						</div>
 					</div>
 					<div data-source-grid class="frame-grid">
-						<div class="empty-state"><p><strong>No frames loaded</strong><span>Choose a folder to populate this grid.</span></p></div>
+						<div class="empty-state"><p><strong>No frames loaded</strong><span>Frames auto-load from the selected version folder once connected in settings.</span></p></div>
 					</div>
 				</section>
 
 				<section class="panel" aria-labelledby="sequence-heading">
 					<div class="section-head">
 						<div>
-							<h2 id="sequence-heading">Animation sequence</h2>
-							<p class="section-copy">Drag selected frames to reorder them, then play the sequence.</p>
+							<h2 id="sequence-heading">Animation sequence <button class="info-tip" type="button" aria-label="Drag selected frames to reorder them, then play the sequence."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Drag selected frames to reorder them, then play the sequence.</span></button></h2>
 						</div>
 						<div class="section-actions">
 							<span data-selected-count class="count">0 selected</span>
 							<button data-duplicate-frame class="utility-button" type="button" disabled>Duplicate frame</button>
-							<button data-save-unity class="unity-button" type="button" disabled>Save for Unity</button>
-							<p data-export-status class="export-status" aria-live="polite">Select frames to enable export.</p>
+							<button data-save-sequence class="utility-button save-sequence-button" type="button" disabled>Save Sequence</button>
 						</div>
 					</div>
 
@@ -840,7 +915,7 @@ const pageTitle = 'Frame Sequencer';
 							<div class="empty-state"><p><strong>No selected frames</strong><span>Selected folder frames appear here in animation order.</span></p></div>
 						</div>
 
-						<aside class="preview-panel" aria-label="Animation preview">
+						<aside class="preview-panel" data-preview-panel aria-label="Animation preview">
 							<div data-preview-stage class="preview-stage">
 								<p data-preview-empty class="preview-empty">Select at least one frame to preview the animation.</p>
 								<div data-preview-scene class="preview-scene" hidden>
@@ -854,6 +929,8 @@ const pageTitle = 'Frame Sequencer';
 									<div data-preview-layer class="sprite-layer preview-layer">
 										<div class="sprite-box">
 											<img data-preview-image class="preview-image" alt="Current animation frame" draggable="false" />
+											<span class="resize-outline" aria-hidden="true"></span>
+											<span class="resize-handle" data-resize-handle="nw" title="Resize top-left"></span><span class="resize-handle" data-resize-handle="n" title="Resize height"></span><span class="resize-handle" data-resize-handle="ne" title="Resize top-right"></span><span class="resize-handle" data-resize-handle="e" title="Resize width"></span><span class="resize-handle" data-resize-handle="se" title="Resize bottom-right"></span><span class="resize-handle" data-resize-handle="s" title="Resize height"></span><span class="resize-handle" data-resize-handle="sw" title="Resize bottom-left"></span><span class="resize-handle" data-resize-handle="w" title="Resize width"></span>
 											<span data-rotate-handle class="rotate-handle" title="Drag to rotate" aria-label="Drag to rotate current sprite"></span>
 										</div>
 									</div>
@@ -861,24 +938,41 @@ const pageTitle = 'Frame Sequencer';
 							</div>
 							<div class="playback">
 				<div class="scene-edit-meta">
-					<span>Drag to move; green handle rotates. Hold Shift for precision. Arrow keys nudge. Ctrl+Z undoes. Double-click resets.</span>
-									<span data-transform-status class="transform-status">X 0% / Y 0% / 0deg</span>
-								</div>
+					<button class="info-tip" type="button" aria-label="Drag sprite to move; rectangle handles resize; green handle rotates. Hold Shift while resizing to keep aspect ratio, or for precise move and rotate. Arrow keys nudge. Q/E switch frames. W plays/pauses. Ctrl+Z undoes. Double-click resets."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Rectangle handles resize. Hold Shift to keep aspect ratio; Shift gives precision while moving or rotating. Arrow keys nudge. Q/E switch frames. W plays/pauses. Ctrl+Z undoes. Double-click resets.</span></button>
+					<span data-transform-status class="transform-status">X 0% / Y 0% / 100% x 100% / 0deg</span>
+					<label class="bg-control">BG
+						<select data-canvas-background aria-label="Canvas background">
+							<option value="">Checker</option>
+						</select>
+					</label>
+				</div>
 								<div class="progress-track" aria-hidden="true"><div data-progress class="progress-fill"></div></div>
 								<div class="playback-controls">
 									<button data-prev class="step-button" type="button" disabled>Prev</button>
 									<button data-play class="play-button" type="button" disabled>Play</button>
 									<button data-next class="step-button" type="button" disabled>Next</button>
 									<label class="fps-control">FPS <input data-fps class="fps-input" type="number" min="1" max="60" step="1" value="8" inputmode="numeric" /></label>
+									<label class="nudge-control">Nudge <input data-nudge-scale class="nudge-input" type="number" min="0.5" max="5" step="0.1" value="1" aria-label="Arrow key nudge scale" /></label>
 								</div>
 								<div class="playback-meta">
 									<span data-frame-status>Frame 0 / 0</span>
 									<label class="onion-control"><input data-onion-skin type="checkbox" checked /> Onion skin</label>
+									<label class="onion-mode">
+										<select data-onion-mode aria-label="Onion skin direction">
+											<option value="both">Both</option>
+											<option value="prev" selected>Prev only</option>
+											<option value="next">Next only</option>
+										</select>
+									</label>
 									<label class="loop-control"><input data-loop type="checkbox" checked /> Loop</label>
 								</div>
 								<div class="onion-key" aria-hidden="true">
 									<span class="onion-dot previous"></span> Previous
 									<span class="onion-dot next"></span> Next
+								</div>
+								<div class="fullscreen-actions">
+									<button data-delete-current class="fullscreen-button fullscreen-row fullscreen-delete" type="button" disabled>Delete current frame</button>
+									<button data-fullscreen-preview class="fullscreen-button fullscreen-row" type="button">Fullscreen (F)</button>
 								</div>
 							</div>
 						</aside>
@@ -904,22 +998,25 @@ const pageTitle = 'Frame Sequencer';
 				workspaceReady = false;
 				workspaceSaveTimer = 0;
 				previewLayoutFrame = 0;
+				fpsTouched = false;
+				directoryHandle = null;
+				versionHandle = null;
+				versionFolders = [];
+				versionPicker = null;
+				versionSelect = null;
+				canvasBackgrounds = [];
+				canvasBackgroundUrl = '';
+				canvasBackgroundSelect = null;
 
 				connectedCallback() {
-					this.folderButton = this.querySelector('[data-folder-picker]');
-					this.folderInput = this.querySelector('[data-folder-input]');
-					this.folderName = this.querySelector('[data-folder-name]');
-					this.folderMeta = this.querySelector('[data-folder-meta]');
+					this.sourceLabel = '';
 					this.sourceGrid = this.querySelector('[data-source-grid]');
 					this.sequenceGrid = this.querySelector('[data-sequence-grid]');
 					this.sourceCount = this.querySelector('[data-source-count]');
 					this.selectedCount = this.querySelector('[data-selected-count]');
 					this.selectAllButton = this.querySelector('[data-select-all]');
 					this.clearSelectionButton = this.querySelector('[data-clear-selection]');
-					this.clearButton = this.querySelector('[data-clear]');
 					this.duplicateFrameButton = this.querySelector('[data-duplicate-frame]');
-					this.saveUnityButton = this.querySelector('[data-save-unity]');
-					this.exportStatus = this.querySelector('[data-export-status]');
 					this.previewStage = this.querySelector('[data-preview-stage]');
 					this.previewScene = this.querySelector('[data-preview-scene]');
 					this.previewLayer = this.querySelector('[data-preview-layer]');
@@ -935,15 +1032,21 @@ const pageTitle = 'Frame Sequencer';
 					this.fpsInput = this.querySelector('[data-fps]');
 					this.loopInput = this.querySelector('[data-loop]');
 					this.onionSkinInput = this.querySelector('[data-onion-skin]');
+					this.onionModeInput = this.querySelector('[data-onion-mode]');
+					this.nudgeScaleInput = this.querySelector('[data-nudge-scale]');
+					this.previewPanel = this.querySelector('[data-preview-panel]');
+					this.fullscreenButton = this.querySelector('[data-fullscreen-preview]');
+					this.deleteCurrentButton = this.querySelector('[data-delete-current]');
+					this.canvasBackgroundSelect = this.querySelector('[data-canvas-background]');
 					this.frameStatus = this.querySelector('[data-frame-status]');
 					this.progress = this.querySelector('[data-progress]');
 					this.transformStatus = this.querySelector('[data-transform-status]');
-
-					this.folderButton?.addEventListener('click', () => this.chooseFramesDirectory());
-					this.folderInput?.addEventListener('change', (event) => {
-						const input = event.currentTarget;
-						if (input instanceof HTMLInputElement && input.files) this.loadFiles([...input.files]);
-					});
+					this.exportStatus = this.transformStatus;
+					this.saveSequenceButton = this.querySelector('[data-save-sequence]');
+					this.versionPicker = this.querySelector('[data-version-picker]');
+					this.versionSelect = this.querySelector('[data-version-select]');
+					this.versionSelect?.addEventListener('change', () => void this.loadVersion(this.versionSelect.value));
+					this.saveSequenceButton?.addEventListener('click', () => void this.saveSequence());
 
 					this.sourceGrid?.addEventListener('click', (event) => {
 						const button = event.target instanceof Element ? event.target.closest('[data-source-id]') : null;
@@ -965,19 +1068,20 @@ const pageTitle = 'Frame Sequencer';
 						this.render();
 					});
 
-					this.clearButton?.addEventListener('click', () => this.clear());
 					this.duplicateFrameButton?.addEventListener('click', () => this.duplicateCurrentFrame());
-					this.saveUnityButton?.addEventListener('click', () => this.saveForUnity());
 					this.playButton?.addEventListener('click', () => this.togglePlayback());
 					this.prevButton?.addEventListener('click', () => this.step(-1));
 					this.nextButton?.addEventListener('click', () => this.step(1));
 					this.onionSkinInput?.addEventListener('change', () => this.updatePreview());
 					this.onionSkinInput?.addEventListener('change', () => this.scheduleWorkspaceSave());
+					this.onionModeInput?.addEventListener('change', () => this.updatePreview());
+					this.onionModeInput?.addEventListener('change', () => this.scheduleWorkspaceSave());
 					this.loopInput?.addEventListener('change', () => {
 						this.updatePreview();
 						this.scheduleWorkspaceSave();
 					});
 					this.fpsInput?.addEventListener('change', () => {
+						this.fpsTouched = true;
 						this.fpsInput.value = String(this.getFps());
 						if (this.animationTimer) this.startPlayback();
 						this.scheduleWorkspaceSave();
@@ -1017,36 +1121,19 @@ const pageTitle = 'Frame Sequencer';
 					window.addEventListener('keyup', (event) => this.onTransformKeyUp(event));
 					window.addEventListener('resize', () => this.schedulePreviewLayout());
 					window.addEventListener('pagehide', () => void this.persistWorkspaceState());
-					void this.restoreFramesDirectory();
-
-				}
-
-				async chooseFramesDirectory() {
-					if (!('showDirectoryPicker' in window)) {
-						this.folderInput?.click();
-						return;
-					}
-
-					try {
-						let directory = this.directoryHandle || await this.getStoredDirectoryHandle();
-						if (directory) {
-							const permission = await this.ensureDirectoryPermission(directory, true);
-							if (permission === 'granted') {
-								this.directoryHandle = directory;
-								await this.loadDirectoryHandle(directory);
-								return;
-							}
+					this.fullscreenButton?.addEventListener('click', () => void this.toggleFullscreen());
+					this.deleteCurrentButton?.addEventListener('click', () => this.deleteCurrentFrame());
+					this.nudgeScaleInput?.addEventListener('change', () => this.scheduleWorkspaceSave());
+					this.canvasBackgroundSelect?.addEventListener('change', () => this.applyCanvasBackground(this.canvasBackgroundSelect.value));
+					document.addEventListener('fullscreenchange', () => {
+						if (this.fullscreenButton) {
+							this.fullscreenButton.textContent = document.fullscreenElement === this.previewPanel ? 'Exit Fullscreen (F)' : 'Fullscreen (F)';
 						}
+						this.schedulePreviewLayout();
+					});
+					void this.restoreProjectData();
+					void this.loadCanvasBackgrounds();
 
-						directory = await window.showDirectoryPicker({ mode: 'readwrite' });
-						this.directoryHandle = directory;
-						await this.storeDirectoryHandle(directory);
-						await this.loadDirectoryHandle(directory);
-					} catch (error) {
-						if (!(error instanceof DOMException && error.name === 'AbortError')) {
-							this.folderMeta.textContent = error instanceof Error ? error.message : 'Could not open folder.';
-						}
-					}
 				}
 
 				async restoreFramesDirectory() {
@@ -1055,32 +1142,129 @@ const pageTitle = 'Frame Sequencer';
 							const directory = await this.getStoredDirectoryHandle();
 							if (directory) {
 								this.directoryHandle = directory;
-								this.folderName.textContent = directory.name;
-								this.clearButton.disabled = false;
+								this.sourceLabel = directory.name;
 								const permission = await this.ensureDirectoryPermission(directory, false);
 								if (permission === 'granted') {
 									await this.loadDirectoryHandle(directory);
 									return;
 								}
-								this.folderButton.textContent = 'Reconnect remembered folder';
-								this.folderMeta.textContent = 'Folder remembered. Reconnect once only if browser permission expired.';
+								this.sourceLabel = `${directory.name} (reconnect from settings)`;
 								return;
 							}
 						}
 						const files = await this.getStoredValue('sequencer-files');
 						if (files?.length) await this.loadFiles(files);
 					} catch {
-						this.folderMeta.textContent = 'Choose a folder containing PNG, WebP, JPEG, or GIF frames.';
+						this.sourceLabel = 'No frames folder';
 					}
 				}
 
-				async loadDirectoryHandle(directory) {
+				async getRootFolderHandle() {
+					try {
+						const database = await this.openHandleDatabase();
+						const handle = await new Promise((resolve, reject) => {
+							const request = database.transaction('handles').objectStore('handles').get('spriteanim-root-handle');
+							request.onsuccess = () => resolve(request.result || null);
+							request.onerror = () => reject(request.error);
+						});
+						database.close();
+						return handle;
+					} catch {
+						return null;
+					}
+				}
+
+				async getAnimationRootFolderHandle() {
+					const root = await this.getRootFolderHandle();
+					return root ? root.getDirectoryHandle('anim-projects', { create: true }) : null;
+				}
+
+				async restoreProjectData() {
+					try {
+						const project = window.SpriteAnimProject?.getActiveProject?.();
+						const activeCycle = window.SpriteAnimProject?.getActiveCycle?.();
+						if (!project || !('showDirectoryPicker' in window)) {
+							await this.restoreFramesDirectory();
+							return;
+						}
+						const root = await this.getAnimationRootFolderHandle();
+						const rootGranted = root && (await this.ensureDirectoryPermission(root, false)) === 'granted';
+						if (!rootGranted) {
+							await this.restoreFramesDirectory();
+							return;
+						}
+						let projectHandle;
+						try {
+							projectHandle = await root.getDirectoryHandle(project);
+						} catch {
+							await this.restoreFramesDirectory();
+							return;
+						}
+						const cycles = [];
+						for await (const entry of projectHandle.values()) {
+							if (entry.kind === 'directory') cycles.push(entry);
+						}
+						cycles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+						if (!cycles.length) {
+							await this.restoreFramesDirectory();
+							return;
+						}
+						const selected = cycles.find((cycle) => cycle.name === activeCycle) || cycles[0];
+						this.directoryHandle = selected;
+						this.sourceLabel = selected.name;
+						let editTarget = null;
+						try { editTarget = JSON.parse(localStorage.getItem('spriteanim-edit-stage3-sequence') || 'null'); } catch {}
+						if (editTarget?.project === project && editTarget?.cycle === selected.name) {
+							const stage3 = await this.findSubdirectory(selected, 'stage3 - pivoted frames');
+							if (stage3) {
+								let source = stage3;
+								if (editTarget.sequence) source = await stage3.getDirectoryHandle(editTarget.sequence);
+								localStorage.removeItem('spriteanim-edit-stage3-sequence');
+								this.versionFolders = [source];
+								this.versionHandle = source;
+								this.renderVersionPicker([], null);
+								await this.loadDirectoryHandle(selected, source, true, !editTarget.sequence);
+								return;
+							}
+						}
+						const stage2 = await this.findSubdirectory(selected, 'stage2 - unpivoted frames');
+						const versions = await this.listVersionFolders(stage2 || selected);
+						this.versionFolders = versions;
+						const storedVersion = localStorage.getItem('spriteanim-version:' + selected.name);
+						let versionHandle = null;
+						// Auto-select the latest timestamped version folder when one exists.
+						const newest = versions.find((version) => /^\d{2}-\d{2}-\d{4} \d{2}-\d{2}-\d{2}/.test(version.name)) || null;
+						if (newest) {
+							versionHandle = newest;
+							localStorage.setItem('spriteanim-version:' + selected.name, newest.name);
+						} else {
+							if (storedVersion) {
+								versionHandle = versions.find((version) => version.name === storedVersion) || null;
+							}
+							if (!versionHandle) {
+								const stage3 = await this.findSubdirectory(selected, 'stage3 - pivoted frames');
+								versionHandle = stage3 || versions[0] || null;
+							}
+						}
+						this.versionHandle = versionHandle;
+						this.renderVersionPicker(versions, versionHandle);
+						await this.loadDirectoryHandle(selected, versionHandle);
+					} catch {
+						await this.restoreFramesDirectory();
+					}
+				}
+
+				async loadDirectoryHandle(directory, versionFolder, selectAll = false, shallow = false) {
 					this.workspaceReady = false;
 					this.transformUndoStack = [];
 					this.keyboardNudge = null;
 					this.clearFrameUrls();
 					const entries = [];
-					await this.collectDirectoryImages(directory, '', entries);
+					let source = versionFolder || null;
+					if (!source) {
+						source = await this.findSubdirectory(directory, 'stage3 - pivoted frames') || directory;
+					}
+					await this.collectDirectoryImages(source, '', entries, !shallow);
 					entries.sort((a, b) => this.naturalCompare(a.path, b.path));
 					this.frames = entries.map((entry, index) => ({
 						id: `frame-${index}-${entry.file.name}`,
@@ -1090,22 +1274,242 @@ const pageTitle = 'Frame Sequencer';
 						url: URL.createObjectURL(entry.file),
 					}));
 					await this.restoreWorkspaceState(directory.name);
+					if (selectAll) {
+						this.selectedIds = this.getSourceFrames().map((frame) => frame.id);
+						this.currentIndex = 0;
+					}
 					this.stopPlayback();
-					this.folderName.textContent = this.frames.length > 0 ? directory.name : 'No image frames found';
-					this.folderMeta.textContent = this.frames.length > 0
-						? `${this.frames.length} image frame${this.frames.length === 1 ? '' : 's'} loaded. Read/write access remembered.`
-						: 'No PNG, WebP, JPEG, or GIF frames found in this folder.';
-					this.folderButton.textContent = 'Change frames folder';
-					this.clearButton.disabled = false;
+					this.sourceLabel = source.name;
 					this.workspaceReady = this.frames.length > 0;
 					this.render();
 				}
 
-				async collectDirectoryImages(directory, prefix, entries) {
+				async listVersionFolders(directory) {
+					const timestampRe = /^\d{2}-\d{2}-\d{4} \d{2}-\d{2}-\d{2}( \(\d+\))?$/;
+					const all = [];
+					for await (const entry of directory.values()) {
+						if (entry.kind !== 'directory') continue;
+						if (entry.name.startsWith('.') || entry.name.startsWith('_')) continue;
+						all.push(entry);
+					}
+					const stamped = all
+						.filter((entry) => timestampRe.test(entry.name))
+						.sort((a, b) => b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' }));
+					const others = all
+						.filter((entry) => !timestampRe.test(entry.name))
+						.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+					return stamped.concat(others);
+				}
+
+				renderVersionPicker(versions, selected) {
+					if (!this.versionPicker || !this.versionSelect) return;
+					if (!versions.length) {
+						this.versionPicker.hidden = true;
+						this.versionSelect.replaceChildren();
+						return;
+					}
+					this.versionPicker.hidden = versions.length <= 1;
+					this.versionSelect.replaceChildren(...versions.map((version) => {
+						const option = document.createElement('option');
+						option.value = version.name;
+						option.textContent = version.name;
+						return option;
+					}));
+					this.versionSelect.value = selected?.name || versions[0].name;
+				}
+
+				async loadVersion(name) {
+					const version = this.versionFolders.find((item) => item.name === name);
+					if (!version) return;
+					this.versionHandle = version;
+					if (this.directoryHandle) localStorage.setItem('spriteanim-version:' + this.directoryHandle.name, name);
+					await this.loadDirectoryHandle(this.directoryHandle, version);
+				}
+
+				async saveSequence() {
+					const frames = this.getSelectedFrames();
+					if (!frames.length) return;
+					const status = this.exportStatus || this.transformStatus;
+					const button = this.saveSequenceButton;
+					if (button) button.disabled = true;
+					try {
+						const root = await this.getAnimationRootFolderHandle();
+						const project = window.SpriteAnimProject?.getActiveProject?.();
+						if (!root || !project || !this.directoryHandle) {
+							if (status) status.textContent = 'Connect the project folder in settings first.';
+							return;
+						}
+						const projectHandle = await root.getDirectoryHandle(project);
+						let stage3 = this.directoryHandle;
+						try {
+							stage3 = await this.directoryHandle.getDirectoryHandle('stage3 - pivoted frames', { create: true });
+						} catch {}
+						const writeOpts = { mode: 'readwrite' };
+						let wp = await stage3.queryPermission(writeOpts);
+						if (wp !== 'granted') wp = await stage3.requestPermission(writeOpts);
+						if (wp !== 'granted') {
+							if (status) status.textContent = 'Write access needed to save frames.';
+							return;
+						}
+						const now = new Date();
+						const pad = (value) => String(value).padStart(2, '0');
+						const base = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+						let name = base;
+						let counter = 2;
+						for (;;) {
+							try {
+								await stage3.getDirectoryHandle(name);
+								name = `${base} (${counter})`;
+								counter += 1;
+							} catch {
+								break;
+							}
+						}
+						const versionDirectory = await stage3.getDirectoryHandle(name, { create: true });
+						const cycleName = (this.directoryHandle.name || 'animation')
+							.toLowerCase()
+							.replace(/[^a-z0-9]+/g, '-')
+							.replace(/^-+|-+$/g, '') || 'animation';
+						const preparedFrames = await Promise.all(frames.map(async (frame) => {
+							const image = await this.loadFrameImage(frame.url);
+							this.measureFrameBounds(frame, image);
+							return { frame, image };
+						}));
+						const scene = {
+							width: Math.max(...preparedFrames.map(({ frame }) => frame.width)),
+							height: Math.max(...preparedFrames.map(({ frame }) => frame.height)),
+						};
+						const savedFrames = [];
+						for (let index = 0; index < preparedFrames.length; index += 1) {
+							const { frame, image } = preparedFrames[index];
+							const blob = await this.renderTransformedFrame(frame, image, scene);
+							const fileName = `${cycleName}-${String(index + 1).padStart(3, '0')}.png`;
+							const file = await versionDirectory.getFileHandle(fileName, { create: true });
+							const writable = await file.createWritable();
+							await writable.write(blob);
+							await writable.close();
+							savedFrames.push({
+								index: index + 1,
+								outputFile: fileName,
+								sourceName: frame.name,
+								sourcePath: frame.sourcePath || frame.path || frame.name,
+								sourceFrameId: frame.id,
+								isDuplicate: Boolean(frame.isSequenceDuplicate),
+								transform: this.normalizeTransform(frame.transform),
+								sourceDimensions: { width: frame.sourceWidth, height: frame.sourceHeight },
+								contentBounds: { ...frame.contentBounds },
+								outputDimensions: { width: scene.width, height: scene.height },
+								fileSizeBytes: blob.size,
+							});
+							if (status) status.textContent = `Saving ${fileName}...`;
+						}
+						const fps = this.getFps();
+						const manifest = {
+							schemaVersion: 1,
+							savedAt: now.toISOString(),
+							project,
+							animationCycle: this.directoryHandle.name,
+							versionFolder: name,
+							stage: 'stage3 - pivoted frames',
+							format: 'image/png',
+							fps,
+							frameCount: savedFrames.length,
+							durationSeconds: savedFrames.length / fps,
+							frameDurationMilliseconds: 1000 / fps,
+							canvas: { width: scene.width, height: scene.height, transparent: true },
+							playback: {
+								loop: Boolean(this.loopInput?.checked),
+								onionSkinEnabledWhileEditing: Boolean(this.onionSkinInput?.checked),
+								onionSkinMode: this.onionModeInput?.value || 'prev',
+							},
+							frames: savedFrames,
+						};
+						const manifestFile = await versionDirectory.getFileHandle('sequence.json', { create: true });
+						const manifestWritable = await manifestFile.createWritable();
+						await manifestWritable.write(JSON.stringify(manifest, null, 2));
+						await manifestWritable.close();
+						if (status) status.textContent = `${frames.length} frames + sequence.json saved to ${this.directoryHandle.name}/stage3 - pivoted frames/${name}`;
+					} catch (error) {
+						if (status) status.textContent = error?.name === 'AbortError' ? 'Save cancelled.' : `Save failed: ${error.message}`;
+					} finally {
+						if (button) button.disabled = false;
+					}
+				}
+
+				loadFrameImage(url) {
+					return new Promise((resolve, reject) => {
+						const image = new Image();
+						image.onload = () => resolve(image);
+						image.onerror = () => reject(new Error('Could not load a selected frame for saving.'));
+						image.src = url;
+					});
+				}
+
+				measureFrameBounds(frame, image) {
+					const sourceWidth = image.naturalWidth || 1;
+					const sourceHeight = image.naturalHeight || 1;
+					const canvas = document.createElement('canvas');
+					canvas.width = sourceWidth;
+					canvas.height = sourceHeight;
+					const context = canvas.getContext('2d', { willReadFrequently: true });
+					let bounds = { x: 0, y: 0, width: sourceWidth, height: sourceHeight };
+					try {
+						context.drawImage(image, 0, 0);
+						const pixels = context.getImageData(0, 0, sourceWidth, sourceHeight).data;
+						let left = sourceWidth, top = sourceHeight, right = -1, bottom = -1;
+						for (let y = 0; y < sourceHeight; y += 1) {
+							for (let x = 0; x < sourceWidth; x += 1) {
+								if (pixels[(y * sourceWidth + x) * 4 + 3] <= 8) continue;
+								left = Math.min(left, x); top = Math.min(top, y);
+								right = Math.max(right, x); bottom = Math.max(bottom, y);
+							}
+						}
+						if (right >= left && bottom >= top) bounds = { x: left, y: top, width: right - left + 1, height: bottom - top + 1 };
+					} catch {}
+					frame.sourceWidth = sourceWidth;
+					frame.sourceHeight = sourceHeight;
+					frame.contentBounds = bounds;
+					frame.width = bounds.width;
+					frame.height = bounds.height;
+					return bounds;
+				}
+
+				renderTransformedFrame(frame, image, scene) {
+					const canvas = document.createElement('canvas');
+					canvas.width = Math.max(1, Math.round(scene.width));
+					canvas.height = Math.max(1, Math.round(scene.height));
+					const context = canvas.getContext('2d', { alpha: true });
+					if (!context) return Promise.reject(new Error('Canvas unavailable while saving frames.'));
+					const transform = this.normalizeTransform(frame.transform);
+					context.clearRect(0, 0, canvas.width, canvas.height);
+					context.imageSmoothingEnabled = false;
+					context.save();
+					context.translate(
+						canvas.width / 2 + (transform.x / 100) * canvas.width,
+						canvas.height / 2 + (transform.y / 100) * canvas.height,
+					);
+					context.rotate(transform.rotation * (Math.PI / 180));
+					context.scale(transform.scaleX, transform.scaleY);
+					const bounds = frame.contentBounds || { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
+					context.drawImage(image, -(bounds.x + bounds.width / 2), -(bounds.y + bounds.height / 2));
+					context.restore();
+					return new Promise((resolve, reject) => {
+						canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG creation failed.')), 'image/png');
+					});
+				}
+
+				async findSubdirectory(directory, name) {
+					for await (const entry of directory.values()) {
+						if (entry.kind === 'directory' && entry.name.toLowerCase() === name.toLowerCase()) return entry;
+					}
+					return null;
+				}
+
+				async collectDirectoryImages(directory, prefix, entries, recursive = true) {
 					for await (const entry of directory.values()) {
 						const path = prefix ? `${prefix}/${entry.name}` : entry.name;
-						if (entry.kind === 'directory') {
-							await this.collectDirectoryImages(entry, path, entries);
+						if (entry.kind === 'directory' && recursive) {
+							await this.collectDirectoryImages(entry, path, entries, true);
 						} else if (entry.kind === 'file' && /\.(png|webp|jpe?g|gif)$/i.test(entry.name)) {
 							entries.push({ file: await entry.getFile(), path });
 						}
@@ -1113,7 +1517,7 @@ const pageTitle = 'Frame Sequencer';
 				}
 
 				async ensureDirectoryPermission(directory, request) {
-					const options = { mode: 'readwrite' };
+					const options = { mode: 'read' };
 					if (await directory.queryPermission(options) === 'granted') return 'granted';
 					if (!request) return 'prompt';
 					return directory.requestPermission(options);
@@ -1128,21 +1532,15 @@ const pageTitle = 'Frame Sequencer';
 					});
 				}
 
-				async storeDirectoryHandle(directory) {
-					const database = await this.openHandleDatabase();
-					await new Promise((resolve, reject) => {
-						const transaction = database.transaction('handles', 'readwrite');
-						transaction.objectStore('handles').put(directory, 'frames-directory');
-						transaction.oncomplete = () => resolve();
-						transaction.onerror = () => reject(transaction.error);
-					});
-					database.close();
+				storageKey(key) {
+					return window.SpriteAnimProject?.getStorageKey?.(key) || key;
 				}
 
 				async getStoredDirectoryHandle() {
+					const storedKey = this.storageKey('samples-directory');
 					const database = await this.openHandleDatabase();
 					const directory = await new Promise((resolve, reject) => {
-						const request = database.transaction('handles').objectStore('handles').get('frames-directory');
+						const request = database.transaction('handles').objectStore('handles').get(storedKey);
 						request.onsuccess = () => resolve(request.result || null);
 						request.onerror = () => reject(request.error);
 					});
@@ -1155,9 +1553,8 @@ const pageTitle = 'Frame Sequencer';
 					await new Promise((resolve, reject) => {
 						const transaction = database.transaction('handles', 'readwrite');
 						const store = transaction.objectStore('handles');
-						store.delete('frames-directory');
-						store.delete('sequencer-files');
-						store.delete('sequencer-workspace');
+						store.delete(this.storageKey('sequencer-files'));
+						store.delete(this.storageKey('sequencer-workspace'));
 						transaction.oncomplete = () => resolve();
 						transaction.onerror = () => reject(transaction.error);
 					});
@@ -1165,10 +1562,11 @@ const pageTitle = 'Frame Sequencer';
 				}
 
 				async storeValue(key, value) {
+					const storedKey = this.storageKey(key);
 					const database = await this.openHandleDatabase();
 					await new Promise((resolve, reject) => {
 						const transaction = database.transaction('handles', 'readwrite');
-						transaction.objectStore('handles').put(value, key);
+						transaction.objectStore('handles').put(value, storedKey);
 						transaction.oncomplete = () => resolve();
 						transaction.onerror = () => reject(transaction.error);
 					});
@@ -1176,9 +1574,10 @@ const pageTitle = 'Frame Sequencer';
 				}
 
 				async getStoredValue(key) {
+					const storedKey = this.storageKey(key);
 					const database = await this.openHandleDatabase();
 					const value = await new Promise((resolve, reject) => {
-						const request = database.transaction('handles').objectStore('handles').get(key);
+						const request = database.transaction('handles').objectStore('handles').get(storedKey);
 						request.onsuccess = () => resolve(request.result || null);
 						request.onerror = () => reject(request.error);
 					});
@@ -1219,9 +1618,20 @@ const pageTitle = 'Frame Sequencer';
 					}
 
 					this.currentIndex = Math.min(Math.max(0, Number(state.currentIndex) || 0), Math.max(0, this.selectedIds.length - 1));
-					if (this.fpsInput) this.fpsInput.value = String(Math.min(60, Math.max(1, Number(state.fps) || 8)));
+					if (this.fpsInput && Number(state.fps) > 0) {
+						this.fpsInput.value = String(Math.min(60, Math.max(1, Number(state.fps))));
+						this.fpsTouched = true;
+					}
 					if (this.loopInput) this.loopInput.checked = state.loop !== false;
 					if (this.onionSkinInput) this.onionSkinInput.checked = state.onionSkin !== false;
+					if (this.onionModeInput) {
+						const mode = state.onionMode;
+						if (mode === 'prev' || mode === 'next' || mode === 'both') this.onionModeInput.value = mode;
+					}
+					if (this.nudgeScaleInput) {
+						const scale = Number(state.nudgeScale);
+						if (scale >= 0.5 && scale <= 5) this.nudgeScaleInput.value = String(scale);
+					}
 				}
 
 				scheduleWorkspaceSave() {
@@ -1233,7 +1643,7 @@ const pageTitle = 'Frame Sequencer';
 				async persistWorkspaceState() {
 					if (!this.workspaceReady) return;
 					const state = {
-						sourceName: this.folderName.textContent || '',
+						sourceName: this.sourceLabel || '',
 						sourceSignature: this.getSourceSignature(),
 						sequence: this.getSelectedFrames().map((frame) => ({
 							sourcePath: frame.sourcePath || frame.path,
@@ -1245,6 +1655,8 @@ const pageTitle = 'Frame Sequencer';
 						fps: this.getFps(),
 						loop: Boolean(this.loopInput?.checked),
 						onionSkin: Boolean(this.onionSkinInput?.checked),
+						onionMode: this.onionModeInput?.value || 'prev',
+						nudgeScale: Number(this.nudgeScaleInput?.value) || 1,
 					};
 					try { await this.storeValue('sequencer-workspace', state); } catch {}
 				}
@@ -1271,11 +1683,7 @@ const pageTitle = 'Frame Sequencer';
 					const folderName = folderPath.includes('/') ? folderPath.split('/')[0] : 'Selected frames';
 					try { await this.storeValue('sequencer-files', imageFiles); } catch {}
 					await this.restoreWorkspaceState(folderName);
-					this.folderName.textContent = imageFiles.length > 0 ? folderName : 'No image frames found';
-					this.folderMeta.textContent = imageFiles.length > 0
-						? `${imageFiles.length} image frame${imageFiles.length === 1 ? '' : 's'} loaded locally`
-						: 'Choose a folder containing PNG, WebP, JPEG, or GIF frames.';
-					this.clearButton.disabled = imageFiles.length === 0;
+					this.sourceLabel = imageFiles.length > 0 ? folderName : 'No image frames found';
 					this.workspaceReady = imageFiles.length > 0;
 					this.render();
 				}
@@ -1371,8 +1779,7 @@ const pageTitle = 'Frame Sequencer';
 					image.alt = frame.name;
 					image.draggable = false;
 					image.addEventListener('load', () => {
-						frame.width = image.naturalWidth;
-						frame.height = image.naturalHeight;
+						this.measureFrameBounds(frame, image);
 						this.schedulePreviewLayout();
 					}, { once: true });
 					return image;
@@ -1433,6 +1840,11 @@ const pageTitle = 'Frame Sequencer';
 					if (frame?.isSequenceDuplicate) this.frames = this.frames.filter((item) => item.id !== id);
 					this.currentIndex = Math.min(this.currentIndex, Math.max(0, this.selectedIds.length - 1));
 					this.render();
+				}
+
+				deleteCurrentFrame() {
+					const id = this.selectedIds[this.currentIndex];
+					if (id) this.removeSelectedFrame(id);
 				}
 
 				duplicateCurrentFrame() {
@@ -1505,6 +1917,7 @@ const pageTitle = 'Frame Sequencer';
 					if (event.button !== 0) return;
 					const target = event.target instanceof Element ? event.target : null;
 					const type = target?.closest('[data-rotate-handle]') ? 'rotate'
+						: target?.closest('[data-resize-handle]') ? 'resize'
 						: target?.closest('[data-preview-image]') ? 'move' : '';
 					if (!type) return;
 					const frame = this.getSelectedFrames()[this.currentIndex];
@@ -1514,6 +1927,9 @@ const pageTitle = 'Frame Sequencer';
 					const imageRect = this.previewImage.getBoundingClientRect();
 					const centerX = imageRect.left + imageRect.width / 2;
 					const centerY = imageRect.top + imageRect.height / 2;
+					const resizeHandle = target?.closest('[data-resize-handle]')?.getAttribute('data-resize-handle') || '';
+					const scene = this.getSceneDimensions();
+					const sceneRect = this.previewScene.getBoundingClientRect();
 					this.sceneGesture = {
 						type,
 						precision: event.shiftKey,
@@ -1523,6 +1939,9 @@ const pageTitle = 'Frame Sequencer';
 						startY: event.clientY,
 						startTransform: transform,
 						startAngle: Math.atan2(event.clientY - centerY, event.clientX - centerX),
+						resizeHandle,
+						baseWidth: ((Number(frame.width) || scene.width) / scene.width) * sceneRect.width,
+						baseHeight: ((Number(frame.height) || scene.height) / scene.height) * sceneRect.height,
 						changed: false,
 					};
 					this.previewScene.setPointerCapture?.(event.pointerId);
@@ -1534,7 +1953,7 @@ const pageTitle = 'Frame Sequencer';
 					if (!gesture || event.pointerId !== gesture.pointerId || !(this.previewScene instanceof HTMLElement)) return;
 					const rect = this.previewScene.getBoundingClientRect();
 					if (!rect.width || !rect.height) return;
-					const sensitivity = gesture.precision ? 0.2 : 1;
+					const sensitivity = gesture.type === 'resize' ? 1 : event.shiftKey ? 0.2 : 1;
 					let transform;
 					if (gesture.type === 'move') {
 						transform = {
@@ -1542,7 +1961,7 @@ const pageTitle = 'Frame Sequencer';
 							x: gesture.startTransform.x + ((event.clientX - gesture.startX) / rect.width) * 100 * sensitivity,
 							y: gesture.startTransform.y + ((event.clientY - gesture.startY) / rect.height) * 100 * sensitivity,
 						};
-					} else {
+					} else if (gesture.type === 'rotate') {
 						const imageRect = this.previewImage.getBoundingClientRect();
 						const centerX = imageRect.left + imageRect.width / 2;
 						const centerY = imageRect.top + imageRect.height / 2;
@@ -1551,6 +1970,32 @@ const pageTitle = 'Frame Sequencer';
 						if (delta > 180) delta -= 360;
 						if (delta < -180) delta += 360;
 						transform = { ...gesture.startTransform, rotation: gesture.startTransform.rotation + delta * sensitivity };
+					} else {
+						const radians = gesture.startTransform.rotation * (Math.PI / 180);
+						const dx = event.clientX - gesture.startX;
+						const dy = event.clientY - gesture.startY;
+						const localX = dx * Math.cos(radians) + dy * Math.sin(radians);
+						const localY = -dx * Math.sin(radians) + dy * Math.cos(radians);
+						const handle = gesture.resizeHandle;
+						const horizontal = handle.includes('e') ? 1 : handle.includes('w') ? -1 : 0;
+						const vertical = handle.includes('s') ? 1 : handle.includes('n') ? -1 : 0;
+						transform = {
+							...gesture.startTransform,
+							scaleX: horizontal ? gesture.startTransform.scaleX + (2 * horizontal * localX / gesture.baseWidth) * sensitivity : gesture.startTransform.scaleX,
+							scaleY: vertical ? gesture.startTransform.scaleY + (2 * vertical * localY / gesture.baseHeight) * sensitivity : gesture.startTransform.scaleY,
+						};
+						if (event.shiftKey) {
+							const startX = gesture.startTransform.scaleX;
+							const startY = gesture.startTransform.scaleY;
+							const factorX = horizontal ? transform.scaleX / startX : 1;
+							const factorY = vertical ? transform.scaleY / startY : 1;
+							let factor = horizontal && vertical
+								? Math.abs(factorX - 1) >= Math.abs(factorY - 1) ? factorX : factorY
+								: horizontal ? factorX : factorY;
+							factor = Math.min(10 / startX, 10 / startY, Math.max(0.1 / startX, 0.1 / startY, factor));
+							transform.scaleX = startX * factor;
+							transform.scaleY = startY * factor;
+						}
 					}
 					gesture.frame.transform = this.normalizeTransform(transform);
 					gesture.changed = !this.transformsEqual(gesture.frame.transform, gesture.startTransform);
@@ -1581,9 +2026,9 @@ const pageTitle = 'Frame Sequencer';
 					if (!frame) return;
 					this.stopPlayback();
 					const transform = this.normalizeTransform(frame.transform);
-					if (this.transformsEqual(transform, { x: 0, y: 0, rotation: 0 })) return;
+					if (this.transformsEqual(transform, { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 })) return;
 					this.pushTransformUndo(frame, transform);
-					frame.transform = { x: 0, y: 0, rotation: 0 };
+					frame.transform = { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 };
 					this.updatePreview();
 					this.exportStatus.textContent = `Reset frame ${this.currentIndex + 1} scene position.`;
 					this.scheduleWorkspaceSave();
@@ -1594,6 +2039,29 @@ const pageTitle = 'Frame Sequencer';
 					if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && this.transformUndoStack.length > 0) {
 						event.preventDefault();
 						this.undoTransform();
+						return;
+					}
+					const key = event.key.toLowerCase();
+					if (key === 'q') {
+						event.preventDefault();
+						this.stopPlayback();
+						this.step(-1);
+						return;
+					}
+					if (key === 'e') {
+						event.preventDefault();
+						this.stopPlayback();
+						this.step(1);
+						return;
+					}
+					if (key === 'f') {
+						event.preventDefault();
+						void this.toggleFullscreen();
+						return;
+					}
+					if (key === 'w') {
+						event.preventDefault();
+						this.togglePlayback();
 						return;
 					}
 					const movement = {
@@ -1611,7 +2079,8 @@ const pageTitle = 'Frame Sequencer';
 						this.pushTransformUndo(frame, this.normalizeTransform(frame.transform));
 						this.keyboardNudge = { frameId: frame.id };
 					}
-					const step = event.shiftKey ? 0.1 : 1;
+					const scale = Math.max(0.5, Math.min(5, Number(this.nudgeScaleInput?.value) || 1));
+					const step = (event.shiftKey ? 0.1 : 1) * (scale / 5);
 					const transform = this.normalizeTransform(frame.transform);
 					frame.transform = this.normalizeTransform({
 						...transform,
@@ -1638,6 +2107,8 @@ const pageTitle = 'Frame Sequencer';
 					const b = this.normalizeTransform(second);
 					return Math.abs(a.x - b.x) < 0.0001
 						&& Math.abs(a.y - b.y) < 0.0001
+						&& Math.abs(a.scaleX - b.scaleX) < 0.0001
+						&& Math.abs(a.scaleY - b.scaleY) < 0.0001
 						&& Math.abs(a.rotation - b.rotation) < 0.0001;
 				}
 
@@ -1671,6 +2142,11 @@ const pageTitle = 'Frame Sequencer';
 				startPlayback() {
 					if (this.selectedIds.length === 0) return;
 					this.stopPlayback(false);
+					this.playbackActive = true;
+					if (this.previewPanel) this.previewPanel.dataset.playing = '';
+					if (this.onionSkinInput) this.onionSkinInput.disabled = true;
+					if (this.onionModeInput) this.onionModeInput.disabled = true;
+					this.hideOnionFrames();
 					this.playButton.textContent = 'Pause';
 					const delay = Math.max(16, Math.round(1000 / this.getFps()));
 					this.animationTimer = window.setInterval(() => {
@@ -1687,10 +2163,16 @@ const pageTitle = 'Frame Sequencer';
 				stopPlayback(resetLabel = true) {
 					if (this.animationTimer) window.clearInterval(this.animationTimer);
 					this.animationTimer = 0;
+					const wasPlaying = this.playbackActive;
+					this.playbackActive = false;
+					if (this.previewPanel) delete this.previewPanel.dataset.playing;
+					if (this.onionSkinInput) this.onionSkinInput.disabled = false;
+					if (this.onionModeInput) this.onionModeInput.disabled = false;
 					if (resetLabel && this.playButton) {
 						this.playButton.textContent = 'Play';
 						this.scheduleWorkspaceSave();
 					}
+					if (wasPlaying) this.updateOnionFrames(this.getSelectedFrames());
 				}
 
 				step(direction) {
@@ -1699,6 +2181,78 @@ const pageTitle = 'Frame Sequencer';
 					this.currentIndex = (this.currentIndex + direction + this.selectedIds.length) % this.selectedIds.length;
 					this.updatePreview();
 					this.scheduleWorkspaceSave();
+				}
+
+				async toggleFullscreen() {
+					if (!this.previewPanel) return;
+					try {
+						if (document.fullscreenElement === this.previewPanel) {
+							await document.exitFullscreen();
+						} else {
+							await this.previewPanel.requestFullscreen();
+						}
+					} catch (error) {
+						if (this.exportStatus) this.exportStatus.textContent = `Fullscreen unavailable: ${error.message}`;
+					}
+				}
+
+				async loadCanvasBackgrounds() {
+					if (!this.canvasBackgroundSelect) return;
+					const select = this.canvasBackgroundSelect;
+					const saved = localStorage.getItem('spriteanim-canvas-bg') || '';
+					select.replaceChildren();
+					const checker = document.createElement('option');
+					checker.value = '';
+					checker.textContent = 'Checker';
+					select.append(checker);
+					this.canvasBackgrounds = [];
+					try {
+						const root = await this.getRootFolderHandle();
+						if (!root) return;
+						const config = await root.getDirectoryHandle('.config');
+						const folder = await config.getDirectoryHandle('canvas-backgrounds');
+						for await (const entry of folder.values()) {
+							if (entry.kind === 'file' && /\.(png|webp|jpe?g|gif)$/i.test(entry.name)) {
+								this.canvasBackgrounds.push({ name: entry.name, file: await entry.getFile() });
+							}
+						}
+						this.canvasBackgrounds.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+						for (const background of this.canvasBackgrounds) {
+							const option = document.createElement('option');
+							option.value = background.name;
+							option.textContent = background.name;
+							select.append(option);
+						}
+						if (this.canvasBackgrounds.some((item) => item.name === saved)) {
+							select.value = saved;
+						} else {
+							select.value = this.canvasBackgrounds.length ? this.canvasBackgrounds[0].name : '';
+						}
+					} catch {
+						// backgrounds folder unavailable; only the checker option stays
+					}
+					this.applyCanvasBackground(select.value);
+				}
+
+				applyCanvasBackground(name) {
+					const stage = this.previewStage;
+					if (!stage) return;
+					if (this.canvasBackgroundUrl) {
+						URL.revokeObjectURL(this.canvasBackgroundUrl);
+						this.canvasBackgroundUrl = '';
+					}
+					const background = this.canvasBackgrounds.find((item) => item.name === name);
+					if (!background) {
+						stage.style.backgroundImage = '';
+						stage.style.backgroundSize = '';
+						stage.style.backgroundPosition = '';
+						return;
+					}
+					this.canvasBackgroundUrl = URL.createObjectURL(background.file);
+					stage.style.backgroundImage = `url("${this.canvasBackgroundUrl}")`;
+					stage.style.backgroundSize = 'cover';
+					stage.style.backgroundPosition = 'center';
+					localStorage.setItem('spriteanim-canvas-bg', name);
 				}
 
 				updatePreview() {
@@ -1717,13 +2271,15 @@ const pageTitle = 'Frame Sequencer';
 						return;
 					}
 
+					if (this.fpsInput && !this.fpsTouched) {
+						this.fpsInput.value = String(Math.min(60, Math.max(1, selectedFrames.length || 1)));
+					}
 					this.currentIndex = Math.min(this.currentIndex, selectedFrames.length - 1);
 					const frame = selectedFrames[this.currentIndex];
 					this.previewImage.src = frame.url;
 					this.previewImage.alt = `Preview ${frame.name}`;
 					this.previewImage.onload = () => {
-						frame.width = this.previewImage.naturalWidth;
-						frame.height = this.previewImage.naturalHeight;
+						this.measureFrameBounds(frame, this.previewImage);
 						this.layoutPreviewScene();
 						this.applySpriteLayer(this.previewLayer, frame);
 					};
@@ -1744,6 +2300,8 @@ const pageTitle = 'Frame Sequencer';
 						x: Math.min(100, Math.max(-100, Number(transform?.x) || 0)),
 						y: Math.min(100, Math.max(-100, Number(transform?.y) || 0)),
 						rotation: Number(transform?.rotation) || 0,
+						scaleX: Math.min(10, Math.max(0.1, Number(transform?.scaleX) || 1)),
+						scaleY: Math.min(10, Math.max(0.1, Number(transform?.scaleY) || 1)),
 					};
 				}
 
@@ -1787,20 +2345,31 @@ const pageTitle = 'Frame Sequencer';
 					const box = layer.querySelector('.sprite-box');
 					const scene = this.getSceneDimensions();
 					const width = Number(frame.width) || scene.width;
+					const height = Number(frame.height) || scene.height;
+					const image = layer.querySelector('img');
+					const bounds = frame.contentBounds;
 					layer.style.transform = `translate(${transform.x}%, ${transform.y}%)`;
 					if (box instanceof HTMLElement) {
-						box.style.width = `${Math.min(100, (width / scene.width) * 100)}%`;
-						box.style.transform = `translateX(-50%) rotate(${transform.rotation}deg)`;
+						box.style.width = `${(width / scene.width) * 100 * transform.scaleX}%`;
+						box.style.height = `${(height / scene.height) * 100 * transform.scaleY}%`;
+						box.style.transform = `translate(-50%, -50%) rotate(${transform.rotation}deg)`;
+						if (image instanceof HTMLElement && bounds && frame.sourceWidth && frame.sourceHeight) {
+							image.style.position = 'absolute';
+							image.style.width = `${(frame.sourceWidth / bounds.width) * 100}%`;
+							image.style.height = `${(frame.sourceHeight / bounds.height) * 100}%`;
+							image.style.left = `${-(bounds.x / bounds.width) * 100}%`;
+							image.style.top = `${-(bounds.y / bounds.height) * 100}%`;
+						}
 					}
 				}
 
 				updateTransformStatus(frame) {
 					const transform = this.normalizeTransform(frame?.transform);
-					this.transformStatus.textContent = `X ${transform.x.toFixed(1)}% / Y ${transform.y.toFixed(1)}% / ${transform.rotation.toFixed(1)}deg`;
+					this.transformStatus.textContent = `X ${transform.x.toFixed(1)}% / Y ${transform.y.toFixed(1)}% / ${(transform.scaleX * 100).toFixed(0)}% x ${(transform.scaleY * 100).toFixed(0)}% / ${transform.rotation.toFixed(1)}deg`;
 				}
 
 				updateOnionFrames(selectedFrames) {
-					if (!this.onionSkinInput?.checked || selectedFrames.length < 2) {
+					if (this.playbackActive || !this.onionSkinInput?.checked || selectedFrames.length < 2) {
 						this.hideOnionFrames();
 						return;
 					}
@@ -1813,8 +2382,11 @@ const pageTitle = 'Frame Sequencer';
 						? this.currentIndex + 1
 						: wraps ? 0 : -1;
 
-					this.setOnionFrame(this.onionPreviousLayer, this.onionPreviousImage, previousIndex >= 0 ? selectedFrames[previousIndex] : null);
-					this.setOnionFrame(this.onionNextLayer, this.onionNextImage, nextIndex >= 0 ? selectedFrames[nextIndex] : null);
+					const mode = this.onionModeInput?.value || 'prev';
+					const showPrevious = mode === 'both' || mode === 'prev';
+					const showNext = mode === 'both' || mode === 'next';
+					this.setOnionFrame(this.onionPreviousLayer, this.onionPreviousImage, showPrevious && previousIndex >= 0 ? selectedFrames[previousIndex] : null);
+					this.setOnionFrame(this.onionNextLayer, this.onionNextImage, showNext && nextIndex >= 0 ? selectedFrames[nextIndex] : null);
 				}
 
 				setOnionFrame(layer, image, frame) {
@@ -1849,198 +2421,10 @@ const pageTitle = 'Frame Sequencer';
 					this.prevButton.disabled = !hasSelection;
 					this.nextButton.disabled = !hasSelection;
 					this.duplicateFrameButton.disabled = !hasSelection;
-					this.saveUnityButton.disabled = !hasSelection;
-					if (!hasSelection) this.exportStatus.textContent = 'Select frames to enable export.';
+					if (this.deleteCurrentButton) this.deleteCurrentButton.disabled = !hasSelection;
+					if (this.saveSequenceButton) this.saveSequenceButton.disabled = !hasSelection;
 				}
 
-				async saveForUnity() {
-					if (this.selectedIds.length === 0) return;
-					this.stopPlayback();
-					this.saveUnityButton.disabled = true;
-					this.exportStatus.textContent = 'Building Unity sprite sheet...';
-
-					try {
-						const unityPackage = await this.buildUnityPackage();
-						await this.saveUnityFiles(unityPackage);
-						this.exportStatus.textContent = `Saved one Unity sprite sheet: ${unityPackage.frameCount} equal ${unityPackage.metadata.sheet.cellWidth} x ${unityPackage.metadata.sheet.cellHeight}px cells.`;
-					} catch (error) {
-						if (error instanceof DOMException && error.name === 'AbortError') {
-							this.exportStatus.textContent = 'Save cancelled.';
-						} else {
-							this.exportStatus.textContent = error instanceof Error ? error.message : 'Unity export failed.';
-						}
-					} finally {
-						this.saveUnityButton.disabled = this.selectedIds.length === 0;
-					}
-				}
-
-				async buildUnityPackage() {
-					const selectedFrames = this.getSelectedFrames();
-					const images = await Promise.all(selectedFrames.map((frame) => this.loadImage(frame.url)));
-					const sceneWidth = Math.max(...images.map((image) => image.naturalWidth));
-					const sceneHeight = Math.max(...images.map((image) => image.naturalHeight));
-					const placements = images.map((image, index) => {
-						const transform = this.normalizeTransform(selectedFrames[index].transform);
-						const radians = transform.rotation * (Math.PI / 180);
-						const centerX = sceneWidth / 2 + (transform.x / 100) * sceneWidth;
-						const centerY = sceneHeight - image.naturalHeight / 2 + (transform.y / 100) * sceneHeight;
-						const halfWidth = Math.abs(Math.cos(radians)) * image.naturalWidth / 2
-							+ Math.abs(Math.sin(radians)) * image.naturalHeight / 2;
-						const halfHeight = Math.abs(Math.sin(radians)) * image.naturalWidth / 2
-							+ Math.abs(Math.cos(radians)) * image.naturalHeight / 2;
-						return { image, transform, radians, centerX, centerY, halfWidth, halfHeight };
-					});
-					const minX = Math.floor(Math.min(0, ...placements.map((placement) => placement.centerX - placement.halfWidth)));
-					const minY = Math.floor(Math.min(0, ...placements.map((placement) => placement.centerY - placement.halfHeight)));
-					const maxX = Math.ceil(Math.max(sceneWidth, ...placements.map((placement) => placement.centerX + placement.halfWidth)));
-					const maxY = Math.ceil(Math.max(sceneHeight, ...placements.map((placement) => placement.centerY + placement.halfHeight)));
-					const cellWidth = maxX - minX;
-					const cellHeight = maxY - minY;
-					const layout = this.findSheetLayout(selectedFrames.length, cellWidth, cellHeight);
-					const canvas = document.createElement('canvas');
-					canvas.width = layout.columns * cellWidth;
-					canvas.height = layout.rows * cellHeight;
-					const context = canvas.getContext('2d', { alpha: true });
-					if (!context) throw new Error('Canvas context unavailable.');
-					context.imageSmoothingEnabled = false;
-
-					const frames = placements.map((placement, index) => {
-						const { image, transform, radians, centerX, centerY } = placement;
-						const column = index % layout.columns;
-						const row = Math.floor(index / layout.columns);
-						const drawCenterX = column * cellWidth + centerX - minX;
-						const drawCenterY = row * cellHeight + centerY - minY;
-						context.save();
-						context.translate(drawCenterX, drawCenterY);
-						context.rotate(radians);
-						context.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
-						context.restore();
-						return {
-							index: index + 1,
-							source: selectedFrames[index].name,
-							column,
-							row,
-							x: column * cellWidth,
-							y: row * cellHeight,
-							width: cellWidth,
-							height: cellHeight,
-							sourceWidth: image.naturalWidth,
-							sourceHeight: image.naturalHeight,
-							offsetX: centerX - minX - image.naturalWidth / 2,
-							offsetY: centerY - minY - image.naturalHeight / 2,
-							transform,
-						};
-					});
-
-					const sheetBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-					if (!(sheetBlob instanceof Blob)) throw new Error('Sprite sheet export failed.');
-					const baseName = this.safeFileName(this.folderName.textContent || 'character-animation');
-					const fps = this.getFps();
-					const metadata = {
-						format: 'video-to-animation-unity-sprite-sheet',
-						version: 2,
-						name: baseName,
-						frameCount: selectedFrames.length,
-						fps,
-						loop: Boolean(this.loopInput.checked),
-						anchor: 'bottom-center',
-						sheet: {
-							file: `${baseName}-spritesheet.png`,
-							width: canvas.width,
-							height: canvas.height,
-							columns: layout.columns,
-							rows: layout.rows,
-							cellWidth,
-							cellHeight,
-						},
-						scene: {
-							width: sceneWidth,
-							height: sceneHeight,
-							originOffsetX: -minX,
-							originOffsetY: -minY,
-						},
-						unityImport: {
-							textureType: 'Sprite (2D and UI)',
-							spriteMode: 'Multiple',
-							slice: `Grid by Cell Size: ${cellWidth} x ${cellHeight}`,
-							pivot: 'Bottom Center',
-							animationSampleRate: fps,
-						},
-						frames,
-					};
-					return {
-						baseName,
-						frameCount: selectedFrames.length,
-						fps,
-						sheetBlob,
-						metadata,
-					};
-				}
-
-				loadImage(url) {
-					return new Promise((resolve, reject) => {
-						const image = new Image();
-						image.onload = () => resolve(image);
-						image.onerror = () => reject(new Error('Could not read one of the selected frames.'));
-						image.src = url;
-					});
-				}
-
-				findSheetLayout(frameCount, cellWidth, cellHeight) {
-					const maxTextureSize = 8192;
-					let best = null;
-					for (let columns = 1; columns <= frameCount; columns += 1) {
-						if (frameCount % columns !== 0) continue;
-						const rows = frameCount / columns;
-						const width = columns * cellWidth;
-						const height = rows * cellHeight;
-						if (width > maxTextureSize || height > maxTextureSize) continue;
-						const score = Math.max(width, height) + Math.abs(width - height) * 0.15;
-						if (!best || score < best.score || (score === best.score && width > best.width)) {
-							best = { columns, rows, score, width };
-						}
-					}
-					if (!best) throw new Error('Frames cannot fit an exact 8192px Unity grid. Use smaller frames or a different frame count.');
-					return best;
-				}
-
-				async saveUnityFiles(unityPackage) {
-					if ('showDirectoryPicker' in window) {
-						let directory = this.directoryHandle || await this.getStoredDirectoryHandle();
-						if (!directory || await this.ensureDirectoryPermission(directory, true) !== 'granted') {
-							directory = await window.showDirectoryPicker({ mode: 'readwrite' });
-						}
-						this.directoryHandle = directory;
-						await this.storeDirectoryHandle(directory);
-						await this.writeFile(directory, `${unityPackage.baseName}-spritesheet.png`, unityPackage.sheetBlob);
-						return;
-					}
-					this.downloadBlob(`${unityPackage.baseName}-spritesheet.png`, unityPackage.sheetBlob);
-				}
-
-				async writeFile(directory, name, blob) {
-					const handle = await directory.getFileHandle(name, { create: true });
-					const writable = await handle.createWritable();
-					await writable.write(blob);
-					await writable.close();
-				}
-
-				downloadBlob(name, blob) {
-					const url = URL.createObjectURL(blob);
-					const link = document.createElement('a');
-					link.href = url;
-					link.download = name;
-					link.click();
-					window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-				}
-
-				safeFileName(value) {
-					return value
-						.trim()
-						.toLowerCase()
-						.replace(/[^a-z0-9]+/g, '-')
-						.replace(/^-+|-+$/g, '') || 'character-animation';
-				}
 
 				getSelectedFrames() {
 					const frameMap = new Map(this.frames.map((frame) => [frame.id, frame]));
@@ -2075,11 +2459,7 @@ const pageTitle = 'Frame Sequencer';
 					this.selectedIds = [];
 					this.currentIndex = 0;
 					this.directoryHandle = null;
-					if (this.folderInput) this.folderInput.value = '';
-					this.folderName.textContent = 'No folder selected';
-					this.folderMeta.textContent = 'Choose a folder containing PNG, WebP, JPEG, or GIF frames.';
-					this.folderButton.textContent = 'Choose frames folder';
-					this.clearButton.disabled = true;
+					this.sourceLabel = '';
 					this.render();
 				}
 			}

@@ -1,1079 +1,702 @@
 ---
+import PipelineHeader from '../components/PipelineHeader.astro';
 import Layout from '../layouts/Layout.astro';
 import '../styles/global.css';
 ---
 
 <Layout>
-	<a
-		href="#main"
-		class="focus-ring fixed left-4 top-4 z-50 -translate-y-20 rounded-md bg-ink px-3 py-2 text-sm font-medium text-white transition-transform duration-150 focus-visible:translate-y-0"
-	>
-		Skip to Main
-	</a>
+	<PipelineHeader />
 
-	<header class="sticky top-0 z-40 border-b border-hairline bg-white/95 backdrop-blur-xl">
-		<nav class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-			<a href="#main" class="focus-ring flex min-w-0 items-center gap-3 rounded-md">
-				<span class="grid size-8 place-items-center rounded-md border border-[#74a900] bg-[#a8ee19] text-base font-black text-ink" translate="no">V</span>
-				<span class="truncate text-sm font-semibold" translate="no">Video to Animation</span>
-			</a>
-			<div class="hidden items-center gap-1 text-sm text-body sm:flex">
-				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="/frame-grid/">Extract Frames</a>
-				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="/sprite-extractor/">Sprite Sheet</a>
-				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="/frame-sequencer/">Sequencer</a>
-				<a class="focus-ring rounded-md px-3 py-2 hover:bg-canvas-soft-2 hover:text-ink" href="#quick-export">Quick GIF</a>
-			</div>
-			<a
-				class="home-cta focus-ring rounded-md border border-[#74a900] bg-[#a8ee19] px-3 py-1.5 text-sm font-semibold text-ink hover:bg-[#98dc10]"
-				href="#tools"
-			>
-				Open Tools
-			</a>
-		</nav>
-	</header>
-
-	<main id="main" class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
-		<video-workbench class="contents">
-		<section class="pb-10 lg:pb-12">
-			<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-			<div class="min-w-0 max-w-4xl">
-				<h1 class="max-w-4xl text-balance text-4xl font-semibold leading-[1.02] tracking-normal text-ink sm:text-5xl lg:text-6xl">
-					All animation tools in one local browser workspace.
-				</h1>
-				<p class="mt-4 max-w-2xl text-pretty text-lg leading-8 text-body">
-					Extract frames, isolate sprites, arrange animation timing, and export loops without sending your files to a server.
-				</p>
-			</div>
-			<div class="rounded-lg border border-hairline bg-white p-5 shadow-[0_16px_60px_rgba(0,0,0,0.06)]">
-				<p class="font-mono text-xs uppercase tracking-normal text-mute">Workflow</p>
-				<ol class="mt-4 grid gap-3 text-sm text-body">
-					<li class="flex gap-3"><span class="mini-step">1</span><span>Start with video frames or a sprite sheet.</span></li>
-					<li class="flex gap-3"><span class="mini-step">2</span><span>Clean backgrounds and crop frame assets.</span></li>
-					<li class="flex gap-3"><span class="mini-step">3</span><span>Sequence, position, and export for Unity.</span></li>
-				</ol>
-			</div>
-			</div>
-		</section>
-
-		<section id="tools" class="scroll-mt-24 border-t border-hairline py-8 sm:py-10">
-			<div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+	<main id="main" class="home-page">
+		<section class="samples-section" aria-label="Saved output samples">
+			<div class="samples-head">
 				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Tool Directory</p>
-					<h2 class="mt-2 text-3xl font-semibold tracking-normal text-ink">Choose the page you need</h2>
+					<p class="pipeline-eyebrow">Saved samples</p>
+					<h2>Outputs from your project</h2>
 				</div>
-				<p class="max-w-xl text-sm leading-6 text-body">Each page is a focused local tool. Use them as a pipeline or open only the stage you need.</p>
 			</div>
-			<div class="workflow-grid">
-				<article class="workflow-panel">
-					<div class="workflow-copy">
-						<span class="workflow-number" aria-hidden="true">1</span>
-						<div>
-							<h2>Frame extractor</h2>
-							<p>Sample a video into frames, remove its background, and save transparent PNGs.</p>
-						</div>
-					</div>
-					<a class="tool-link focus-ring" href="/frame-grid/">Open Frame Extractor <span aria-hidden="true">-&gt;</span></a>
-					<div class="extract-preview" aria-hidden="true">
-						<img src="/assets/run-cycle-preview.png" alt="" width="1536" height="1024" />
+			<p class="samples-status" data-samples-status aria-live="polite"></p>
+
+			<div class="samples-grid">
+				<article class="sample-panel stage1-panel">
+					<header class="sample-header">
+						<span class="sample-step">Stage 1</span>
+						<h3>ChatGPT chat links <button class="info-tip" type="button" aria-label="Add and save ChatGPT chat links with titles."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Add and save ChatGPT chat links with titles.</span></button></h3>
+					</header>
+					<div class="sample-body stage1-body">
+						<p class="sample-empty">Save ChatGPT conversations you want to keep — each entry gets a title and a link.</p>
+						<a class="stage1-open" href="/chat-links/">Open <span aria-hidden="true">&rarr;</span></a>
 					</div>
 				</article>
 
-				<article class="workflow-panel">
-					<div class="workflow-copy">
-						<span class="workflow-number" aria-hidden="true">2</span>
-						<div>
-							<h2>Sprite extractor</h2>
-							<p>Separate scattered poses with auto detection, rectangle crops, or a freehand lasso.</p>
-						</div>
-					</div>
-					<a class="tool-link focus-ring" href="/sprite-extractor/">Open Sprite Extractor <span aria-hidden="true">-&gt;</span></a>
-					<div class="sprite-preview" aria-hidden="true">
-						<img src="/assets/run-cycle-preview.png" alt="" width="1536" height="1024" />
-						<span class="crop-box crop-a">1</span><span class="crop-box crop-b">2</span><span class="crop-box crop-c">3</span>
-					</div>
+				<article class="sample-panel" data-sample-stage="frames">
+					<header class="sample-header">
+						<span class="sample-step">Stage 2</span>
+						<h3>Source + frames <button class="info-tip" type="button" aria-label="Pair each saved sheet with its extracted frames from frames/."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Pair each saved sheet with its extracted frames from <code>frames/</code>.</span></button></h3>
+					</header>
+					<div class="sample-body" data-sample-body></div>
 				</article>
 
-				<article class="workflow-panel">
-					<div class="workflow-copy">
-						<span class="workflow-number" aria-hidden="true">3</span>
-						<div>
-							<h2>Frame sequencer</h2>
-							<p>Load a frame folder, reorder frames, position sprites per frame, and save a Unity sprite sheet.</p>
-						</div>
-					</div>
-					<a class="tool-link focus-ring" href="/frame-sequencer/">Open Frame Sequencer <span aria-hidden="true">-&gt;</span></a>
-					<div class="sequence-preview" aria-hidden="true">
-						<div class="sequence-strip">
-							<span class="sequence-frame frame-1"></span>
-							<span class="sequence-frame frame-2 selected"></span>
-							<span class="sequence-frame frame-3 selected"></span>
-							<span class="sequence-frame frame-4 selected"></span>
-							<span class="sequence-frame frame-5"></span>
-							<span class="sequence-frame frame-6 selected"></span>
-						</div>
-						<div class="sequence-controls">
-							<span class="play-symbol">▶</span>
-							<span class="sequence-track"><span></span></span>
-							<span class="font-mono text-[11px] text-body">4 / 6</span>
-						</div>
-					</div>
-				</article>
-
-				<article class="workflow-panel">
-					<div class="workflow-copy">
-						<span class="workflow-number" aria-hidden="true">4</span>
-						<div>
-							<h2>Quick GIF export</h2>
-							<p>Use the all-in-one workbench on this page for quick transparent GIF and WebM output.</p>
-						</div>
-					</div>
-					<a class="tool-link focus-ring" href="#quick-export">Open Quick Export <span aria-hidden="true">-&gt;</span></a>
-					<div class="quick-preview" aria-hidden="true">
-						<div class="quick-preview-card">
-							<span class="play-symbol">&gt;</span>
-							<span class="sequence-track"><span></span></span>
-							<span class="font-mono text-[11px] text-body">GIF</span>
-						</div>
-					</div>
+				<article class="sample-panel" data-sample-stage="sequence">
+					<header class="sample-header">
+						<span class="sample-step">Stage 3</span>
+						<h3>Wrong vs corrected <button class="info-tip" type="button" aria-label="Raw order in sequence/wrong/, fixed version in sequence/corrected/."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Raw order in <code>sequence/wrong/</code>, fixed version in <code>sequence/corrected/</code>.</span></button></h3>
+					</header>
+					<div class="sample-body" data-sample-body></div>
 				</article>
 			</div>
 		</section>
-
-		<section id="quick-export" class="scroll-mt-24 border-t border-hairline py-12">
-			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
-				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Quick GIF Export</p>
-					<h2 class="mt-3 text-balance text-3xl font-semibold tracking-normal">Load Source Video</h2>
-					<p class="mt-4 text-pretty leading-7 text-body">
-						Need a fast one-off GIF? Use the original all-in-one workbench below without leaving this page.
-					</p>
-				</div>
-
-				<div class="grid gap-4 rounded-lg border border-hairline bg-white p-5 shadow-[0_16px_60px_rgba(0,0,0,0.06)]">
-					<label class="focus-within:ring-2 focus-within:ring-link focus-within:ring-offset-2 block rounded-md border border-dashed border-hairline-strong bg-canvas-soft p-5 text-center hover:border-ink">
-						<input
-							data-video-input
-							class="sr-only"
-							type="file"
-							name="source-video"
-							accept="video/mp4,video/*"
-							autocomplete="off"
-						/>
-						<span class="block text-sm font-medium">Select MP4 Video</span>
-						<span class="mt-1 block text-sm text-body">Local background removal. File stays in this browser.</span>
-					</label>
-
-					<label class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-hairline bg-canvas-soft p-4">
-						<span>
-							<span class="block text-sm font-medium text-ink">Enable background removal</span>
-							<span class="mt-1 block text-sm text-body">Applied while frames are sampled for export.</span>
-						</span>
-						<input data-bg-enabled class="focus-ring size-5 accent-black" type="checkbox" name="background-removal" checked autocomplete="off" />
-					</label>
-
-					<div class="grid gap-4 sm:grid-cols-[auto_1fr_1fr] sm:items-end">
-						<label class="block text-sm font-medium text-ink">
-							<span class="mb-1 block">Background Color</span>
-							<input data-bg-color class="focus-ring h-10 w-16 rounded-md border border-hairline bg-white p-1" type="color" name="background-color" value="#00ff00" autocomplete="off" />
-						</label>
-						<label class="block text-sm font-medium text-ink">
-							<span class="mb-1 block">Tolerance</span>
-							<input data-bg-tolerance class="focus-ring w-full accent-black" type="range" name="background-tolerance" min="0" max="220" value="72" autocomplete="off" />
-						</label>
-						<label class="block text-sm font-medium text-ink">
-							<span class="mb-1 block">Edge Softness</span>
-							<input data-bg-softness class="focus-ring w-full accent-black" type="range" name="background-softness" min="0" max="120" value="24" autocomplete="off" />
-						</label>
-					</div>
-
-					<p class="rounded-md border border-hairline bg-canvas-soft px-3 py-2 font-mono text-xs text-body">
-						Default targets green-screen output. Change the swatch for white, black, or other flat backgrounds.
-					</p>
-
-					<div class="grid gap-3 rounded-md border border-hairline bg-canvas-soft p-4">
-						<div class="flex flex-wrap items-center justify-between gap-3">
-							<div>
-								<p class="text-sm font-medium text-ink">Frame View</p>
-								<p data-frame-status class="mt-1 font-mono text-xs text-body" aria-live="polite">Select a video to view processed frames.</p>
-							</div>
-							<div class="flex flex-wrap items-center gap-2">
-								<label class="flex h-9 items-center gap-2 rounded-md border border-hairline bg-white px-3 text-sm font-medium text-ink">
-									<span class="whitespace-nowrap text-xs text-mute">FPS</span>
-									<input data-fps class="focus-ring w-14 border-0 bg-transparent p-0 text-sm tabular-nums outline-none" type="number" name="frame-rate" min="1" max="60" value="24" inputmode="numeric" autocomplete="off" />
-								</label>
-								<button data-build-frames class="focus-ring rounded-md bg-ink px-4 py-2 text-sm font-medium text-white hover:bg-black disabled:cursor-not-allowed disabled:bg-hairline-strong" type="button" disabled>
-									View All Frames
-								</button>
-								<button data-save-video class="focus-ring rounded-md border border-hairline bg-white px-4 py-2 text-sm font-medium text-ink hover:border-ink disabled:cursor-not-allowed disabled:text-mute" type="button" disabled>
-									Save Transparent Video
-								</button>
-								<a data-download-video class="focus-ring hidden rounded-md border border-hairline bg-white px-4 py-2 text-sm font-medium text-ink hover:border-ink" download="transparent-animation.webm" href="#">
-									Download WebM
-								</a>
-							</div>
-						</div>
-						<div
-							data-frame-gallery
-							class="frame-gallery"
-							style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));grid-auto-rows:auto;align-content:start;gap:1rem;height:min(32rem,62vh);min-height:24rem;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:0.25rem;contain:layout paint;"
-						></div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<section id="step-2" class="scroll-mt-24 border-t border-hairline py-12">
-			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
-				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 2</p>
-					<h2 class="mt-3 text-balance text-3xl font-semibold tracking-normal">Preview Video</h2>
-					<p class="mt-4 text-pretty leading-7 text-body">
-						Preview the selected MP4. Browser video controls stay hidden; playback and frame stepping use the custom controls below.
-					</p>
-				</div>
-
-				<div class="block rounded-lg border border-hairline bg-white p-4 shadow-[0_16px_60px_rgba(0,0,0,0.06)] sm:p-5">
-					<div data-empty-state class="grid aspect-video place-items-center rounded-md border border-hairline bg-canvas-soft-2">
-						<p class="px-6 text-center text-sm text-body">Video player appears after Step 1 selection.</p>
-					</div>
-
-					<div data-player-shell class="mt-4 hidden">
-						<div class="overflow-hidden rounded-md border border-hairline bg-black">
-							<video data-video class="aspect-video w-full bg-black object-contain" preload="metadata" playsinline></video>
-						</div>
-
-						<div class="mt-4 rounded-md border border-hairline bg-canvas-soft p-3">
-							<div class="h-2 overflow-hidden rounded-full bg-hairline">
-								<div data-progress class="h-full w-0 rounded-full bg-ink transition-[width] duration-100"></div>
-							</div>
-
-							<div class="mt-3 flex flex-wrap items-center gap-2">
-								<button data-prev-frame class="focus-ring h-9 rounded-md border border-hairline bg-white px-3 text-sm font-medium hover:border-ink" type="button" aria-label="Previous Frame">
-									Prev
-								</button>
-								<button data-play-toggle class="focus-ring h-9 rounded-md bg-ink px-4 text-sm font-medium text-white hover:bg-black" type="button" aria-label="Play Video">
-									Play
-								</button>
-								<button data-next-frame class="focus-ring h-9 rounded-md border border-hairline bg-white px-3 text-sm font-medium hover:border-ink" type="button" aria-label="Next Frame">
-									Next
-								</button>
-
-								<p class="rounded-md border border-hairline bg-white px-3 py-2 font-mono text-xs text-body tabular-nums" aria-live="polite">
-									<span data-current-time>00:00.000</span><span class="text-mute"> / </span><span data-duration>00:00.000</span>
-								</p>
-
-								<div class="rounded-md border border-hairline bg-white px-3 py-2">
-									<p class="font-mono text-xs text-body tabular-nums">
-										<span class="text-mute">Frame</span> <span data-current-frame>0</span><span class="text-mute"> / </span><span data-total-frames>0</span>
-									</p>
-								</div>
-
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<section id="step-3" class="scroll-mt-24 border-t border-hairline py-12">
-			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
-				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 3</p>
-					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Prepare Frames</h2>
-					<p class="mt-4 leading-7 text-body">Use frame stepping and FPS from Step 1 to inspect the animation before export.</p>
-				</div>
-				<div class="grid gap-3 rounded-lg border border-hairline bg-white p-5">
-					<div class="grid gap-3 sm:grid-cols-3">
-						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
-							<p class="font-mono text-xs text-mute">01</p>
-							<p class="mt-2 font-medium">Review Motion</p>
-							<p class="mt-1 text-sm leading-6 text-body">Step frame by frame until loop boundaries feel right.</p>
-						</div>
-						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
-							<p class="font-mono text-xs text-mute">02</p>
-							<p class="mt-2 font-medium">Set Clip Range</p>
-							<p class="mt-1 text-sm leading-6 text-body">Use the preview clock and frame count to find clean loop boundaries.</p>
-						</div>
-						<div class="rounded-md border border-hairline bg-canvas-soft p-4">
-							<p class="font-mono text-xs text-mute">03</p>
-							<p class="mt-2 font-medium">Choose FPS</p>
-							<p class="mt-1 text-sm leading-6 text-body">Use 12-24 FPS for compact Unity 2D loops.</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<section id="step-4" class="scroll-mt-24 border-t border-hairline py-12">
-			<div class="grid gap-8 lg:grid-cols-[320px_1fr]">
-				<div>
-					<p class="font-mono text-xs uppercase tracking-normal text-mute">Step 4</p>
-					<h2 class="mt-3 text-3xl font-semibold tracking-normal">Generate GIF</h2>
-					<p class="mt-4 leading-7 text-body">Pick output size and palette, then generate a downloadable animated GIF directly in the browser.</p>
-				</div>
-				<div class="rounded-lg border border-hairline bg-ink p-5 text-white">
-					<div class="grid gap-5">
-						<div>
-							<p class="font-mono text-xs text-white/60">OUTPUT</p>
-							<p class="mt-2 text-2xl font-semibold">Unity-ready transparent GIF</p>
-							<p class="mt-2 text-sm leading-6 text-white/70">Frames are sampled from your selected MP4 using the FPS and background removal settings above.</p>
-						</div>
-						<div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-							<label class="block text-sm font-medium text-white">
-								<span class="mb-1 block">Output Width</span>
-								<input data-output-width class="focus-ring w-full rounded-md border border-white/15 bg-white px-3 py-2 text-sm text-ink" type="number" name="output-width" min="64" max="1024" value="256" inputmode="numeric" autocomplete="off" />
-							</label>
-							<label class="block text-sm font-medium text-white">
-								<span class="mb-1 block">Colors</span>
-								<select data-colors class="focus-ring w-full rounded-md border border-white/15 bg-white px-3 py-2 text-sm text-ink" name="colors" autocomplete="off">
-									<option value="128">128 Colors</option>
-									<option value="256" selected>256 Colors</option>
-								</select>
-							</label>
-							<button data-generate-gif class="focus-ring rounded-md bg-white px-4 py-2 text-sm font-medium text-ink hover:bg-canvas-soft" type="button" disabled>
-								Generate GIF
-							</button>
-						</div>
-						<div class="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-							<p data-export-status class="font-mono text-xs text-white/70" aria-live="polite">Select a video to enable export.</p>
-							<a data-download-gif class="focus-ring hidden rounded-md border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10" download="unity-animation.gif" href="#">
-								Download GIF
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-		</video-workbench>
 	</main>
 
-	<style>
-		.workflow-grid {
-			display: grid;
-			grid-template-columns: repeat(4, minmax(0, 1fr));
-			gap: 1rem;
-			align-items: stretch;
-		}
+	<script is:inline>
+		(() => {
+			const IMAGE_RE = /\.(png|webp|jpe?g|gif|avif)$/i;
+			const panels = Array.from(document.querySelectorAll('[data-sample-stage]'));
+			const status = document.querySelector('[data-samples-status]');
+			const fsSupported = !!window.SpriteAnimProject && 'showDirectoryPicker' in window;
+			let directoryHandle = null;
+			let objectUrls = [];
 
-		.workflow-panel {
-			display: grid;
-			min-width: 0;
-			gap: 1rem;
-			border: 1px solid var(--color-hairline-strong);
-			border-radius: 0.5rem;
-			background: #fff;
-			padding: 1.5rem;
-		}
+			const el = (tag, className, text) => {
+				const node = document.createElement(tag);
+				if (className) node.className = className;
+				if (text) node.textContent = text;
+				return node;
+			};
 
-		.mini-step {
-			display: grid;
-			flex: 0 0 auto;
-			width: 1.5rem;
-			height: 1.5rem;
-			place-items: center;
-			border-radius: 999px;
-			background: #a8ee19;
+			const naturalCompare = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+			const panelBody = (stage) => {
+				const panel = panels.find((item) => item.dataset.sampleStage === stage);
+				const body = panel.querySelector('[data-sample-body]');
+				body.replaceChildren();
+				return body;
+			};
+			const empty = (body, message) => body.append(el('p', 'sample-empty', message));
+			const urlFor = (file) => {
+				const url = URL.createObjectURL(file);
+				objectUrls.push(url);
+				return url;
+			};
+			const thumbFor = (file, className) => {
+				const img = el('img', className);
+				img.src = urlFor(file);
+				img.alt = file.name;
+				img.loading = 'lazy';
+				return img;
+			};
+			const showcaseImg = (src, className, alt) => {
+				const img = el('img', className);
+				img.src = src;
+				img.alt = alt || '';
+				img.loading = 'lazy';
+				return img;
+			};
+
+			const SHOWCASE_FRAMES = Array.from({ length: 7 }, (_, index) => ({
+				name: `frame-${String(index + 1).padStart(3, '0')}.png`,
+				src: `/assets/showcase/frames/frame-${String(index + 1).padStart(3, '0')}.png`,
+			}));
+			const SEQUENCE_WRONG_FRAMES = Array.from({ length: 7 }, (_, index) =>
+				`/assets/showcase/sequence/wrong/frame-${String(index + 1).padStart(3, '0')}.png`);
+			const SEQUENCE_CORRECTED_FRAMES = Array.from({ length: 7 }, (_, index) =>
+				`/assets/showcase/sequence/corrected/frame-${String(index + 1).padStart(3, '0')}.png`);
+
+			function renderShowcase() {
+				const framesBody = panelBody('frames');
+				const pair = el('section', 'sample-pair');
+				const sourceSide = el('div', 'sample-pair-side');
+				sourceSide.append(
+					el('span', 'sample-pair-label', 'Sheet'),
+					showcaseImg('/assets/showcase/generated/zombie-cycle.png', 'sample-pair-image', 'zombie-cycle.png'),
+					el('span', 'sample-pair-name', 'zombie-cycle.png'),
+				);
+				const framesSide = el('div', 'sample-pair-side');
+				framesSide.append(el('span', 'sample-pair-label', `${SHOWCASE_FRAMES.length} frames`));
+				const grid = el('div', 'sample-frames-grid');
+				SHOWCASE_FRAMES.forEach((frame) => grid.append(showcaseImg(frame.src, 'sample-frame', frame.name)));
+				framesSide.append(grid);
+				pair.append(sourceSide, framesSide);
+				framesBody.append(pair);
+
+				const sequenceBody = panelBody('sequence');
+				const seqRow = el('article', 'sample-seq');
+				const wrongSide = el('div', 'sample-seq-side');
+				wrongSide.append(el('span', 'sample-pair-label', 'Wrong'));
+				const wrongStrip = el('div', 'sample-seq-strip wrong');
+				[3, 0, 4, 1, 5, 2, 6].forEach((index) => {
+					wrongStrip.append(showcaseImg(SEQUENCE_WRONG_FRAMES[index], 'sample-seq-frame', `frame ${index + 1}`));
+				});
+				wrongSide.append(wrongStrip);
+				const correctedSide = el('div', 'sample-seq-side');
+				correctedSide.append(el('span', 'sample-pair-label', 'Corrected'));
+				const correctedStrip = el('div', 'sample-seq-strip');
+				SEQUENCE_CORRECTED_FRAMES.forEach((src, index) => {
+					correctedStrip.append(showcaseImg(src, 'sample-seq-frame', `frame ${index + 1}`));
+				});
+				correctedSide.append(correctedStrip);
+				seqRow.append(wrongSide, el('span', 'sample-seq-arrow', '→'), correctedSide);
+				sequenceBody.append(seqRow);
+			}
+
+			const openDatabase = () => new Promise((resolve, reject) => {
+				const request = indexedDB.open('spriteanim-v2-handles', 1);
+				request.onupgradeneeded = () => {
+					if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+				};
+				request.onsuccess = () => resolve(request.result);
+				request.onerror = () => reject(request.error);
+			});
+
+			const storedKey = () => window.SpriteAnimProject.getStorageKey('samples-directory');
+
+			const getStoredHandle = async () => {
+				try {
+					const database = await openDatabase();
+					return await new Promise((resolve, reject) => {
+						const transaction = database.transaction('handles', 'readonly');
+						const request = transaction.objectStore('handles').get(storedKey());
+						request.onsuccess = () => resolve(request.result || null);
+						request.onerror = () => reject(request.error);
+					});
+				} catch {
+					return null;
+				}
+			};
+
+			const ensurePermission = async (handle, request) => {
+				const options = { mode: 'read' };
+				if (await handle.queryPermission(options) === 'granted') return true;
+				if (!request) return false;
+				return (await handle.requestPermission(options)) === 'granted';
+			};
+
+			async function walk(directory, prefix, out) {
+				for await (const entry of directory.values()) {
+					const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+					if (entry.kind === 'directory') {
+						out.push({ kind: 'directory', name: entry.name, path });
+						await walk(entry, path, out);
+					} else {
+						const file = await entry.getFile();
+						out.push({ kind: 'file', name: entry.name, path, file });
+					}
+				}
+			}
+
+			const images = (list) => list
+				.filter((entry) => entry.kind === 'file' && IMAGE_RE.test(entry.name))
+				.sort((a, b) => naturalCompare(a.name, b.name));
+			const inDir = (list, dir) => list.filter((entry) => entry.path.startsWith(`${dir}/`));
+
+			function groupFrames(list) {
+				const groups = new Map();
+				list.forEach((entry) => {
+					const rest = entry.path.slice('frames/'.length);
+					const slash = rest.indexOf('/');
+					const group = slash === -1 ? '' : rest.slice(0, slash);
+					if (!groups.has(group)) groups.set(group, []);
+					groups.get(group).push(entry);
+				});
+				return Array.from(groups, ([name, files]) => ({ name, files }));
+			}
+
+			function buildPairs(sources, frames) {
+				const groups = groupFrames(frames);
+				const pairs = [];
+				const usedStems = new Set();
+				sources.forEach((source) => {
+					const stem = source.name.replace(IMAGE_RE, '').toLowerCase();
+					const group = groups.find((item) => item.name && item.name.toLowerCase() === stem);
+					if (group) {
+						pairs.push({ source, frames: group.files });
+						usedStems.add(stem);
+					}
+				});
+				const top = groups.find((item) => !item.name);
+				if (top?.files.length) {
+					const fallback = [...sources].reverse().find((source) => !usedStems.has(source.name.replace(IMAGE_RE, '').toLowerCase()))
+						|| sources[sources.length - 1] || null;
+					pairs.push({ source: fallback, frames: top.files });
+				}
+				return pairs;
+			}
+
+			function renderFrames(sources, frames, body) {
+				const pairs = buildPairs(sources, frames);
+				if (!pairs.length) {
+					empty(body, 'No pairs yet. Save a sheet in generated/ and its extracted frames in frames/.');
+					return;
+				}
+				pairs.forEach((pair) => {
+					const block = el('section', 'sample-pair');
+					const sourceSide = el('div', 'sample-pair-side');
+					sourceSide.append(el('span', 'sample-pair-label', 'Sheet'));
+					if (pair.source) {
+						sourceSide.append(thumbFor(pair.source.file, 'sample-pair-image'), el('span', 'sample-pair-name', pair.source.name));
+					} else {
+						sourceSide.append(el('span', 'sample-empty', 'No saved source sheet.'));
+					}
+					const framesSide = el('div', 'sample-pair-side');
+					framesSide.append(el('span', 'sample-pair-label', `${pair.frames.length} frame${pair.frames.length === 1 ? '' : 's'}`));
+					const grid = el('div', 'sample-frames-grid');
+					pair.frames.forEach((entry) => grid.append(thumbFor(entry.file, 'sample-frame')));
+					framesSide.append(grid);
+					block.append(sourceSide, framesSide);
+					body.append(block);
+				});
+			}
+
+			function renderSequence(wrong, corrected, body) {
+				if (!wrong.length && !corrected.length) {
+					empty(body, 'No sequence samples yet. Save raw frames in sequence/wrong/ and the fixed version in sequence/corrected/.');
+					return;
+				}
+				const stems = new Set([...wrong, ...corrected].map((entry) => entry.name.replace(IMAGE_RE, '')));
+				Array.from(stems).sort(naturalCompare).forEach((stem) => {
+					const wrongEntry = wrong.find((entry) => entry.name.replace(IMAGE_RE, '') === stem);
+					const fixedEntry = corrected.find((entry) => entry.name.replace(IMAGE_RE, '') === stem);
+					const row = el('article', 'sample-seq');
+					const wrongSide = el('div', 'sample-seq-side');
+					wrongSide.append(el('span', 'sample-pair-label', 'Wrong'));
+					wrongSide.append(wrongEntry ? thumbFor(wrongEntry.file, 'sample-seq-image') : el('span', 'sample-empty', 'Missing'));
+					const arrow = el('span', 'sample-seq-arrow', '→');
+					const fixedSide = el('div', 'sample-seq-side');
+					fixedSide.append(el('span', 'sample-pair-label', 'Corrected'));
+					fixedSide.append(fixedEntry ? thumbFor(fixedEntry.file, 'sample-seq-image') : el('span', 'sample-empty', 'Not saved yet'));
+					row.append(wrongSide, arrow, fixedSide);
+					body.append(row);
+				});
+			}
+
+			const revokeAll = () => {
+				objectUrls.forEach((url) => URL.revokeObjectURL(url));
+				objectUrls = [];
+			};
+
+			async function renderSamples() {
+				revokeAll();
+				if (!directoryHandle) {
+					renderShowcase();
+					return;
+				}
+				const entries = [];
+				await walk(directoryHandle, '', entries);
+				const generated = images(inDir(entries, 'generated'));
+				const frames = images(inDir(entries, 'frames'));
+				const wrong = images(inDir(entries, 'sequence/wrong'));
+				const corrected = images(inDir(entries, 'sequence/corrected'));
+				if (!generated.length && !frames.length && !wrong.length && !corrected.length) {
+					renderShowcase();
+					status.textContent = `Showcase: zombie-jump — no saved samples in "${directoryHandle.name}" yet.`;
+					return;
+				}
+				renderFrames(generated, frames, panelBody('frames'));
+				renderSequence(wrong, corrected, panelBody('sequence'));
+				status.textContent = `Folder: ${directoryHandle.name} — samples refresh on page reload.`;
+			}
+
+			async function init() {
+				revokeAll();
+				directoryHandle = null;
+				if (!fsSupported) {
+					status.textContent = 'Showcase: zombie-jump · jump-cycle — set a samples folder from the gear menu to view saved files.';
+					renderShowcase();
+					return;
+				}
+				const stored = await getStoredHandle();
+				if (stored) {
+					directoryHandle = stored;
+					if (await ensurePermission(stored, false)) {
+						await renderSamples();
+						return;
+					}
+					status.textContent = 'Showcase: zombie-jump · jump-cycle — folder remembered; pick it once from the gear menu to refresh access.';
+					renderShowcase();
+					return;
+				}
+				status.textContent = 'Showcase: zombie-jump · jump-cycle — default folder D:\\SpriteAnimProjects\\anim-projects\\zombie-jump';
+				renderShowcase();
+			}
+
+			window.addEventListener('spriteanim-project-change', () => void init());
+			window.addEventListener('spriteanim-samples-folder-change', () => void init());
+
+			void init();
+		})();
+	</script>
+
+	<style is:global>
+		.home-page {
+			min-height: calc(100vh - 7.5rem);
+			background:
+				radial-gradient(circle at 88% 7%, rgba(255, 232, 244, 0.86), transparent 34rem),
+				linear-gradient(180deg, #fafbfc 0%, #ffffff 58%, #fff6fb 100%);
 			color: var(--color-ink);
-			font-family: var(--font-mono);
-			font-size: 0.75rem;
-			font-weight: 800;
+			padding: 2rem clamp(1rem, 3vw, 2.65rem) 2.25rem;
 		}
 
-		.workflow-copy {
+		.pipeline-eyebrow {
+			margin: 0 0 0.4rem;
+			color: var(--color-mute);
+			font-family: var(--font-mono);
+			font-size: 0.72rem;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+
+		.samples-section {
+			width: min(100%, 96.25rem);
+			margin: 1.5rem auto 0;
+		}
+
+		.samples-head {
+			display: flex;
+			align-items: end;
+			justify-content: space-between;
+			gap: 1rem;
+			flex-wrap: wrap;
+			margin-bottom: 0.45rem;
+		}
+
+		.samples-head h2 {
+			margin: 0;
+			font-size: clamp(1.4rem, 2vw, 1.9rem);
+			line-height: 1.15;
+		}
+
+		.samples-status {
+			min-height: 1.4em;
+			margin: 0 0 1rem;
+			color: var(--color-mute);
+			font-family: var(--font-mono);
+			font-size: 0.72rem;
+		}
+
+		.samples-grid {
 			display: grid;
-			grid-template-columns: 2.5rem minmax(0, 1fr);
-			gap: 0.875rem;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 1rem;
 			align-items: start;
 		}
 
-		.workflow-number {
+		.sample-panel {
+			min-width: 0;
+			overflow: hidden;
+			border: 1px solid var(--color-hairline);
+			border-radius: 0.75rem;
+			background: #fff;
+			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03), 0 2px 2px rgba(0, 0, 0, 0.04);
+		}
+
+		.sample-header {
+			display: flex;
+			align-items: center;
+			gap: 0.65rem;
+			padding: 0.9rem 1rem;
+			border-bottom: 1px solid var(--color-hairline);
+		}
+
+		.sample-step {
+			flex: 0 0 auto;
 			display: grid;
-			width: 2.5rem;
-			height: 2.5rem;
+			min-width: 1.6rem;
+			height: 1.6rem;
 			place-items: center;
-			border: 1px solid #74a900;
-			border-radius: 0.375rem;
-			background: #a8ee19;
-			color: var(--color-ink);
-			font-size: 1.125rem;
+			border-radius: 999px;
+			background: #171917;
+			color: #fff;
+			font-family: var(--font-mono);
+			font-size: 0.7rem;
+			font-weight: 700;
+		}
+
+		.sample-header h3 {
+			margin: 0;
+			font-size: 0.88rem;
+			line-height: 1.3;
+		}
+
+		.sample-body {
+			padding: 1rem;
+		}
+
+		.sample-empty {
+			margin: 0;
+			color: var(--color-mute);
+			font-size: 0.8rem;
+			line-height: 1.5;
+		}
+
+		.stage1-body {
+			display: grid;
+			gap: 1rem;
+			align-content: start;
+		}
+
+		.stage1-open {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.45rem;
+			justify-self: start;
+			border: 1px solid #d3d8d3;
+			border-radius: 999px;
+			background: #171917;
+			color: #fff;
+			padding: 0.55rem 0.95rem;
+			font-size: 0.8rem;
+			font-weight: 720;
+			text-decoration: none;
+			transition: background 140ms ease, border-color 140ms ease;
+		}
+
+		.stage1-open:hover,
+		.stage1-open:focus-visible {
+			border-color: #74a900;
+			background: #2c312c;
+			outline: none;
+		}
+
+		.sample-row {
+			display: grid;
+			grid-template-columns: auto minmax(0, 1fr);
+			gap: 0.75rem;
+			align-items: center;
+		}
+
+		.sample-row-copy {
+			display: grid;
+			gap: 0.2rem;
+			min-width: 0;
+		}
+
+		.sample-row-copy strong {
+			overflow: hidden;
+			font-size: 0.82rem;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.sample-row-copy span {
+			overflow: hidden;
+			color: var(--color-mute);
+			font-family: var(--font-mono);
+			font-size: 0.66rem;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.sample-thumb {
+			width: 5.5rem;
+			aspect-ratio: 16 / 10;
+			object-fit: contain;
+			border: 1px solid #e2e2e2;
+			border-radius: 0.4rem;
+			background-color: #fff;
+			background-image:
+				linear-gradient(45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(-45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(45deg, transparent 75%, #e9e9e9 75%),
+				linear-gradient(-45deg, transparent 75%, #e9e9e9 75%);
+			background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+			background-size: 12px 12px;
+		}
+
+		.sample-pair {
+			display: grid;
+			grid-template-columns: auto minmax(0, 1fr);
+			gap: 0.85rem;
+			align-items: start;
+		}
+
+		.sample-pair-side {
+			display: grid;
+			gap: 0.45rem;
+			min-width: 0;
+		}
+
+		.sample-pair-label {
+			color: var(--color-mute);
+			font-family: var(--font-mono);
+			font-size: 0.66rem;
+			letter-spacing: 0.05em;
+			text-transform: uppercase;
+		}
+
+		.sample-pair-image {
+			width: 100%;
+			height: 6.5rem;
+			object-fit: contain;
+			border: 1px solid #e2e2e2;
+			border-radius: 0.4rem;
+			background-color: #fff;
+			background-image:
+				linear-gradient(45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(-45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(45deg, transparent 75%, #e9e9e9 75%),
+				linear-gradient(-45deg, transparent 75%, #e9e9e9 75%);
+			background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+			background-size: 12px 12px;
+		}
+
+		.sample-pair-name {
+			overflow: hidden;
+			font-family: var(--font-mono);
+			font-size: 0.68rem;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.sample-frames-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr));
+			gap: 0.35rem;
+		}
+
+		.sample-frame {
+			width: 100%;
+			aspect-ratio: 1;
+			object-fit: contain;
+			border: 1px solid #e2e2e2;
+			border-radius: 0.3rem;
+			background-color: #fff;
+			background-image:
+				linear-gradient(45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(-45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(45deg, transparent 75%, #e9e9e9 75%),
+				linear-gradient(-45deg, transparent 75%, #e9e9e9 75%);
+			background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+			background-size: 12px 12px;
+		}
+
+		.sample-seq {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+			align-items: center;
+			gap: 0.6rem;
+		}
+
+		.sample-seq-side {
+			display: grid;
+			gap: 0.35rem;
+			min-width: 0;
+		}
+
+		.sample-seq-image {
+			width: 100%;
+			height: 4.5rem;
+			object-fit: contain;
+			border: 1px solid #e2e2e2;
+			border-radius: 0.35rem;
+			background-color: #fff;
+			background-image:
+				linear-gradient(45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(-45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(45deg, transparent 75%, #e9e9e9 75%),
+				linear-gradient(-45deg, transparent 75%, #e9e9e9 75%);
+			background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+			background-size: 12px 12px;
+		}
+
+		.sample-seq-arrow {
+			color: var(--color-mute);
+			font-size: 1.05rem;
 			font-weight: 800;
 		}
 
-		.workflow-copy h2 {
-			margin: 0;
-			font-size: clamp(1.25rem, 2vw, 1.65rem);
-			line-height: 1.2;
-			font-weight: 650;
-		}
-
-		.workflow-copy p {
-			margin: 0.5rem 0 0;
-			max-width: 34rem;
-			color: var(--color-body);
-			font-size: 0.9375rem;
-			line-height: 1.55;
-		}
-
-		.tool-link {
+		.sample-seq-strip {
 			display: flex;
-			min-height: 3rem;
-			align-items: center;
-			justify-content: space-between;
-			gap: 1rem;
-			border: 1px solid #74a900;
-			border-radius: 0.375rem;
-			background: #a8ee19;
-			padding: 0.75rem 1rem;
-			color: var(--color-ink);
-			font-size: 0.9375rem;
-			font-weight: 700;
-			text-decoration: none;
-			transition: background 140ms ease, transform 140ms ease;
+			gap: 0.25rem;
+			overflow-x: auto;
+			padding-bottom: 0.15rem;
 		}
 
-		.tool-link:hover {
-			background: #98dc10;
-			transform: translateY(-1px);
+		.sample-seq-frame {
+			flex: none;
+			width: 2.4rem;
+			height: 2.4rem;
+			object-fit: contain;
+			border: 1px solid #e2e2e2;
+			border-radius: 0.3rem;
+			background-color: #fff;
+			background-image:
+				linear-gradient(45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(-45deg, #e9e9e9 25%, transparent 25%),
+				linear-gradient(45deg, transparent 75%, #e9e9e9 75%),
+				linear-gradient(-45deg, transparent 75%, #e9e9e9 75%);
+			background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+			background-size: 12px 12px;
 		}
 
-		.workflow-arrow {
-			text-align: center;
-			font-family: var(--font-mono);
-			font-size: 1.5rem;
-			font-weight: 700;
+		.sample-seq-strip.wrong .sample-seq-frame:nth-child(even) {
+			transform: rotate(-7deg) translateY(0.18rem);
 		}
 
-		.extract-preview,
-		.sprite-preview,
-		.quick-preview,
-		.sequence-preview {
-			overflow: hidden;
-			border: 1px solid var(--color-hairline);
-			border-radius: 0.375rem;
-			background: var(--color-canvas-soft);
+		.sample-seq-strip.wrong .sample-seq-frame:nth-child(3n) {
+			transform: rotate(6deg) translateX(-0.25rem);
 		}
 
-		.extract-preview {
-			aspect-ratio: 3 / 1.36;
-		}
-
-		.sprite-preview {
+		.info-tip {
 			position: relative;
-			aspect-ratio: 3 / 1.36;
-		}
-
-		.extract-preview img,
-		.sprite-preview img {
-			display: block;
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-		}
-
-		.crop-box {
-			position: absolute;
-			display: grid;
-			place-items: start;
-			border: 2px solid #238f43;
-			color: #fff;
-			background: rgba(35, 143, 67, 0.08);
-			font-family: var(--font-mono);
-			font-size: 0.6rem;
-			font-weight: 700;
-		}
-
-		.crop-box::before { padding: 2px 4px; background: #238f43; content: attr(class); display: none; }
-		.crop-a { left: 4%; top: 12%; width: 29%; height: 76%; }
-		.crop-b { left: 35%; top: 9%; width: 29%; height: 78%; }
-		.crop-c { left: 67%; top: 12%; width: 29%; height: 76%; }
-
-		.sequence-preview {
-			display: grid;
-			min-height: 0;
-			aspect-ratio: 3 / 1.36;
-			grid-template-rows: 1fr auto;
-			padding: 0.875rem;
-		}
-
-		.sequence-strip {
-			display: grid;
-			grid-template-columns: repeat(6, minmax(0, 1fr));
-			gap: 0.375rem;
-			min-height: 0;
-		}
-
-		.sequence-frame {
-			min-width: 0;
-			border: 1px solid #d4d4d4;
-			border-radius: 0.25rem;
-			background-image: url('/assets/run-cycle-preview.png');
-			background-repeat: no-repeat;
-			background-size: 300% 200%;
-		}
-
-		.sequence-frame.selected {
-			border: 2px solid #74a900;
-		}
-
-		.frame-1 { background-position: 0 0; }
-		.frame-2 { background-position: 50% 0; }
-		.frame-3 { background-position: 100% 0; }
-		.frame-4 { background-position: 0 100%; }
-		.frame-5 { background-position: 50% 100%; }
-		.frame-6 { background-position: 100% 100%; }
-
-		.sequence-controls {
-			display: grid;
-			grid-template-columns: auto 1fr auto;
-			align-items: center;
-			gap: 0.75rem;
-			border-top: 1px solid var(--color-hairline);
-			margin-top: 0.75rem;
-			padding-top: 0.75rem;
-		}
-
-		.play-symbol {
-			display: grid;
-			width: 1.75rem;
-			height: 1.75rem;
+			display: inline-grid;
+			width: 17px;
+			height: 17px;
 			place-items: center;
-			border-radius: 50%;
-			background: var(--color-ink);
-			color: #fff;
-			font-size: 0.625rem;
-		}
-
-		.sequence-track {
-			height: 0.25rem;
-			overflow: hidden;
+			margin-left: 7px;
+			padding: 0;
+			border: 1px solid #c9cec9;
 			border-radius: 999px;
-			background: #d4d4d4;
-		}
-
-		.sequence-track span {
-			display: block;
-			width: 62%;
-			height: 100%;
-			background: #74a900;
-		}
-
-		.quick-preview {
-			display: grid;
-			aspect-ratio: 3 / 1.36;
-			place-items: center;
-			padding: 1rem;
-		}
-
-		.quick-preview-card {
-			display: grid;
-			width: 100%;
-			grid-template-columns: auto 1fr auto;
-			align-items: center;
-			gap: 0.75rem;
-			border: 1px solid var(--color-hairline);
-			border-radius: 0.375rem;
 			background: #fff;
-			padding: 1rem;
+			color: #7a817a;
+			font-size: 0.6rem;
+			font-weight: 800;
+			line-height: 1;
+			vertical-align: middle;
+			cursor: help;
 		}
 
-		@media (max-width: 1180px) {
-			.workflow-grid {
+		.info-tip-text {
+			position: absolute;
+			z-index: 60;
+			bottom: calc(100% + 7px);
+			left: 50%;
+			width: max-content;
+			max-width: 250px;
+			padding: 8px 10px;
+			border: 1px solid #d9ddd9;
+			border-radius: 6px;
+			background: #fff;
+			color: #4d534d;
+			font-size: 0.72rem;
+			font-weight: 500;
+			line-height: 1.5;
+			text-align: left;
+			box-shadow: 0 10px 30px rgba(20, 24, 20, 0.14);
+			opacity: 0;
+			visibility: hidden;
+			transform: translate(-50%, 4px);
+			transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+			pointer-events: none;
+		}
+
+		.info-tip:hover .info-tip-text,
+		.info-tip:focus-visible .info-tip-text,
+		.info-tip:focus .info-tip-text {
+			opacity: 1;
+			visibility: visible;
+			transform: translate(-50%, 0);
+			transition-delay: 0s;
+		}
+
+		@media (max-width: 1280px) {
+			.samples-grid {
 				grid-template-columns: repeat(2, minmax(0, 1fr));
 			}
 		}
 
-		@media (max-width: 720px) {
-			.workflow-grid {
-				width: 100%;
-				max-width: 100%;
+		@media (max-width: 760px) {
+			.samples-grid {
 				grid-template-columns: 1fr;
-				gap: 1rem;
-			}
-
-			.workflow-panel {
-				width: 100%;
-				max-width: 100%;
-			}
-
-			.workflow-arrow {
-				display: none;
-			}
-		}
-
-		@media (max-width: 520px) {
-			.home-cta {
-				display: none;
-			}
-
-			.workflow-panel {
-				padding: 1rem;
-			}
-
-			.workflow-copy {
-				grid-template-columns: 2.25rem minmax(0, 1fr);
-			}
-
-			.workflow-number {
-				width: 2.25rem;
-				height: 2.25rem;
 			}
 		}
 	</style>
-
-	<script>
-		import { GIFEncoder, applyPalette, quantize } from 'gifenc';
-
-		class VideoWorkbench extends HTMLElement {
-			private objectUrl: string | null = null;
-			private gifUrl: string | null = null;
-			private videoUrl: string | null = null;
-			private frameUrls: string[] = [];
-
-			connectedCallback() {
-				const input = this.querySelector('[data-video-input]') as HTMLInputElement | null;
-				const video = this.querySelector('[data-video]') as HTMLVideoElement | null;
-				const emptyState = this.querySelector('[data-empty-state]') as HTMLElement | null;
-				const playerShell = this.querySelector('[data-player-shell]') as HTMLElement | null;
-				const playToggle = this.querySelector('[data-play-toggle]') as HTMLButtonElement | null;
-				const prevFrame = this.querySelector('[data-prev-frame]') as HTMLButtonElement | null;
-				const nextFrame = this.querySelector('[data-next-frame]') as HTMLButtonElement | null;
-				const fpsInput = this.querySelector('[data-fps]') as HTMLInputElement | null;
-				const startInput = this.querySelector('[data-start-time]') as HTMLInputElement | null;
-				const endInput = this.querySelector('[data-end-time]') as HTMLInputElement | null;
-				const progress = this.querySelector('[data-progress]') as HTMLElement | null;
-				const currentTime = this.querySelector('[data-current-time]') as HTMLElement | null;
-				const duration = this.querySelector('[data-duration]') as HTMLElement | null;
-				const currentFrame = this.querySelector('[data-current-frame]') as HTMLElement | null;
-				const totalFrames = this.querySelector('[data-total-frames]') as HTMLElement | null;
-				const outputWidthInput = this.querySelector('[data-output-width]') as HTMLInputElement | null;
-				const colorsInput = this.querySelector('[data-colors]') as HTMLSelectElement | null;
-				const bgEnabledInput = this.querySelector('[data-bg-enabled]') as HTMLInputElement | null;
-				const bgColorInput = this.querySelector('[data-bg-color]') as HTMLInputElement | null;
-				const bgToleranceInput = this.querySelector('[data-bg-tolerance]') as HTMLInputElement | null;
-				const bgSoftnessInput = this.querySelector('[data-bg-softness]') as HTMLInputElement | null;
-				const buildFrames = this.querySelector('[data-build-frames]') as HTMLButtonElement | null;
-				const saveVideo = this.querySelector('[data-save-video]') as HTMLButtonElement | null;
-				const frameStatus = this.querySelector('[data-frame-status]') as HTMLElement | null;
-				const frameGallery = this.querySelector('[data-frame-gallery]') as HTMLElement | null;
-				const generateGif = this.querySelector('[data-generate-gif]') as HTMLButtonElement | null;
-				const exportStatus = this.querySelector('[data-export-status]') as HTMLElement | null;
-				const downloadGif = this.querySelector('[data-download-gif]') as HTMLAnchorElement | null;
-				const downloadVideo = this.querySelector('[data-download-video]') as HTMLAnchorElement | null;
-
-				if (!input || !video || !emptyState || !playerShell || !playToggle || !prevFrame || !nextFrame || !fpsInput || !generateGif) {
-					return;
-				}
-
-				if (frameGallery) {
-					frameGallery.style.display = 'grid';
-					frameGallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(180px, 1fr))';
-					frameGallery.style.gridAutoRows = 'auto';
-					frameGallery.style.alignContent = 'start';
-					frameGallery.style.gap = '1rem';
-					frameGallery.style.height = 'min(32rem, 62vh)';
-					frameGallery.style.minHeight = '24rem';
-					frameGallery.style.overflowY = 'auto';
-					frameGallery.style.overflowX = 'hidden';
-					frameGallery.style.overscrollBehavior = 'contain';
-					frameGallery.style.scrollbarGutter = 'stable';
-					frameGallery.style.paddingRight = '0.25rem';
-					frameGallery.style.contain = 'layout paint';
-				}
-
-				const formatTime = (seconds: number) => {
-					if (!Number.isFinite(seconds)) return '00:00.000';
-					const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
-					const rest = (seconds % 60).toFixed(3).padStart(6, '0');
-					return `${minutes}:${rest}`;
-				};
-
-				const getFrameStep = () => 1 / Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
-				const getFps = () => Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
-				const hexToRgb = (hex: string) => {
-					const normalized = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#00ff00';
-					const value = Number.parseInt(normalized.slice(1), 16);
-					return {
-						r: (value >> 16) & 255,
-						g: (value >> 8) & 255,
-						b: value & 255,
-					};
-				};
-
-				const removeBackground = (data: Uint8ClampedArray) => {
-					if (!bgEnabledInput?.checked) return false;
-					const key = hexToRgb(bgColorInput?.value || '#00ff00');
-					const tolerance = Math.min(220, Math.max(0, Number(bgToleranceInput?.value) || 72));
-					const softness = Math.min(120, Math.max(0, Number(bgSoftnessInput?.value) || 24));
-					let changed = false;
-
-					for (let index = 0; index < data.length; index += 4) {
-						const dr = data[index] - key.r;
-						const dg = data[index + 1] - key.g;
-						const db = data[index + 2] - key.b;
-						const distance = Math.sqrt(dr * dr + dg * dg + db * db);
-						if (distance <= tolerance) {
-							data[index + 3] = 0;
-							changed = true;
-						} else if (softness > 0 && distance <= tolerance + softness) {
-							data[index + 3] = Math.round(((distance - tolerance) / softness) * 255);
-							changed = true;
-						} else {
-							data[index + 3] = 255;
-						}
-					}
-
-					return changed;
-				};
-
-				const findTransparentIndex = (palette: number[][]) => palette.findIndex((color) => (color[3] ?? 255) <= 127);
-
-				const update = () => {
-					const safeDuration = Number.isFinite(video.duration) ? video.duration : 0;
-					const percent = safeDuration > 0 ? (video.currentTime / safeDuration) * 100 : 0;
-					const fps = getFps();
-					const frameTotal = safeDuration > 0 ? Math.max(1, Math.floor(safeDuration * fps) + 1) : 0;
-					const frameCurrent = frameTotal > 0 ? Math.min(frameTotal, Math.floor(video.currentTime * fps) + 1) : 0;
-					if (progress) progress.style.width = `${Math.min(100, Math.max(0, percent))}%`;
-					if (currentTime) currentTime.textContent = formatTime(video.currentTime);
-					if (duration) duration.textContent = formatTime(safeDuration);
-					if (currentFrame) currentFrame.textContent = frameCurrent.toString();
-					if (totalFrames) totalFrames.textContent = frameTotal.toString();
-					playToggle.textContent = video.paused ? 'Play' : 'Pause';
-					playToggle.setAttribute('aria-label', video.paused ? 'Play Video' : 'Pause Video');
-				};
-
-				const setStatus = (message: string) => {
-					if (exportStatus) exportStatus.textContent = message;
-				};
-
-				const setFrameStatus = (message: string) => {
-					if (frameStatus) frameStatus.textContent = message;
-				};
-
-				const clearFrameGallery = () => {
-					for (const url of this.frameUrls) URL.revokeObjectURL(url);
-					this.frameUrls = [];
-					if (frameGallery) frameGallery.replaceChildren();
-				};
-
-				const seekByFrame = (direction: -1 | 1) => {
-					video.pause();
-					const nextTime = video.currentTime + direction * getFrameStep();
-					const maxTime = Number.isFinite(video.duration) ? video.duration : Number.POSITIVE_INFINITY;
-					video.currentTime = Math.min(maxTime, Math.max(0, nextTime));
-					update();
-				};
-
-				input.addEventListener('change', () => {
-					const file = input.files?.[0];
-					if (!file) return;
-					if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
-					this.objectUrl = URL.createObjectURL(file);
-					video.src = this.objectUrl;
-					video.controls = false;
-					video.load();
-					emptyState.classList.add('hidden');
-					playerShell.classList.remove('hidden');
-					generateGif.disabled = true;
-					if (buildFrames) buildFrames.disabled = true;
-					if (saveVideo) saveVideo.disabled = true;
-					clearFrameGallery();
-					if (downloadGif) downloadGif.classList.add('hidden');
-					if (downloadVideo) downloadVideo.classList.add('hidden');
-					setStatus('Loading video metadata...');
-					setFrameStatus('Loading video metadata...');
-				});
-
-				playToggle.addEventListener('click', () => {
-					if (!video.src) return;
-					if (video.paused) {
-						void video.play();
-					} else {
-						video.pause();
-					}
-					update();
-				});
-
-				prevFrame.addEventListener('click', () => seekByFrame(-1));
-				nextFrame.addEventListener('click', () => seekByFrame(1));
-				fpsInput.addEventListener('input', update);
-
-				video.addEventListener('loadedmetadata', () => {
-					if (endInput) endInput.value = Number.isFinite(video.duration) ? video.duration.toFixed(3) : '0';
-					if (startInput) startInput.value = '0';
-					generateGif.disabled = false;
-					if (buildFrames) buildFrames.disabled = false;
-					if (saveVideo) saveVideo.disabled = false;
-					setStatus('Ready to generate GIF.');
-					setFrameStatus('Ready to build transparent frame view.');
-					update();
-				});
-				video.addEventListener('timeupdate', update);
-				video.addEventListener('play', update);
-				video.addEventListener('pause', update);
-				video.addEventListener('ended', update);
-
-				const seekTo = (time: number) =>
-					new Promise<void>((resolve) => {
-						const done = () => resolve();
-						video.addEventListener('seeked', done, { once: true });
-						video.currentTime = time;
-					});
-
-				const appendFrameThumb = async (data: Uint8ClampedArray, width: number, height: number, frame: number, time: number) => {
-					if (!frameGallery) return;
-					const canvas = document.createElement('canvas');
-					canvas.width = width;
-					canvas.height = height;
-					const context = canvas.getContext('2d');
-					if (!context) throw new Error('Canvas context unavailable.');
-					context.putImageData(new ImageData(data, width, height), 0, 0);
-					const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-					if (!blob) throw new Error('Frame image export failed.');
-					const url = URL.createObjectURL(blob);
-					this.frameUrls.push(url);
-
-					const item = document.createElement('figure');
-					item.className = 'frame-thumb';
-					item.style.cssText = 'min-width:0;margin:0;overflow:hidden;border:1px solid var(--color-hairline);border-radius:0.375rem;background:var(--color-canvas);';
-
-					const imageShell = document.createElement('div');
-					imageShell.className = 'frame-thumb-preview';
-					imageShell.style.cssText = [
-						'display:grid',
-						'place-items:center',
-						'height:128px',
-						'min-height:128px',
-						'padding:0.5rem',
-						'background-color:#fff',
-						'background-image:linear-gradient(45deg,#e5e5e5 25%,transparent 25%),linear-gradient(-45deg,#e5e5e5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e5e5 75%),linear-gradient(-45deg,transparent 75%,#e5e5e5 75%)',
-						'background-position:0 0,0 8px,8px -8px,-8px 0',
-						'background-size:16px 16px',
-					].join(';');
-
-					const image = document.createElement('img');
-					image.className = 'frame-thumb-image';
-					image.style.cssText = 'display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;';
-					image.src = url;
-					image.alt = `Processed frame ${frame}`;
-					image.loading = 'eager';
-					imageShell.append(image);
-
-					const caption = document.createElement('figcaption');
-					caption.className = 'frame-thumb-caption';
-					caption.style.cssText = 'border-top:1px solid var(--color-hairline);padding:0.25rem 0.5rem;color:var(--color-body);font-family:var(--font-mono);font-size:0.6875rem;line-height:1.25rem;white-space:nowrap;';
-					caption.textContent = `#${frame} ${formatTime(time)}`;
-
-					item.append(imageShell, caption);
-					frameGallery.append(item);
-				};
-
-				buildFrames?.addEventListener('click', async () => {
-					if (!video.src || !Number.isFinite(video.duration)) return;
-					buildFrames.disabled = true;
-					generateGif.disabled = true;
-					if (saveVideo) saveVideo.disabled = true;
-					clearFrameGallery();
-
-					try {
-						video.pause();
-						const fps = getFps();
-						const frameCount = Math.floor(video.duration * fps) + 1;
-						const width = Math.min(320, Math.max(96, Number(outputWidthInput?.value) || 256));
-						const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth || 1)));
-						const canvas = document.createElement('canvas');
-						canvas.width = width;
-						canvas.height = height;
-						const context = canvas.getContext('2d');
-						if (!context) throw new Error('Canvas context unavailable.');
-
-						for (let frame = 0; frame < frameCount; frame += 1) {
-							const time = Math.min(video.duration, frame / fps);
-							setFrameStatus(`Removing background from frame ${frame + 1} of ${frameCount}...`);
-							await seekTo(time);
-							context.clearRect(0, 0, width, height);
-							context.drawImage(video, 0, 0, width, height);
-							const imageData = context.getImageData(0, 0, width, height);
-							removeBackground(imageData.data);
-							await appendFrameThumb(imageData.data, width, height, frame + 1, time);
-							if (frame % 8 === 0) await new Promise((resolve) => window.setTimeout(resolve, 0));
-						}
-
-						setFrameStatus(`Showing ${frameCount} processed frames with transparent background.`);
-					} catch (error) {
-						setFrameStatus(error instanceof Error ? error.message : 'Frame processing failed.');
-					} finally {
-						buildFrames.disabled = false;
-						generateGif.disabled = false;
-						if (saveVideo) saveVideo.disabled = false;
-						update();
-					}
-				});
-
-				saveVideo?.addEventListener('click', async () => {
-					if (!video.src || !Number.isFinite(video.duration)) return;
-					if (!('MediaRecorder' in window) || !HTMLCanvasElement.prototype.captureStream) {
-						setFrameStatus('Transparent video export is not supported in this browser.');
-						return;
-					}
-
-					const mimeType = [
-						'video/webm;codecs=vp9',
-						'video/webm;codecs=vp8',
-						'video/webm',
-					].find((type) => MediaRecorder.isTypeSupported(type));
-
-					if (!mimeType) {
-						setFrameStatus('WebM recording is not supported in this browser.');
-						return;
-					}
-
-					saveVideo.disabled = true;
-					generateGif.disabled = true;
-					if (buildFrames) buildFrames.disabled = true;
-					if (downloadVideo) downloadVideo.classList.add('hidden');
-
-					try {
-						video.pause();
-						const fps = getFps();
-						const frameCount = Math.floor(video.duration * fps) + 1;
-						const width = Math.min(1024, Math.max(64, Number(outputWidthInput?.value) || 256));
-						const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth || 1)));
-						const canvas = document.createElement('canvas');
-						canvas.width = width;
-						canvas.height = height;
-						const context = canvas.getContext('2d', { alpha: true });
-						if (!context) throw new Error('Canvas context unavailable.');
-
-						const stream = canvas.captureStream(fps);
-						const chunks: Blob[] = [];
-						const recorder = new MediaRecorder(stream, { mimeType });
-						const stopped = new Promise<void>((resolve) => {
-							recorder.addEventListener('stop', () => resolve(), { once: true });
-						});
-						recorder.addEventListener('dataavailable', (event) => {
-							if (event.data.size > 0) chunks.push(event.data);
-						});
-
-						recorder.start();
-						for (let frame = 0; frame < frameCount; frame += 1) {
-							const time = Math.min(video.duration, frame / fps);
-							setFrameStatus(`Saving transparent video frame ${frame + 1} of ${frameCount}...`);
-							await seekTo(time);
-							context.clearRect(0, 0, width, height);
-							context.drawImage(video, 0, 0, width, height);
-							const imageData = context.getImageData(0, 0, width, height);
-							removeBackground(imageData.data);
-							context.clearRect(0, 0, width, height);
-							context.putImageData(imageData, 0, 0);
-							await new Promise((resolve) => window.setTimeout(resolve, Math.max(16, Math.round(1000 / fps))));
-						}
-
-						recorder.stop();
-						await stopped;
-						for (const track of stream.getTracks()) track.stop();
-						if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
-						this.videoUrl = URL.createObjectURL(new Blob(chunks, { type: mimeType }));
-						if (downloadVideo) {
-							downloadVideo.href = this.videoUrl;
-							downloadVideo.classList.remove('hidden');
-						}
-						setFrameStatus(`Saved ${frameCount} transparent frames as WebM.`);
-					} catch (error) {
-						setFrameStatus(error instanceof Error ? error.message : 'Transparent video export failed.');
-					} finally {
-						saveVideo.disabled = false;
-						generateGif.disabled = false;
-						if (buildFrames) buildFrames.disabled = false;
-						update();
-					}
-				});
-
-				generateGif.addEventListener('click', async () => {
-					if (!video.src || !Number.isFinite(video.duration)) return;
-					generateGif.disabled = true;
-					if (downloadGif) downloadGif.classList.add('hidden');
-
-					try {
-						video.pause();
-						const fps = Math.min(60, Math.max(1, Number(fpsInput.value) || 24));
-						const start = Math.min(video.duration, Math.max(0, Number(startInput?.value) || 0));
-						const endRaw = Number(endInput?.value) || video.duration;
-						const end = Math.min(video.duration, Math.max(start + 1 / fps, endRaw));
-						const frameCount = Math.floor((end - start) * fps) + 1;
-						if (frameCount > 180) {
-							setStatus('Clip too long. Lower FPS or trim below 180 frames.');
-							return;
-						}
-
-						const width = Math.min(1024, Math.max(64, Number(outputWidthInput?.value) || 256));
-						const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth || 1)));
-						const maxColors = Math.min(256, Math.max(2, Number(colorsInput?.value) || 256));
-						const canvas = document.createElement('canvas');
-						canvas.width = width;
-						canvas.height = height;
-						const context = canvas.getContext('2d');
-						if (!context) throw new Error('Canvas context unavailable.');
-
-						const gif = GIFEncoder();
-						for (let frame = 0; frame < frameCount; frame += 1) {
-							const time = Math.min(end, start + frame / fps);
-							setStatus(`Encoding frame ${frame + 1} of ${frameCount}...`);
-							await seekTo(time);
-							context.clearRect(0, 0, width, height);
-							context.drawImage(video, 0, 0, width, height);
-							const { data } = context.getImageData(0, 0, width, height);
-							const hasTransparency = removeBackground(data);
-							let palette = quantize(data, maxColors, {
-								format: hasTransparency ? 'rgba4444' : 'rgb565',
-								oneBitAlpha: 127,
-								clearAlpha: true,
-							});
-							let transparentIndex = hasTransparency ? findTransparentIndex(palette) : -1;
-							if (hasTransparency && transparentIndex === -1) {
-								palette = palette.slice();
-								if (palette.length < maxColors) {
-									transparentIndex = palette.push([0, 0, 0, 0]) - 1;
-								} else {
-									transparentIndex = 0;
-									palette[transparentIndex] = [0, 0, 0, 0];
-								}
-							}
-							const indexed = applyPalette(data, palette, hasTransparency ? 'rgba4444' : 'rgb565');
-							gif.writeFrame(indexed, width, height, {
-								palette,
-								delay: Math.round(1000 / fps),
-								repeat: 0,
-								transparent: hasTransparency,
-								transparentIndex,
-							});
-						}
-
-						gif.finish();
-						if (this.gifUrl) URL.revokeObjectURL(this.gifUrl);
-						this.gifUrl = URL.createObjectURL(new Blob([gif.bytes()], { type: 'image/gif' }));
-						if (downloadGif) {
-							downloadGif.href = this.gifUrl;
-							downloadGif.classList.remove('hidden');
-						}
-						setStatus(`Generated ${frameCount} frames at ${width}x${height}.`);
-					} catch (error) {
-						setStatus(error instanceof Error ? error.message : 'GIF export failed.');
-					} finally {
-						generateGif.disabled = false;
-						update();
-					}
-				});
-			}
-
-			disconnectedCallback() {
-				if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
-				if (this.gifUrl) URL.revokeObjectURL(this.gifUrl);
-				if (this.videoUrl) URL.revokeObjectURL(this.videoUrl);
-				for (const url of this.frameUrls) URL.revokeObjectURL(url);
-			}
-		}
-
-		customElements.define('video-workbench', VideoWorkbench);
-	</script>
 </Layout>

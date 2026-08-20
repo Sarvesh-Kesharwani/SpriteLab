@@ -1,0 +1,932 @@
+---
+import PipelineHeader from '../components/PipelineHeader.astro';
+
+const pageTitle = 'ChatGPT Links · SpriteLab';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta
+			name="description"
+			content="Add and save ChatGPT chat links with titles for quick access."
+		/>
+		<title>{pageTitle}</title>
+		<style is:global>
+			:root {
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				color: #171917;
+				background: #f4f5f4;
+				font-synthesis: none;
+			}
+
+			* { box-sizing: border-box; }
+
+			body {
+				min-width: 320px;
+				min-height: 100vh;
+				margin: 0;
+				background: #f4f5f4;
+			}
+
+			button,
+			input { font: inherit; }
+
+			button { cursor: pointer; }
+
+			button:disabled {
+				cursor: not-allowed;
+				opacity: 0.45;
+			}
+
+			button:focus-visible,
+			input:focus-visible,
+			label:focus-within {
+				outline: 2px solid #171917;
+				outline-offset: 2px;
+			}
+
+			main {
+				width: min(1240px, calc(100% - 32px));
+				margin: clamp(24px, 5vw, 64px) auto;
+			}
+
+			.workbench {
+				border: 1px solid #d9ddd9;
+				border-radius: 8px;
+				background: #ffffff;
+				box-shadow: 0 16px 48px rgba(20, 24, 20, 0.07);
+			}
+
+			.workbench-head {
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				gap: 20px;
+				padding: 24px 26px 20px;
+				border-bottom: 1px solid #e4e7e4;
+			}
+
+			h1 {
+				margin: 0;
+				font-size: clamp(1.25rem, 2vw, 1.6rem);
+				line-height: 1.2;
+			}
+
+			.info-tip {
+				position: relative;
+				display: inline-grid;
+				width: 17px;
+				height: 17px;
+				place-items: center;
+				margin-left: 7px;
+				padding: 0;
+				border: 1px solid #c9cec9;
+				border-radius: 999px;
+				background: #fff;
+				color: #7a817a;
+				font-size: 0.6rem;
+				font-weight: 800;
+				line-height: 1;
+				vertical-align: middle;
+				cursor: help;
+			}
+
+			.info-tip-text {
+				position: absolute;
+				z-index: 60;
+				bottom: calc(100% + 7px);
+				left: 50%;
+				width: max-content;
+				max-width: 250px;
+				padding: 8px 10px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				background: #fff;
+				color: #4d534d;
+				font-size: 0.72rem;
+				font-weight: 500;
+				line-height: 1.5;
+				text-align: left;
+				box-shadow: 0 10px 30px rgba(20, 24, 20, 0.14);
+				opacity: 0;
+				visibility: hidden;
+				transform: translate(-50%, 4px);
+				transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+				pointer-events: none;
+			}
+
+			.info-tip:hover .info-tip-text,
+			.info-tip:focus-visible .info-tip-text,
+			.info-tip:focus .info-tip-text {
+				opacity: 1;
+				visibility: visible;
+				transform: translate(-50%, 0);
+				transition-delay: 0s;
+			}
+
+			.form-panel {
+				padding: 12px 18px;
+				border-bottom: 1px solid #e4e7e4;
+			}
+
+			.form-row {
+				display: grid;
+				grid-template-columns: minmax(160px, 0.8fr) minmax(260px, 1.6fr) auto;
+				gap: 8px;
+				align-items: end;
+			}
+
+			.field { display: grid; gap: 7px; }
+
+			.field-label {
+				font-size: 0.72rem;
+				font-weight: 680;
+				color: #545954;
+			}
+
+			.field-input {
+				width: 100%;
+				height: 34px;
+				padding: 0 12px;
+				border: 1px solid #cfd4cf;
+				border-radius: 6px;
+				background: #ffffff;
+				color: #171917;
+			}
+
+			.add-button {
+				height: 34px;
+				padding: 0 18px;
+				border: 1px solid #21853d;
+				border-radius: 6px;
+				color: #ffffff;
+				background: #238f43;
+				font-size: 0.8rem;
+				font-weight: 700;
+				white-space: nowrap;
+			}
+
+			.add-button:hover:not(:disabled) { background: #1d7c38; }
+
+			.status-row {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				min-height: 48px;
+				padding: 10px 26px;
+				border-bottom: 1px solid #e4e7e4;
+				background: #fbfcfb;
+			}
+
+			.status {
+				flex: 1;
+				min-width: 0;
+				overflow: hidden;
+				font-size: 0.76rem;
+				color: #555b55;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.action-button {
+				min-height: 34px;
+				padding: 0 13px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				color: #363a36;
+				background: #ffffff;
+				font-size: 0.76rem;
+				font-weight: 650;
+			}
+
+			.action-button:hover:not(:disabled) { border-color: #8d948d; }
+
+			.action-button.danger { color: #a12828; }
+
+			.list-panel {
+				padding: 16px 18px 20px;
+			}
+
+			.content-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, .9fr); gap: 16px; }
+			.content-section { min-width: 0; }
+			.content-section .form-panel { padding: 0 0 10px; border-bottom: 0; }
+			.content-section .form-row { grid-template-columns: minmax(120px, .8fr) minmax(190px, 1.35fr) auto; }
+			.content-section .status-row { min-height: 38px; margin-bottom: 12px; padding: 6px 8px; border: 1px solid #e4e7e4; border-radius: 5px; }
+			.golden-panel { padding-left: 16px; border-left: 1px solid #e4e7e4; }
+			.golden-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; margin-bottom: 12px; }
+			.golden-form .field-input { height: 32px; font-size: .74rem; }
+			.golden-form .add-button { height: 32px; padding: 0 12px; }
+			.golden-import { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-bottom: 12px; }
+			.golden-drop { display: grid; min-height: 38px; place-items: center; padding: 7px 10px; border: 1px dashed #adb5ad; border-radius: 6px; color: #687068; background: #fafbfa; font-size: .7rem; text-align: center; }
+			.golden-drop[data-dragging] { border-color: #238f43; color: #17652e; background: #f0faf2; }
+			.golden-frames { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+			.golden-frame { overflow: hidden; margin: 0; border: 1px solid #dfe3df; border-radius: 6px; background: #fafbfa; }
+			.golden-frame img { display: block; width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #fff; }
+			.golden-frame figcaption { overflow: hidden; padding: 6px; font: 600 .62rem "SFMono-Regular", Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+			.source-list { display: grid; gap: 7px; max-height: 260px; overflow: auto; }
+			.source-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(110px,.55fr) auto; gap: 7px; align-items: center; padding: 7px 8px; border: 1px solid #e1e4e1; border-radius: 5px; }
+			.source-row a { overflow: hidden; color: #0070f3; font: .66rem "SFMono-Regular", Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
+			.source-name { min-width: 0; height: 28px; padding: 0 8px; border: 1px solid #d9ddd9; border-radius: 5px; font-size: .7rem; }
+			.mini-remove { height: 26px; border: 1px solid #e0caca; border-radius: 5px; color: #a12828; background: #fff; font-size: .66rem; }
+			.subhead { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin: 12px 0 8px; }
+			.subhead h3 { margin: 0; font-size: .78rem; }
+
+			.list-head {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 14px;
+				margin-bottom: 14px;
+			}
+
+			h2 {
+				margin: 0;
+				font-size: 0.95rem;
+				line-height: 1.3;
+			}
+
+			.count {
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.7rem;
+				color: #6f756f;
+				white-space: nowrap;
+			}
+
+			.link-list {
+				display: grid;
+				gap: 10px;
+				align-content: start;
+				max-height: 58vh;
+				overflow: auto;
+				padding: 2px 4px 2px 2px;
+				scrollbar-gutter: stable;
+			}
+
+			.link-row {
+				display: grid;
+				grid-template-columns: auto minmax(0, 1fr) auto;
+				gap: 12px;
+				align-items: center;
+				padding: 12px 14px;
+				border: 1px solid #dfe3df;
+				border-radius: 6px;
+				background: #ffffff;
+			}
+
+			.row-index {
+				display: grid;
+				min-width: 28px;
+				height: 28px;
+				place-items: center;
+				border-radius: 999px;
+				background: #f0f3f0;
+				color: #4d534d;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.68rem;
+				font-weight: 700;
+			}
+
+			.row-copy {
+				display: grid;
+				gap: 4px;
+				min-width: 0;
+			}
+
+			.row-title {
+				overflow: hidden;
+				font-size: 0.85rem;
+				font-weight: 680;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.row-link {
+				overflow: hidden;
+				color: #0070f3;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.7rem;
+				text-decoration: none;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.row-link:hover { text-decoration: underline; }
+
+			.row-actions {
+				display: flex;
+				gap: 8px;
+			}
+
+			.open-link,
+			.remove-link {
+				min-height: 32px;
+				padding: 0 12px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				background: #ffffff;
+				font-size: 0.74rem;
+				font-weight: 650;
+				text-decoration: none;
+			}
+
+			.open-link { color: #1d7034; }
+			.remove-link { color: #a12828; }
+
+			.open-link:hover { border-color: #8d948d; }
+			.remove-link:hover { border-color: #8d948d; }
+
+			.empty-state {
+				display: grid;
+				min-height: 170px;
+				place-items: center;
+				border: 1px solid #e1e4e1;
+				border-radius: 6px;
+				background:
+					linear-gradient(45deg, #f8f9f8 25%, transparent 25%),
+					linear-gradient(-45deg, #f8f9f8 25%, transparent 25%),
+					linear-gradient(45deg, transparent 75%, #f8f9f8 75%),
+					linear-gradient(-45deg, transparent 75%, #f8f9f8 75%);
+				background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+				background-size: 20px 20px;
+				color: #747a74;
+				text-align: center;
+			}
+
+			.empty-state p {
+				margin: 0;
+				font-size: 0.8rem;
+				line-height: 1.55;
+			}
+
+			.empty-state strong {
+				display: block;
+				margin-bottom: 5px;
+				color: #424742;
+				font-size: 0.875rem;
+			}
+
+			@media (max-width: 760px) {
+				.content-grid { grid-template-columns: 1fr; }
+				.golden-panel { padding: 16px 0 0; border-top: 1px solid #e4e7e4; border-left: 0; }
+				.source-row { grid-template-columns: minmax(0,1fr) minmax(100px,.6fr) auto; }
+				.form-row {
+					grid-template-columns: 1fr;
+					align-items: stretch;
+				}
+
+				.add-button { width: 100%; }
+				.link-row { grid-template-columns: auto minmax(0, 1fr); }
+				.row-actions { grid-column: 2; }
+			}
+
+			@media (max-width: 640px) {
+				main {
+					width: min(100% - 20px, 960px);
+					margin: 10px auto 24px;
+				}
+
+				.workbench-head,
+				.form-panel,
+				.list-panel { padding-left: 15px; padding-right: 15px; }
+				.status-row { padding-left: 15px; padding-right: 15px; }
+				.status-row { flex-wrap: wrap; }
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				* { transition-duration: 0.001ms !important; }
+			}
+		</style>
+	</head>
+	<body>
+		<PipelineHeader active="generate" />
+
+		<main>
+			<chat-links-app class="workbench">
+				<div class="workbench-head">
+					<h1>Stage 1 references <button class="info-tip tip-down" type="button" aria-label="Chat links and golden dataset references are stored in the project folder."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Stored in .config/golden-dataset/stage1-data.json.</span></button></h1>
+				</div>
+
+				<section class="list-panel content-grid">
+					<div class="content-section" aria-labelledby="saved-links-heading">
+						<div class="list-head"><h2 id="saved-links-heading">ChatGPT links</h2><span data-count class="count">0 saved</span></div>
+						<section class="form-panel" aria-label="Add a chat link">
+							<form data-link-form class="form-row">
+								<label class="field"><span class="field-label">Title</span><input data-title-input class="field-input" type="text" placeholder="e.g. Zombie jump cycle" autocomplete="off" required /></label>
+								<label class="field"><span class="field-label">Link</span><input data-url-input class="field-input" type="url" placeholder="https://chatgpt.com/share/..." required /></label>
+								<button data-add-link class="add-button" type="submit">Add link</button>
+							</form>
+						</section>
+						<div data-status class="status" aria-live="polite" hidden></div>
+						<div data-link-list class="link-list"><div class="empty-state"><p><strong>No links saved</strong><span>Add a link above.</span></p></div></div>
+					</div>
+					<div class="content-section golden-panel" aria-labelledby="golden-heading">
+						<div class="list-head"><h2 id="golden-heading">Golden dataset</h2><span data-golden-count class="count">0 sheets</span></div>
+						<div class="golden-import">
+							<button data-paste-golden class="action-button" type="button">Paste file</button>
+							<div data-golden-drop class="golden-drop" tabindex="0">Drag and drop files here</div>
+						</div>
+						<div data-golden-frames class="golden-frames"></div>
+						<div class="subhead"><h3>Source webpages</h3><span data-source-count class="count">0 links</span></div>
+						<form data-source-form class="golden-form">
+							<input data-source-url class="field-input" type="url" placeholder="https://source-page..." aria-label="Golden dataset source webpage" required />
+							<button class="add-button" type="submit">Add</button>
+						</form>
+						<div data-source-list class="source-list">
+							<div class="empty-state"><p><strong>No source links</strong><span>Add source webpages above.</span></p></div>
+						</div>
+					</div>
+				</section>
+			</chat-links-app>
+		</main>
+
+		<script is:inline>
+			(() => {
+				const storageKey = () => window.SpriteAnimProject?.getStorageKey('chatgpt-links') || 'chatgpt-links';
+
+				const openDatabase = () => new Promise((resolve, reject) => {
+					const request = indexedDB.open('spriteanim-v2-handles', 1);
+					request.onupgradeneeded = () => {
+						if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+					};
+					request.onsuccess = () => resolve(request.result);
+					request.onerror = () => reject(request.error);
+				});
+
+				const storeValue = async (value) => {
+					const database = await openDatabase();
+					await new Promise((resolve, reject) => {
+						const transaction = database.transaction('handles', 'readwrite');
+						transaction.objectStore('handles').put(value, storageKey());
+						transaction.oncomplete = () => resolve();
+						transaction.onerror = () => reject(transaction.error);
+					});
+					database.close();
+				};
+
+				const getStoredValue = async () => {
+					try {
+						const database = await openDatabase();
+						const value = await new Promise((resolve, reject) => {
+							const request = database.transaction('handles').objectStore('handles').get(storageKey());
+							request.onsuccess = () => resolve(request.result || null);
+							request.onerror = () => reject(request.error);
+						});
+						database.close();
+						return value;
+					} catch {
+						return null;
+					}
+				};
+
+				const deleteStoredValue = async () => {
+					const database = await openDatabase();
+					await new Promise((resolve, reject) => {
+						const transaction = database.transaction('handles', 'readwrite');
+						transaction.objectStore('handles').delete(storageKey());
+						transaction.oncomplete = () => resolve();
+						transaction.onerror = () => reject(transaction.error);
+					});
+					database.close();
+				};
+
+				const commonFileName = 'stage1-data.json';
+				const imageRe = /\.(png|webp|jpe?g|gif)$/i;
+
+				const getRootHandle = async () => {
+					const database = await openDatabase();
+					const handle = await new Promise((resolve, reject) => {
+						const request = database.transaction('handles').objectStore('handles').get('spriteanim-root-handle');
+						request.onsuccess = () => resolve(request.result || null);
+						request.onerror = () => reject(request.error);
+					});
+					database.close();
+					return handle;
+				};
+
+				const emptyCommonData = () => ({ version: 1, chatgptLinks: {}, goldenDataset: { sourceLinks: [] } });
+
+				const readDiskData = async () => {
+					const root = await getRootHandle();
+					if (!root || await root.queryPermission({ mode: 'read' }) !== 'granted') throw new Error('Connect D:\\SpriteAnimProjects in settings.');
+					const config = await root.getDirectoryHandle('.config');
+					const golden = await config.getDirectoryHandle('golden-dataset');
+					let data = emptyCommonData();
+					try {
+						const file = await (await golden.getFileHandle(commonFileName)).getFile();
+						const parsed = JSON.parse(await file.text());
+						if (parsed && typeof parsed === 'object') data = parsed;
+					} catch {}
+					data.chatgptLinks = data.chatgptLinks && typeof data.chatgptLinks === 'object' ? data.chatgptLinks : {};
+					data.goldenDataset = data.goldenDataset && typeof data.goldenDataset === 'object' ? data.goldenDataset : {};
+					data.goldenDataset.sourceLinks = Array.isArray(data.goldenDataset.sourceLinks) ? data.goldenDataset.sourceLinks : [];
+					const frames = [];
+					const collectFrames = async (directory, prefix = '') => {
+						for await (const entry of directory.values()) {
+							const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+							if (entry.kind === 'directory') await collectFrames(entry, name);
+							else if (imageRe.test(entry.name)) frames.push({ name, file: await entry.getFile() });
+						}
+					};
+					await collectFrames(golden);
+					frames.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+					let legacySources = [];
+					try {
+						const legacy = await (await golden.getFileHandle('golden-dataset-sources.txt')).getFile();
+						legacySources = (await legacy.text()).split(/\r?\n/).map((value) => value.trim()).filter(Boolean);
+					} catch {}
+					return { root, golden, data, frames, legacySources };
+				};
+
+				const writeDiskData = async (data, requestPermission = true) => {
+					const root = await getRootHandle();
+					if (!root) throw new Error('Connect D:\\SpriteAnimProjects in settings.');
+					const options = { mode: 'readwrite' };
+					let permission = await root.queryPermission(options);
+					if (permission !== 'granted' && requestPermission) permission = await root.requestPermission(options);
+					if (permission !== 'granted') throw new Error('Write access needed for stage1-data.json.');
+					const config = await root.getDirectoryHandle('.config', { create: true });
+					const golden = await config.getDirectoryHandle('golden-dataset', { create: true });
+					const handle = await golden.getFileHandle(commonFileName, { create: true });
+					const writable = await handle.createWritable();
+					await writable.write(JSON.stringify({ ...data, updatedAt: new Date().toISOString() }, null, 2) + '\n');
+					await writable.close();
+				};
+
+				class ChatLinksApp extends HTMLElement {
+					links = [];
+					sources = [];
+					commonData = emptyCommonData();
+					goldenFrameUrls = [];
+
+					connectedCallback() {
+						this.form = this.querySelector('[data-link-form]');
+						this.titleInput = this.querySelector('[data-title-input]');
+						this.urlInput = this.querySelector('[data-url-input]');
+						this.addButton = this.querySelector('[data-add-link]');
+						this.clearAllButton = this.querySelector('[data-clear-all]');
+						this.status = this.querySelector('[data-status]');
+						this.count = this.querySelector('[data-count]');
+						this.list = this.querySelector('[data-link-list]');
+						this.goldenFrames = this.querySelector('[data-golden-frames]');
+						this.goldenCount = this.querySelector('[data-golden-count]');
+						this.pasteGoldenButton = this.querySelector('[data-paste-golden]');
+						this.goldenDrop = this.querySelector('[data-golden-drop]');
+						this.sourceForm = this.querySelector('[data-source-form]');
+						this.sourceInput = this.querySelector('[data-source-url]');
+						this.sourceList = this.querySelector('[data-source-list]');
+						this.sourceCount = this.querySelector('[data-source-count]');
+
+						this.form?.addEventListener('submit', (event) => {
+							event.preventDefault();
+							void this.addLink();
+						});
+						this.sourceForm?.addEventListener('submit', (event) => { event.preventDefault(); void this.addSource(); });
+						this.clearAllButton?.addEventListener('click', () => void this.clearAll());
+						this.pasteGoldenButton?.addEventListener('click', () => void this.pasteGoldenFiles());
+						for (const type of ['dragenter', 'dragover']) this.goldenDrop?.addEventListener(type, (event) => {
+							event.preventDefault();
+							this.goldenDrop.dataset.dragging = '';
+						});
+						for (const type of ['dragleave', 'drop']) this.goldenDrop?.addEventListener(type, (event) => {
+							event.preventDefault();
+							delete this.goldenDrop.dataset.dragging;
+						});
+						this.goldenDrop?.addEventListener('drop', (event) => void this.saveGoldenFiles([...event.dataTransfer.files]));
+						window.addEventListener('spriteanim-project-change', () => void this.load());
+						void this.load();
+					}
+
+					normalizeUrl(value) {
+						const trimmed = (value || '').trim();
+						if (!trimmed) return '';
+						try {
+							const url = new URL(trimmed);
+							return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '';
+						} catch {
+							return '';
+						}
+					}
+
+					async addLink() {
+						const title = this.titleInput.value.trim();
+						const url = this.normalizeUrl(this.urlInput.value);
+						if (!title) {
+							this.status.textContent = 'Enter a title for the link.';
+							this.titleInput.focus();
+							return;
+						}
+						if (!url) {
+							this.status.textContent = 'Enter a valid http or https link.';
+							this.urlInput.focus();
+							return;
+						}
+						this.links.push({ id: `link-${Date.now()}-${Math.random().toString(36).slice(2)}`, title, url, createdAt: new Date().toISOString() });
+						this.titleInput.value = '';
+						this.urlInput.value = '';
+						this.titleInput.focus();
+						await this.persist();
+						this.status.textContent = `Saved "${title}".`;
+						this.render();
+					}
+
+					async removeLink(id) {
+						const entry = this.links.find((item) => item.id === id);
+						this.links = this.links.filter((item) => item.id !== id);
+						await this.persist();
+						this.status.textContent = entry ? `Removed "${entry.title}".` : 'Link removed.';
+						this.render();
+					}
+
+					async persist() {
+						try {
+							const project = window.SpriteAnimProject?.getActiveProject?.() || 'default';
+							this.commonData.chatgptLinks[project] = this.links;
+							this.commonData.goldenDataset.sourceLinks = this.sources;
+							await writeDiskData(this.commonData, true);
+							await storeValue(this.links);
+						} catch (error) {
+							this.status.textContent = error?.message || 'Could not save stage1-data.json.';
+							throw error;
+						}
+					}
+
+					async load() {
+						try {
+							const disk = await readDiskData();
+							this.commonData = disk.data;
+							const project = window.SpriteAnimProject?.getActiveProject?.() || 'default';
+							const browserLinks = await getStoredValue();
+							this.links = Array.isArray(this.commonData.chatgptLinks[project]) ? this.commonData.chatgptLinks[project] : [];
+							let migrated = false;
+							if (!this.links.length && Array.isArray(browserLinks) && browserLinks.length) {
+								this.links = browserLinks;
+								this.commonData.chatgptLinks[project] = browserLinks;
+								migrated = true;
+							}
+							this.sources = [...this.commonData.goldenDataset.sourceLinks];
+							for (const value of disk.legacySources) {
+								const url = this.normalizeUrl(value);
+								if (url && !this.sources.some((item) => item.url === url)) {
+									this.sources.push({ id: `source-${Date.now()}-${Math.random().toString(36).slice(2)}`, url, createdAt: new Date().toISOString(), migratedFrom: 'golden-dataset-sources.txt' });
+									migrated = true;
+								}
+							}
+							this.commonData.goldenDataset.sourceLinks = this.sources;
+							this.renderGoldenFrames(disk.frames);
+							if (migrated) {
+								try { await writeDiskData(this.commonData, false); } catch {}
+							}
+							this.status.textContent = `Loaded ${this.links.length} ChatGPT link${this.links.length === 1 ? '' : 's'} and ${disk.frames.length} golden sheet${disk.frames.length === 1 ? '' : 's'} from disk.`;
+						} catch (error) {
+							const stored = await getStoredValue();
+							this.links = Array.isArray(stored) ? stored : [];
+							this.sources = [];
+							this.status.textContent = error?.message || 'Could not load Stage 1 data from disk.';
+							this.renderGoldenFrames([]);
+						}
+						this.render();
+					}
+
+					async addSource() {
+						const url = this.normalizeUrl(this.sourceInput?.value);
+						if (!url) { this.status.textContent = 'Enter a valid source webpage URL.'; this.sourceInput?.focus(); return; }
+						if (this.sources.some((item) => item.url === url)) { this.status.textContent = 'Source webpage already saved.'; return; }
+						this.sources.push({ id: `source-${Date.now()}-${Math.random().toString(36).slice(2)}`, name: '', url, createdAt: new Date().toISOString() });
+						this.sourceInput.value = '';
+						await this.persist();
+						this.status.textContent = 'Golden dataset source saved to stage1-data.json.';
+						this.renderSources();
+					}
+
+					async removeSource(id) {
+						this.sources = this.sources.filter((item) => item.id !== id);
+						await this.persist();
+						this.status.textContent = 'Golden dataset source removed from JSON.';
+						this.renderSources();
+					}
+
+					async renameSource(id, name) {
+						const source = this.sources.find((item) => item.id === id);
+						if (!source || source.name === name.trim()) return;
+						source.name = name.trim();
+						await this.persist();
+					}
+
+					async pasteGoldenFiles() {
+						try {
+							if (!navigator.clipboard?.read) throw new Error('Clipboard file access is unavailable in this browser.');
+							const clipboardItems = await navigator.clipboard.read();
+							const files = [];
+							for (const item of clipboardItems) {
+								for (const type of item.types.filter((value) => !/^text\/(plain|html)$/i.test(value))) {
+									const blob = await item.getType(type);
+									const extension = type === 'image/png' ? 'png' : type === 'image/jpeg' ? 'jpg' : type === 'image/webp' ? 'webp' : type === 'image/gif' ? 'gif' : 'bin';
+									files.push(new File([blob], `clipboard-${Date.now()}-${files.length + 1}.${extension}`, { type }));
+								}
+							}
+							if (!files.length) throw new Error('No file is currently available on the clipboard.');
+							await this.saveGoldenFiles(files);
+						} catch (error) {
+							if (error?.name !== 'NotAllowedError') window.alert(error?.message || 'Could not paste the clipboard file.');
+						}
+					}
+
+					async saveGoldenFiles(files) {
+						if (!files.length) return;
+						try {
+							const root = await getRootHandle();
+							if (!root) throw new Error('Connect D:\\SpriteAnimProjects in settings.');
+							const options = { mode: 'readwrite' };
+							let permission = await root.queryPermission(options);
+							if (permission !== 'granted') permission = await root.requestPermission(options);
+							if (permission !== 'granted') throw new Error('Write access is needed for the golden-dataset folder.');
+							const config = await root.getDirectoryHandle('.config', { create: true });
+							const golden = await config.getDirectoryHandle('golden-dataset', { create: true });
+							for (const sourceFile of files) {
+								const safeName = (sourceFile.name || `golden-file-${Date.now()}`).replace(/[\\/:*?"<>|]/g, '-');
+								const dot = safeName.lastIndexOf('.');
+								const stem = dot > 0 ? safeName.slice(0, dot) : safeName;
+								const extension = dot > 0 ? safeName.slice(dot) : '';
+								let targetName = safeName;
+								let counter = 2;
+								for (;;) {
+									try { await golden.getFileHandle(targetName); targetName = `${stem} (${counter++})${extension}`; }
+									catch { break; }
+								}
+								const handle = await golden.getFileHandle(targetName, { create: true });
+								const writable = await handle.createWritable();
+								await writable.write(sourceFile);
+								await writable.close();
+							}
+							await this.load();
+						} catch (error) {
+							window.alert(error?.message || 'Could not save files into the golden dataset.');
+						}
+					}
+
+					exportJson() {
+						if (this.links.length === 0) {
+							this.status.textContent = 'Nothing to save yet. Add at least one link first.';
+							return;
+						}
+						const payload = {
+							exportedAt: new Date().toISOString(),
+							links: this.links,
+						};
+						const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+						const url = URL.createObjectURL(blob);
+						const anchor = document.createElement('a');
+						anchor.href = url;
+						anchor.download = 'chatgpt-links.json';
+						anchor.click();
+						URL.revokeObjectURL(url);
+						this.status.textContent = `Saved ${this.links.length} link${this.links.length === 1 ? '' : 's'} to chatgpt-links.json.`;
+					}
+
+					async clearAll() {
+						if (this.links.length === 0) return;
+						if (!window.confirm(`Delete all ${this.links.length} saved link${this.links.length === 1 ? '' : 's'}?`)) return;
+						this.links = [];
+						try {
+							await this.persist();
+							this.status.textContent = 'Cleared all saved links.';
+						} catch {
+							this.status.textContent = 'Could not clear saved links.';
+						}
+						this.render();
+					}
+
+					render() {
+						this.count.textContent = `${this.links.length} saved`;
+						if (this.clearAllButton) this.clearAllButton.disabled = this.links.length === 0;
+						this.renderSources();
+						if (this.links.length === 0) {
+							this.list.replaceChildren();
+							const empty = document.createElement('div');
+							empty.className = 'empty-state';
+							const copy = document.createElement('p');
+							const strong = document.createElement('strong');
+							strong.textContent = 'No links saved';
+							const detail = document.createElement('span');
+							detail.textContent = 'Add a title and a ChatGPT link above to save it here.';
+							copy.append(strong, detail);
+							empty.append(copy);
+							this.list.append(empty);
+							return;
+						}
+
+						this.list.replaceChildren(...this.links.map((entry, index) => {
+							const row = document.createElement('div');
+							row.className = 'link-row';
+
+							const badge = document.createElement('span');
+							badge.className = 'row-index';
+							badge.textContent = String(index + 1);
+
+							const copy = document.createElement('div');
+							copy.className = 'row-copy';
+							const title = document.createElement('strong');
+							title.className = 'row-title';
+							title.textContent = entry.title;
+							const link = document.createElement('a');
+							link.className = 'row-link';
+							link.href = entry.url;
+							link.target = '_blank';
+							link.rel = 'noopener noreferrer';
+							link.textContent = entry.url;
+							const name = document.createElement('input');
+							name.className = 'source-name';
+							name.type = 'text';
+							name.value = entry.name || '';
+							name.placeholder = 'Source name';
+							name.setAttribute('aria-label', `Name for ${entry.url}`);
+							name.addEventListener('change', () => void this.renameSource(entry.id, name.value));
+							copy.append(title, link);
+
+							const actions = document.createElement('div');
+							actions.className = 'row-actions';
+							const open = document.createElement('a');
+							open.className = 'open-link';
+							open.href = entry.url;
+							open.target = '_blank';
+							open.rel = 'noopener noreferrer';
+							open.textContent = 'Open';
+							const remove = document.createElement('button');
+							remove.className = 'remove-link';
+							remove.type = 'button';
+							remove.textContent = 'Remove';
+							remove.addEventListener('click', () => void this.removeLink(entry.id));
+							actions.append(open, remove);
+
+							row.append(badge, copy, actions);
+							return row;
+						}));
+					}
+
+					renderGoldenFrames(frames) {
+						for (const url of this.goldenFrameUrls) URL.revokeObjectURL(url);
+						this.goldenFrameUrls = [];
+						this.goldenCount.textContent = `${frames.length} sheet${frames.length === 1 ? '' : 's'}`;
+						if (!frames.length) {
+							this.goldenFrames.replaceChildren(this.createCompactEmpty('No frame-sheets found'));
+							return;
+						}
+						this.goldenFrames.replaceChildren(...frames.map(({ name, file }) => {
+							const figure = document.createElement('figure');
+							figure.className = 'golden-frame';
+							const image = document.createElement('img');
+							const url = URL.createObjectURL(file);
+							this.goldenFrameUrls.push(url);
+							image.src = url;
+							image.alt = name;
+							const caption = document.createElement('figcaption');
+							caption.textContent = name;
+							caption.title = name;
+							figure.append(image, caption);
+							return figure;
+						}));
+					}
+
+					renderSources() {
+						this.sourceCount.textContent = `${this.sources.length} link${this.sources.length === 1 ? '' : 's'}`;
+						if (!this.sources.length) {
+							this.sourceList.replaceChildren(this.createCompactEmpty('No source links'));
+							return;
+						}
+						this.sourceList.replaceChildren(...this.sources.map((entry) => {
+							const row = document.createElement('div');
+							row.className = 'source-row';
+							const link = document.createElement('a');
+							link.href = entry.url;
+							link.target = '_blank';
+							link.rel = 'noopener noreferrer';
+							link.textContent = entry.url;
+							const remove = document.createElement('button');
+							remove.type = 'button';
+							remove.className = 'mini-remove';
+							remove.textContent = 'Remove';
+							remove.addEventListener('click', () => void this.removeSource(entry.id));
+							row.append(link, name, remove);
+							return row;
+						}));
+					}
+
+					createCompactEmpty(text) {
+						const empty = document.createElement('div');
+						empty.className = 'empty-state';
+						empty.style.minHeight = '72px';
+						empty.textContent = text;
+						return empty;
+					}
+				}
+
+				customElements.define('chat-links-app', ChatLinksApp);
+			})();
+		</script>
+	</body>
+</html>

@@ -1,5 +1,5 @@
 {
-  "name": "spriteanim-v2",
+  "name": "spritelab",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.2",
     "gifenc": "^1.0.3",
+    "gifuct-js": "^2.1.2",
     "tailwindcss": "^4.3.0"
   }
 }

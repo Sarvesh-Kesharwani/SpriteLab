@@ -1,5 +1,7 @@
 ---
-const pageTitle = 'Sprite Sheet Extractor';
+import PipelineHeader from '../components/PipelineHeader.astro';
+
+const pageTitle = 'Frame Extractor · SpriteLab';
 ---
 
 <!doctype html>
@@ -7,6 +9,8 @@ const pageTitle = 'Sprite Sheet Extractor';
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<meta name="description" content="Extract, resize, preview, and save animation frames from one image." />
 		<title>{pageTitle}</title>
 		<style is:global>
@@ -52,10 +56,8 @@ const pageTitle = 'Sprite Sheet Extractor';
 
 			main { width: min(1500px, calc(100% - 28px)); margin: clamp(18px, 3vw, 38px) auto; }
 			.workbench { overflow: hidden; border: 1px solid #d9ddd9; border-radius: 8px; background: #fff; box-shadow: 0 16px 48px rgba(20, 24, 20, 0.07); }
-			.workbench-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 22px 24px 18px; border-bottom: 1px solid #e4e7e4; }
 			h1, h2, p { margin-top: 0; }
 			h1 { margin-bottom: 0; font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.2; }
-			.intro { max-width: 710px; margin: 7px 0 0; color: #656b65; font-size: 0.875rem; line-height: 1.55; }
 
 			.button,
 			.tool-button {
@@ -85,16 +87,16 @@ const pageTitle = 'Sprite Sheet Extractor';
 			.source-name { display: block; overflow: hidden; max-width: 640px; margin-bottom: 3px; font-size: 0.84rem; font-weight: 680; text-overflow: ellipsis; white-space: nowrap; }
 			.source-meta, .status { color: #747a74; font-family: "SFMono-Regular", Consolas, monospace; font-size: 0.68rem; line-height: 1.45; }
 			.source-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-			.file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 
 			.editor-grid { display: grid; grid-template-columns: 244px minmax(420px, 1fr) 310px; height: clamp(620px, calc(100vh - 190px), 760px); }
 			.sidebar { min-width: 0; background: #fbfcfb; }
 			.sidebar.left { border-right: 1px solid #e4e7e4; }
+			.sidebar.left { overflow-y: auto; }
 			.sidebar.right { display: grid; min-height: 0; grid-template-rows: auto minmax(210px, 1fr) auto; border-left: 1px solid #e4e7e4; }
-			.panel-section { padding: 17px 16px; border-bottom: 1px solid #e4e7e4; }
-			.panel-section h2 { margin-bottom: 12px; font-size: 0.78rem; letter-spacing: 0.01em; text-transform: uppercase; }
+			.panel-section { padding: 13px 16px; border-bottom: 1px solid #e4e7e4; }
+			.panel-section h2 { margin-bottom: 9px; font-size: 0.78rem; letter-spacing: 0.01em; text-transform: uppercase; }
 			.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-			.tool-grid .tool-button:first-child { grid-column: 1 / -1; }
+			.tool-grid .tool-button:first-child { grid-column: auto; }
 			.field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 			.field { display: block; min-width: 0; }
 			.field.wide { grid-column: 1 / -1; }
@@ -103,7 +105,59 @@ const pageTitle = 'Sprite Sheet Extractor';
 			.range-input { width: 100%; accent-color: #238f43; }
 			.check-row { display: flex; align-items: flex-start; gap: 9px; color: #4d534d; font-size: 0.74rem; line-height: 1.45; }
 			.check-row input { flex: 0 0 auto; margin-top: 2px; accent-color: #238f43; }
-			.hint { margin: 8px 0 0; color: #747a74; font-size: 0.69rem; line-height: 1.5; }
+			.info-tip {
+				position: relative;
+				display: inline-grid;
+				width: 17px;
+				height: 17px;
+				place-items: center;
+				margin-left: 7px;
+				padding: 0;
+				border: 1px solid #c9cec9;
+				border-radius: 999px;
+				background: #fff;
+				color: #7a817a;
+				font-size: 0.6rem;
+				font-weight: 800;
+				line-height: 1;
+				vertical-align: middle;
+				cursor: help;
+			}
+
+			.info-tip-text {
+				position: absolute;
+				z-index: 60;
+				bottom: calc(100% + 7px);
+				left: 50%;
+				width: max-content;
+				max-width: 250px;
+				padding: 8px 10px;
+				border: 1px solid #d9ddd9;
+				border-radius: 6px;
+				background: #fff;
+				color: #4d534d;
+				font-size: 0.72rem;
+				font-weight: 500;
+				line-height: 1.5;
+				text-align: left;
+				text-transform: none;
+				letter-spacing: 0;
+				box-shadow: 0 10px 30px rgba(20, 24, 20, 0.14);
+				opacity: 0;
+				visibility: hidden;
+				transform: translate(-50%, 4px);
+				transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+				pointer-events: none;
+			}
+
+			.info-tip:hover .info-tip-text,
+			.info-tip:focus-visible .info-tip-text,
+			.info-tip:focus .info-tip-text {
+				opacity: 1;
+				visibility: visible;
+				transform: translate(-50%, 0);
+				transition-delay: 0s;
+			}
 			.color-input { width: 100%; height: 36px; padding: 3px; border: 1px solid #cfd4cf; border-radius: 5px; background: #fff; }
 			.action-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 
@@ -165,7 +219,7 @@ const pageTitle = 'Sprite Sheet Extractor';
 
 			@media (max-width: 760px) {
 				main { width: min(100% - 16px, 1500px); margin: 8px auto; }
-				.workbench-head, .source-bar { align-items: stretch; flex-direction: column; }
+				.source-bar { align-items: stretch; flex-direction: column; }
 				.source-actions { justify-content: stretch; }
 				.source-actions .button { flex: 1; }
 				.editor-grid { display: block; }
@@ -174,51 +228,75 @@ const pageTitle = 'Sprite Sheet Extractor';
 				.sidebar.right { display: grid; grid-template-columns: 1fr; grid-template-rows: auto 330px auto; }
 				.preview-panel { grid-column: 1; grid-row: auto; border-top: 1px solid #e4e7e4; border-left: 0; }
 			}
+
+			.stage-options {
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				overflow-x: auto;
+				border-bottom: 1px solid #dfe4df;
+				background: #fbfcfb;
+				padding: 0.55rem clamp(1rem, 3vw, 2.5rem);
+			}
+
+			.stage-options-label {
+				flex: 0 0 auto;
+				color: #747a74;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.68rem;
+				letter-spacing: 0.06em;
+				text-transform: uppercase;
+			}
+
+			.stage-options-select {
+				min-width: 220px;
+				max-width: min(480px, calc(100vw - 5rem));
+				height: 34px;
+				padding: 0 8px;
+				border: 1px solid #d2d7d2;
+				border-radius: 6px;
+				background: #fff;
+				color: #333933;
+				font-size: 0.78rem;
+			}
 		</style>
 	</head>
 	<body>
-		<header class="utility-bar">
-			<a class="brand-link" href="/"><p class="brand">Video to Animation / Sprite Sheet Extractor</p></a>
-			<div class="local-status"><span class="local-dot"></span><span>Local only</span></div>
-		</header>
+		<PipelineHeader active="extract" />
+
+		<section class="stage-options" data-stage-options hidden aria-label="Frames sheet options">
+			<span class="stage-options-label" data-stage-options-label></span>
+			<select class="stage-options-select" data-stage-options-list></select>
+		</section>
 
 		<main>
 			<sprite-extractor-app class="workbench">
-				<section class="workbench-head">
-					<div>
-						<h1>Sprite Sheet Extractor</h1>
-						<p class="intro">Load one image with scattered poses. Detect frames automatically, refine them with rectangle or lasso selections, resize each output, preview the loop, then save PNGs to a folder.</p>
-					</div>
-					<button data-clear class="button danger" type="button" disabled>Clear Project</button>
-				</section>
-
-				<section class="source-bar">
+			<section class="source-bar">
 					<div class="source-copy">
-						<span data-source-name class="source-name">No image selected</span>
-						<span data-source-meta class="source-meta">PNG, WebP, or JPEG. Processing stays in this browser.</span>
+						<span data-source-name class="source-name">Loading from project…</span>
+						<span data-source-meta class="source-meta">Images auto-load from project -> cycle -> stage2 - unpivoted frames.</span>
 					</div>
 					<div class="source-actions">
-						<label class="button dark" for="sprite-source">Choose Image</label>
-						<input data-file-input class="file-input" id="sprite-source" type="file" accept="image/png,image/webp,image/jpeg" />
-						<button data-load-example class="button" type="button">Load Example</button>
 						<button data-auto-detect class="button primary" type="button" disabled>Auto Detect</button>
+						<button data-clear-frames class="button" type="button" disabled>Clear Selection</button>
+						<button data-clear-crop class="button" type="button" disabled>Clear Crop</button>
 					</div>
 				</section>
 
 				<div class="editor-grid">
 					<aside class="sidebar left">
 						<section class="panel-section">
-							<h2>Selection Tools</h2>
+							<h2>Selection Tools <button class="info-tip" type="button" aria-label="Draw around one pose. Lasso exports pixels inside the freehand path only."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Draw around one pose. Lasso exports pixels inside the freehand path only.</span></button></h2>
 							<div class="tool-grid">
-								<button data-tool="select" class="tool-button" type="button" aria-pressed="true">Select</button>
-								<button data-tool="rectangle" class="tool-button" type="button" aria-pressed="false">Rectangle</button>
+								<button data-tool="rectangle" class="tool-button" type="button" aria-pressed="true">Rectangle</button>
 								<button data-tool="lasso" class="tool-button" type="button" aria-pressed="false">Lasso</button>
+								<button data-tool="crop" class="tool-button" type="button" aria-pressed="false">Crop</button>
+								<button data-tool="move" class="tool-button" type="button" aria-pressed="false" disabled>Move rectangles</button>
 							</div>
-							<p class="hint">Draw around one pose. Lasso exports pixels inside the freehand path only.</p>
 						</section>
 
 						<section class="panel-section">
-							<h2>Framesheet Background</h2>
+							<h2>Framesheet Background <button class="info-tip" type="button" aria-label="Pick a background pixel from the sheet. Only matching pixels connected to image edges are removed, protecting enclosed light details."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Pick a background pixel from the sheet. Only matching pixels connected to image edges are removed, protecting enclosed light details.</span></button></h2>
 							<div class="field-grid">
 								<label class="field"><span class="field-label">Background color</span><input data-bg-color class="color-input" type="color" value="#ffffff" /></label>
 								<label class="field"><span class="field-label">Tolerance</span><input data-bg-tolerance class="number-input" type="number" min="0" max="255" value="36" /></label>
@@ -228,17 +306,28 @@ const pageTitle = 'Sprite Sheet Extractor';
 								<button data-remove-background class="button primary" type="button" disabled>Remove</button>
 								<button data-reset-background class="button wide" style="grid-column:1 / -1" type="button" disabled>Reset Background</button>
 							</div>
-							<p class="hint">Pick a background pixel from the sheet. Only matching pixels connected to image edges are removed, protecting enclosed light details.</p>
 						</section>
 
 						<section class="panel-section">
-							<h2>Auto Detection</h2>
+							<h2>Auto Detection <button class="info-tip" type="button" aria-label="Transparent images use alpha. Opaque checkerboard images use brightness and color contrast."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Transparent images use alpha. Opaque checkerboard images use brightness and color contrast.</span></button></h2>
 							<div class="field-grid">
 								<label class="field"><span class="field-label">Light cutoff</span><input data-light-cutoff class="number-input" type="number" min="160" max="254" value="225" /></label>
 								<label class="field"><span class="field-label">Padding</span><input data-padding class="number-input" type="number" min="0" max="128" value="12" /></label>
 								<label class="field wide"><span class="field-label">Minimum object area</span><input data-min-area class="range-input" type="range" min="20" max="2000" value="180" /></label>
 							</div>
-							<p class="hint">Transparent images use alpha. Opaque checkerboard images use brightness and color contrast.</p>
+						</section>
+
+						<section class="panel-section">
+							<h2>Grid Slice <button class="info-tip" type="button" aria-label="Split the framesheet into a grid of individual frames, like Unity's Sprite Editor. Fill columns/rows, cell size, or both."><span aria-hidden="true">i</span><span class="info-tip-text" role="tooltip">Split the framesheet into a grid of individual frames, like Unity's Sprite Editor. Fill columns/rows, cell size, or both; leave a field empty to auto-calculate it.</span></button></h2>
+							<div class="field-grid">
+								<label class="field"><span class="field-label">Columns</span><input data-grid-cols class="number-input" type="number" min="1" max="512" value="" placeholder="auto" /></label>
+								<label class="field"><span class="field-label">Rows</span><input data-grid-rows class="number-input" type="number" min="1" max="512" value="" placeholder="auto" /></label>
+								<label class="field"><span class="field-label">Cell width</span><input data-grid-width class="number-input" type="number" min="1" max="4096" value="" placeholder="auto" /></label>
+								<label class="field"><span class="field-label">Cell height</span><input data-grid-height class="number-input" type="number" min="1" max="4096" value="" placeholder="auto" /></label>
+							</div>
+							<div class="action-stack">
+								<button data-slice-grid class="button primary" type="button" disabled>Slice Grid</button>
+							</div>
 						</section>
 
 						<section class="panel-section">
@@ -263,7 +352,7 @@ const pageTitle = 'Sprite Sheet Extractor';
 						</div>
 						<div data-canvas-shell class="canvas-shell">
 							<canvas data-editor-canvas class="editor-canvas"></canvas>
-							<div data-empty-canvas class="empty-canvas"><div class="empty-card"><strong>Choose an image to begin</strong>Auto Detect works with transparent sprites and light checkerboard backgrounds.</div></div>
+							<div data-empty-canvas class="empty-canvas"><div class="empty-card"><strong>Waiting for the active cycle's frames-sheet</strong>Auto Detect works with transparent sprites and light checkerboard backgrounds.</div></div>
 						</div>
 						<div class="stage-status">
 							<span data-pointer-status class="status">X 0 / Y 0</span>
@@ -312,11 +401,13 @@ const pageTitle = 'Sprite Sheet Extractor';
 				imageUrl = '';
 				frames = [];
 				activeId = '';
-				tool = 'select';
+				tool = 'rectangle';
 				drawing = null;
 				viewZoom = 1;
 				view = { x: 0, y: 0, scale: 1 };
 				directoryHandle = null;
+				autoSaveRoot = null;
+				cropRegion = null;
 				animationTimer = null;
 				previewIndex = 0;
 				frameCounter = 0;
@@ -326,15 +417,21 @@ const pageTitle = 'Sprite Sheet Extractor';
 				backgroundRemoved = false;
 
 				connectedCallback() {
-					this.fileInput = this.querySelector('[data-file-input]');
 					this.canvas = this.querySelector('[data-editor-canvas]');
 					this.canvasShell = this.querySelector('[data-canvas-shell]');
 					this.previewCanvas = this.querySelector('[data-preview-canvas]');
 					this.frameList = this.querySelector('[data-frame-list]');
-					this.fileInput?.addEventListener('change', (event) => this.loadFile(event.target.files?.[0]));
-					this.querySelector('[data-load-example]')?.addEventListener('click', () => this.loadExample());
 					this.querySelector('[data-auto-detect]')?.addEventListener('click', () => this.autoDetect());
+					this.querySelector('[data-clear-frames]')?.addEventListener('click', () => this.clearFrames());
+					this.querySelector('[data-slice-grid]')?.addEventListener('click', () => this.sliceGrid());
 					this.querySelector('[data-clear]')?.addEventListener('click', () => this.clearProject());
+					this.querySelector('[data-clear-crop]')?.addEventListener('click', () => {
+						this.cropRegion = null;
+						const button = this.querySelector('[data-clear-crop]');
+						if (button) button.disabled = true;
+						this.querySelector('[data-stage-label]').textContent = 'Crop cleared. Auto Detect scans the full image.';
+						this.drawEditor();
+					});
 					this.querySelector('[data-pick-background]')?.addEventListener('click', () => this.setTool('background'));
 					this.querySelector('[data-remove-background]')?.addEventListener('click', () => this.removeFramesheetBackground());
 					this.querySelector('[data-reset-background]')?.addEventListener('click', () => this.resetFramesheetBackground());
@@ -358,7 +455,7 @@ const pageTitle = 'Sprite Sheet Extractor';
 					this.canvas?.addEventListener('pointerdown', (event) => this.onPointerDown(event));
 					this.canvas?.addEventListener('pointermove', (event) => this.onPointerMove(event));
 					this.canvas?.addEventListener('pointerup', (event) => this.onPointerUp(event));
-					this.canvas?.addEventListener('pointercancel', () => { this.drawing = null; this.drawEditor(); });
+					this.canvas?.addEventListener('pointercancel', () => { this.drawing = null; if (this.tool === 'move') this.canvas.style.cursor = 'grab'; this.renderFrames(); });
 					this.previewCanvas?.addEventListener('pointerdown', (event) => this.onPreviewPointerDown(event));
 					this.previewCanvas?.addEventListener('pointermove', (event) => this.onPreviewPointerMove(event));
 					this.previewCanvas?.addEventListener('pointerup', (event) => this.onPreviewPointerUp(event));
@@ -383,11 +480,6 @@ const pageTitle = 'Sprite Sheet Extractor';
 					if (this.imageUrl) URL.revokeObjectURL(this.imageUrl);
 				}
 
-				async loadFile(file) {
-					if (!file?.type.startsWith('image/')) return;
-					await this.loadImageSource(URL.createObjectURL(file), file.name, file.size);
-				}
-
 				async loadExample() {
 					const response = await fetch('/assets/sprite-extractor-example.png');
 					const blob = await response.blob();
@@ -409,15 +501,21 @@ const pageTitle = 'Sprite Sheet Extractor';
 					this.backgroundRemoved = false;
 					this.frames = [];
 					this.activeId = '';
+					this.cropRegion = null;
+					const cropClear = this.querySelector('[data-clear-crop]');
+					if (cropClear) cropClear.disabled = true;
 					this.viewZoom = 1;
 					this.querySelector('[data-source-name]').textContent = name;
 					this.querySelector('[data-source-meta]').textContent = `${image.naturalWidth} x ${image.naturalHeight} px / ${(size / 1024 / 1024).toFixed(2)} MB`;
 					this.querySelector('[data-empty-canvas]').hidden = true;
 					this.querySelector('[data-auto-detect]').disabled = false;
+					const sliceButton = this.querySelector('[data-slice-grid]');
+					if (sliceButton) sliceButton.disabled = false;
 					this.querySelector('[data-pick-background]').disabled = false;
 					this.querySelector('[data-remove-background]').disabled = false;
 					this.querySelector('[data-reset-background]').disabled = true;
-					this.querySelector('[data-clear]').disabled = false;
+					const clearButton = this.querySelector('[data-clear]');
+					if (clearButton) clearButton.disabled = false;
 					this.querySelector('[data-stage-label]').textContent = 'Image loaded. Run Auto Detect or draw a selection.';
 					this.renderFrames();
 					this.drawEditor();
@@ -432,16 +530,61 @@ const pageTitle = 'Sprite Sheet Extractor';
 					this.imageUrl = '';
 					this.frames = [];
 					this.activeId = '';
-					this.fileInput.value = '';
+					this.cropRegion = null;
+					const cropClear = this.querySelector('[data-clear-crop]');
+					if (cropClear) cropClear.disabled = true;
 					this.querySelector('[data-source-name]').textContent = 'No image selected';
 					this.querySelector('[data-source-meta]').textContent = 'PNG, WebP, or JPEG. Processing stays in this browser.';
 					this.querySelector('[data-empty-canvas]').hidden = false;
 					this.querySelector('[data-auto-detect]').disabled = true;
+					const sliceButton = this.querySelector('[data-slice-grid]');
+					if (sliceButton) sliceButton.disabled = true;
 					this.querySelector('[data-pick-background]').disabled = true;
 					this.querySelector('[data-remove-background]').disabled = true;
 					this.querySelector('[data-reset-background]').disabled = true;
-					this.querySelector('[data-clear]').disabled = true;
+					const clearButton = this.querySelector('[data-clear]');
+					if (clearButton) clearButton.disabled = true;
 					this.querySelector('[data-stage-label]').textContent = 'Canvas ready';
+					this.renderFrames();
+					this.drawEditor();
+				}
+
+				clearFrames() {
+					this.stopPlayback();
+					this.frames = [];
+					this.activeId = '';
+					this.frameCounter = 0;
+					const clearFramesButton = this.querySelector('[data-clear-frames]');
+					if (clearFramesButton) clearFramesButton.disabled = true;
+					this.querySelector('[data-stage-label]').textContent = 'Selection cleared. Run Auto Detect or draw frames manually.';
+					this.renderFrames();
+					this.drawEditor();
+				}
+
+				sliceGrid() {
+					if (!this.image) return;
+					const sheetWidth = this.image.naturalWidth;
+					const sheetHeight = this.image.naturalHeight;
+					const cols = Math.max(0, Math.floor(Number(this.querySelector('[data-grid-cols]').value) || 0));
+					const rows = Math.max(0, Math.floor(Number(this.querySelector('[data-grid-rows]').value) || 0));
+					const cellWidth = Math.max(0, Math.floor(Number(this.querySelector('[data-grid-width]').value) || 0));
+					const cellHeight = Math.max(0, Math.floor(Number(this.querySelector('[data-grid-height]').value) || 0));
+					const width = cellWidth || (cols ? Math.floor(sheetWidth / cols) : sheetWidth);
+					const height = cellHeight || (rows ? Math.floor(sheetHeight / rows) : sheetHeight);
+					const columnCount = cols || Math.max(1, Math.floor(sheetWidth / width));
+					const rowCount = rows || Math.max(1, Math.floor(sheetHeight / height));
+					this.frames = [];
+					this.frameCounter = 0;
+					for (let row = 0; row < rowCount; row += 1) {
+						for (let col = 0; col < columnCount; col += 1) {
+							const x = col * width;
+							const y = row * height;
+							if (x >= sheetWidth || y >= sheetHeight) continue;
+							this.frames.push(this.makeFrame(x, y, Math.min(width, sheetWidth - x), Math.min(height, sheetHeight - y), null));
+						}
+					}
+					this.activeId = this.frames[0]?.id || '';
+					this.querySelector('[data-stage-label]').textContent = `Grid sliced into ${this.frames.length} frames (${columnCount} x ${rowCount}).`;
 					this.renderFrames();
 					this.drawEditor();
 				}
@@ -449,9 +592,11 @@ const pageTitle = 'Sprite Sheet Extractor';
 				setTool(tool) {
 					this.tool = tool;
 					for (const button of this.querySelectorAll('[data-tool]')) button.setAttribute('aria-pressed', String(button.dataset.tool === tool));
-					this.canvas.style.cursor = tool === 'select' ? 'default' : 'crosshair';
+					this.canvas.style.cursor = tool === 'move' ? 'grab' : 'crosshair';
 					if (tool === 'background') this.querySelector('[data-stage-label]').textContent = 'Background picker active. Click a background pixel on the framesheet.';
-					else this.querySelector('[data-stage-label]').textContent = tool === 'select' ? 'Select a frame on the canvas.' : `${tool === 'rectangle' ? 'Rectangle' : 'Lasso'} tool active. Draw around one pose.`;
+					else if (tool === 'crop') this.querySelector('[data-stage-label]').textContent = 'Crop tool active. Drag to choose the extraction area.';
+					else if (tool === 'move') this.querySelector('[data-stage-label]').textContent = 'Move tool active. Drag any frame rectangle to shift its selection window.';
+					else this.querySelector('[data-stage-label]').textContent = `${tool === 'rectangle' ? 'Rectangle' : 'Lasso'} tool active. Draw around one pose.`;
 				}
 
 				canvasPoint(event) {
@@ -466,12 +611,28 @@ const pageTitle = 'Sprite Sheet Extractor';
 				onPointerDown(event) {
 					if (!this.image) return;
 					const point = this.clampPoint(this.canvasPoint(event));
-					if (this.tool === 'background') {
-						this.sampleBackgroundColor(point); this.removeFramesheetBackground(); this.setTool('select'); return;
+					if (this.tool === 'move') {
+						const frame = [...this.frames].reverse().find((item) => point.x >= item.x && point.x <= item.x + item.w && point.y >= item.y && point.y <= item.y + item.h);
+						if (!frame) return;
+						this.activeId = frame.id;
+						this.previewIndex = this.frames.indexOf(frame);
+						this.stopPlayback();
+						this.canvas.setPointerCapture?.(event.pointerId);
+						this.canvas.style.cursor = 'grabbing';
+						this.drawing = {
+							type: 'move', frame, start: point, originalX: frame.x, originalY: frame.y,
+							originalPolygon: frame.polygon?.map((item) => ({ ...item })) || null,
+						};
+						this.renderFrames();
+						return;
 					}
-					if (this.tool === 'select') {
-						const hit = [...this.frames].reverse().find((frame) => point.x >= frame.x && point.x <= frame.x + frame.w && point.y >= frame.y && point.y <= frame.y + frame.h);
-						if (hit) { this.activeId = hit.id; this.renderFrames(); this.drawEditor(); }
+					if (this.tool === 'background') {
+						this.sampleBackgroundColor(point); this.removeFramesheetBackground(); this.setTool('rectangle'); return;
+					}
+					if (this.tool === 'crop') {
+						this.canvas.setPointerCapture?.(event.pointerId);
+						this.drawing = { type: 'crop', start: point, end: point };
+						this.drawEditor();
 						return;
 					}
 					this.canvas.setPointerCapture?.(event.pointerId);
@@ -484,7 +645,19 @@ const pageTitle = 'Sprite Sheet Extractor';
 					const point = this.clampPoint(this.canvasPoint(event));
 					this.querySelector('[data-pointer-status]').textContent = `X ${Math.round(point.x)} / Y ${Math.round(point.y)}`;
 					if (!this.drawing) return;
-					if (this.drawing.type === 'lasso') {
+					if (this.drawing.type === 'move') {
+						const drag = this.drawing;
+						const maxX = Math.max(0, this.image.naturalWidth - drag.frame.w);
+						const maxY = Math.max(0, this.image.naturalHeight - drag.frame.h);
+						const x = Math.max(0, Math.min(maxX, drag.originalX + point.x - drag.start.x));
+						const y = Math.max(0, Math.min(maxY, drag.originalY + point.y - drag.start.y));
+						drag.frame.x = Math.round(x);
+						drag.frame.y = Math.round(y);
+						const dx = drag.frame.x - drag.originalX;
+						const dy = drag.frame.y - drag.originalY;
+						if (drag.originalPolygon) drag.frame.polygon = drag.originalPolygon.map((item) => ({ x: item.x + dx, y: item.y + dy }));
+						this.querySelector('[data-stage-label]').textContent = `Moving frame to X ${drag.frame.x}, Y ${drag.frame.y}.`;
+					} else if (this.drawing.type === 'lasso') {
 						const last = this.drawing.points[this.drawing.points.length - 1];
 						if (Math.hypot(point.x - last.x, point.y - last.y) > 3 / this.view.scale) this.drawing.points.push(point);
 					} else this.drawing.end = point;
@@ -494,7 +667,32 @@ const pageTitle = 'Sprite Sheet Extractor';
 				onPointerUp(event) {
 					if (!this.drawing || !this.image) return;
 					const point = this.clampPoint(this.canvasPoint(event));
+					if (this.drawing.type === 'move') {
+						const frame = this.drawing.frame;
+						this.drawing = null;
+						this.canvas.style.cursor = 'grab';
+						this.querySelector('[data-stage-label]').textContent = `Frame selection moved to X ${frame.x}, Y ${frame.y}.`;
+						this.renderFrames();
+						return;
+					}
 					let frame = null;
+					if (this.drawing.type === 'crop') {
+						const start = this.drawing.start;
+						const x = Math.min(start.x, point.x);
+						const y = Math.min(start.y, point.y);
+						const w = Math.abs(point.x - start.x);
+						const h = Math.abs(point.y - start.y);
+						this.drawing = null;
+						if (w >= 4 && h >= 4) {
+							this.cropRegion = { x, y, w, h };
+							const clearButton = this.querySelector('[data-clear-crop]');
+							if (clearButton) clearButton.disabled = false;
+							this.querySelector('[data-stage-label]').textContent = `Crop set at x ${Math.round(x)}, y ${Math.round(y)}, ${Math.round(w)} x ${Math.round(h)}. Auto Detect will focus inside it.`;
+						}
+						this.setTool('rectangle');
+						this.drawEditor();
+						return;
+					}
 					if (this.drawing.type === 'rectangle') {
 						const start = this.drawing.start;
 						const x = Math.min(start.x, point.x);
@@ -522,7 +720,87 @@ const pageTitle = 'Sprite Sheet Extractor';
 					const preserve = this.querySelector('[data-preserve-ratio]').checked;
 					const defaultHeight = preserve ? Math.max(1, Math.round(defaultWidth * h / w)) : Math.max(1, Number(this.querySelector('[data-default-height]').value) || Math.round(h));
 					this.frameCounter += 1;
-					return { id: `frame-${this.frameCounter}`, x: Math.round(x), y: Math.round(y), w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)), polygon, outputWidth: defaultWidth, outputHeight: defaultHeight, offsetX: 0, offsetY: 0 };
+					return { id: `frame-${this.frameCounter}`, x: Math.round(x), y: Math.round(y), w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)), polygon, outputWidth: defaultWidth, outputHeight: defaultHeight, offsetX: 0, offsetY: 0, sheetSized: this.tool === 'lasso' };
+				}
+
+				traceLassoContour(mask, width, height, box, scale) {
+					const isObj = (x, y) => x >= box.minX && x <= box.maxX && y >= box.minY && y <= box.maxY && mask[y * width + x] === 2;
+					const edges = new Map();
+					const edgeList = [];
+					const addEdge = (ax, ay, bx, by) => {
+						const id = edgeList.length;
+						edgeList.push({ a: [ax, ay], b: [bx, by] });
+						const ka = ax + ',' + ay;
+						const kb = bx + ',' + by;
+						if (!edges.has(ka)) edges.set(ka, []);
+						if (!edges.has(kb)) edges.set(kb, []);
+						edges.get(ka).push(id);
+						edges.get(kb).push(id);
+					};
+					for (let y = box.minY; y <= box.maxY; y += 1) {
+						for (let x = box.minX; x <= box.maxX; x += 1) {
+							if (!isObj(x, y)) continue;
+							if (!isObj(x + 1, y)) addEdge(x + 1, y, x + 1, y + 1);
+							if (!isObj(x - 1, y)) addEdge(x, y, x, y + 1);
+							if (!isObj(x, y + 1)) addEdge(x, y + 1, x + 1, y + 1);
+							if (!isObj(x, y - 1)) addEdge(x, y, x + 1, y);
+						}
+					}
+					if (!edgeList.length) return null;
+					const used = new Uint8Array(edgeList.length);
+					const loops = [];
+					const areaOf = (points) => {
+						let area = 0;
+						for (let i = 0; i < points.length; i += 1) {
+							const p = points[i];
+							const q = points[(i + 1) % points.length];
+							area += p[0] * q[1] - q[0] * p[1];
+						}
+						return Math.abs(area) / 2;
+					};
+					for (let start = 0; start < edgeList.length; start += 1) {
+						if (used[start]) continue;
+						used[start] = 1;
+						let a = edgeList[start].a;
+						let b = edgeList[start].b;
+						const points = [a, b];
+						let corner = b;
+						const seen = new Set([`${a[0]},${a[1]}`, `${b[0]},${b[1]}`]);
+						let guard = 0;
+						while (guard < 1000000) {
+							guard += 1;
+							const key = `${corner[0]},${corner[1]}`;
+							const candidates = (edges.get(key) || []).filter((id) => !used[id]);
+							if (!candidates.length) break;
+							const dirIn = [corner[0] - a[0], corner[1] - a[1]];
+							let best = candidates[0];
+							let bestTurn = -1;
+							for (const id of candidates) {
+								const edge = edgeList[id];
+								const other = (edge.a[0] === corner[0] && edge.a[1] === corner[1]) ? edge.b : edge.a;
+								const dirOut = [other[0] - corner[0], other[1] - corner[1]];
+								let turn = Math.atan2(dirIn[0] * dirOut[1] - dirIn[1] * dirOut[0], dirIn[0] * dirOut[0] + dirIn[1] * dirOut[1]);
+								if (turn < 0) turn += Math.PI * 2;
+								if (turn > bestTurn) { bestTurn = turn; best = id; }
+							}
+							used[best] = 1;
+							const edge = edgeList[best];
+							const other = (edge.a[0] === corner[0] && edge.a[1] === corner[1]) ? edge.b : edge.a;
+							points.push(other);
+							if (seen.has(`${other[0]},${other[1]}`)) break;
+							seen.add(`${other[0]},${other[1]}`);
+							a = corner;
+							corner = other;
+						}
+						loops.push(points);
+					}
+					let bestLoop = [];
+					let bestArea = -1;
+					for (const loop of loops) {
+						const area = areaOf(loop);
+						if (area > bestArea) { bestArea = area; bestLoop = loop; }
+					}
+					return bestLoop.map(([px, py]) => ({ x: px / scale, y: py / scale }));
 				}
 
 				sampleBackgroundColor(point) {
@@ -595,6 +873,18 @@ const pageTitle = 'Sprite Sheet Extractor';
 							const chroma = Math.max(r, g, b) - Math.min(r, g, b);
 							mask[pixel] = hasTransparency ? (a > 24 ? 1 : 0) : ((Math.min(r, g, b) < cutoff || chroma > 24) ? 1 : 0);
 						}
+						if (this.cropRegion) {
+							// Only detect inside the crop region.
+							const cropX = Math.max(0, this.cropRegion.x * scale);
+							const cropY = Math.max(0, this.cropRegion.y * scale);
+							const cropW = Math.min(width, this.cropRegion.w * scale);
+							const cropH = Math.min(height, this.cropRegion.h * scale);
+							for (let pixel = 0; pixel < mask.length; pixel += 1) {
+								const x = pixel % width;
+								const y = (pixel / width) | 0;
+								if (x < cropX || x > cropX + cropW || y < cropY || y > cropY + cropH) mask[pixel] = 0;
+							}
+						}
 						const queue = new Int32Array(mask.length);
 						const boxes = [];
 						const minArea = Number(this.querySelector('[data-min-area]').value) || 180;
@@ -614,14 +904,21 @@ const pageTitle = 'Sprite Sheet Extractor';
 							if (count >= minArea && maxX - minX > 3 && maxY - minY > 3) boxes.push({ minX, minY, maxX, maxY, count });
 						}
 						const padding = Math.max(0, Number(this.querySelector('[data-padding]').value) || 0);
+						const lassoMode = this.tool === 'lasso';
 						const candidates = boxes
 							.filter((box) => box.count < width * height * 0.7)
-							.map((box) => ({ x: Math.max(0, box.minX / scale - padding), y: Math.max(0, box.minY / scale - padding), w: Math.min(this.image.naturalWidth, (box.maxX + 1) / scale + padding) - Math.max(0, box.minX / scale - padding), h: Math.min(this.image.naturalHeight, (box.maxY + 1) / scale + padding) - Math.max(0, box.minY / scale - padding) }))
+							.map((box) => ({ x: Math.max(0, box.minX / scale - padding), y: Math.max(0, box.minY / scale - padding), w: Math.min(this.image.naturalWidth, (box.maxX + 1) / scale + padding) - Math.max(0, box.minX / scale - padding), h: Math.min(this.image.naturalHeight, (box.maxY + 1) / scale + padding) - Math.max(0, box.minY / scale - padding), minX: box.minX, minY: box.minY, maxX: box.maxX, maxY: box.maxY }))
 							.sort((a, b) => a.x - b.x || a.y - b.y)
 							.slice(0, 100);
-						this.frames = candidates.map((box) => this.makeFrame(box.x, box.y, box.w, box.h, null));
+						if (lassoMode) {
+							// Lasso mode: trace the exact outline polygon of every detected
+							// piece instead of keeping plain rectangles.
+							this.frames = candidates.map((box) => this.makeFrame(box.x, box.y, box.w, box.h, this.traceLassoContour(mask, width, height, box, scale)));
+						} else {
+							this.frames = candidates.map((box) => this.makeFrame(box.x, box.y, box.w, box.h, null));
+						}
 						this.activeId = this.frames[0]?.id || '';
-						this.querySelector('[data-stage-label]').textContent = this.frames.length ? `${this.frames.length} separate frames detected. Add or remove selections as needed.` : 'No separate objects found. Lower Light cutoff or Minimum object area, or use Rectangle/Lasso.';
+						this.querySelector('[data-stage-label]').textContent = this.frames.length ? (lassoMode ? `${this.frames.length} frames detected. Lasso mode: exact outline per piece.` : `${this.frames.length} separate frames detected. Add or remove selections as needed.`) : 'No separate objects found. Lower Light cutoff or Minimum object area, or use Rectangle/Lasso.';
 						this.renderFrames();
 						this.drawEditor();
 					} finally {
@@ -659,7 +956,8 @@ const pageTitle = 'Sprite Sheet Extractor';
 					this.view = { x, y, scale };
 					context.save(); context.imageSmoothingEnabled = true; context.drawImage(this.sourceCanvas || this.image, x, y, drawWidth, drawHeight); context.restore();
 					for (let index = 0; index < this.frames.length; index += 1) this.drawSelection(context, this.frames[index], index + 1, this.frames[index].id === this.activeId);
-					if (this.drawing) this.drawDraft(context);
+					if (this.cropRegion) this.drawCropOverlay(context);
+					if (this.drawing && this.drawing.type !== 'move') this.drawDraft(context);
 				}
 
 				drawSelection(context, frame, number, active) {
@@ -680,11 +978,34 @@ const pageTitle = 'Sprite Sheet Extractor';
 					context.fill(); context.stroke(); context.restore();
 				}
 
+				drawCropOverlay(context) {
+					const crop = this.cropRegion;
+					if (!crop || !this.image) return;
+					const width = this.image.naturalWidth;
+					const height = this.image.naturalHeight;
+					context.save();
+					context.translate(this.view.x, this.view.y);
+					context.scale(this.view.scale, this.view.scale);
+					context.fillStyle = 'rgba(20, 24, 20, 0.38)';
+					context.fillRect(0, 0, width, crop.y);
+					context.fillRect(0, crop.y + crop.h, width, height - crop.y - crop.h);
+					context.fillRect(0, crop.y, crop.x, crop.h);
+					context.fillRect(crop.x + crop.w, crop.y, width - crop.x - crop.w, crop.h);
+					context.strokeStyle = '#a8ee19';
+					context.lineWidth = 2 / this.view.scale;
+					context.strokeRect(crop.x, crop.y, crop.w, crop.h);
+					context.restore();
+				}
+
 				renderFrames() {
 					this.querySelector('[data-count]').textContent = String(this.frames.length);
 					this.querySelector('[data-frame-status]').textContent = `${this.frames.length} frame${this.frames.length === 1 ? '' : 's'}`;
 					this.querySelector('[data-play]').disabled = this.frames.length === 0;
 					this.querySelector('[data-save]').disabled = this.frames.length === 0;
+					const clearFramesButton = this.querySelector('[data-clear-frames]');
+					if (clearFramesButton) clearFramesButton.disabled = this.frames.length === 0;
+					const moveButton = this.querySelector('[data-tool="move"]');
+					if (moveButton) moveButton.disabled = this.frames.length === 0;
 					if (!this.frames.length) this.frameList.innerHTML = '<div class="frame-list-empty">Detected and hand-drawn frames appear here. Select a frame to resize or inspect it.</div>';
 					else this.frameList.innerHTML = this.frames.map((frame, index) => `<article class="frame-item" data-frame-id="${frame.id}" data-active="${frame.id === this.activeId}"><canvas class="frame-thumb" width="140" height="140"></canvas><div class="frame-info"><div class="frame-title"><button type="button" data-action="select">Frame ${String(index + 1).padStart(2, '0')}</button><span class="frame-actions"><button class="mini-button" data-action="up" type="button" title="Move earlier">&uarr;</button><button class="mini-button" data-action="down" type="button" title="Move later">&darr;</button><button class="mini-button" data-action="delete" type="button" title="Delete">x</button></span></div><div class="frame-size"><input data-size="width" type="number" min="1" max="4096" value="${frame.outputWidth}" aria-label="Crop width"/><span class="status">x</span><input data-size="height" type="number" min="1" max="4096" value="${frame.outputHeight}" aria-label="Crop height"/></div><div class="frame-offset"><span class="axis-label">X</span><input data-offset="x" type="number" min="-4096" max="4096" value="${frame.offsetX}" aria-label="Scene offset X"/><span class="axis-label">Y</span><input data-offset="y" type="number" min="-4096" max="4096" value="${frame.offsetY}" aria-label="Scene offset Y"/></div></div></article>`).join('');
 					for (const item of this.frameList.querySelectorAll('[data-frame-id]')) {
@@ -756,6 +1077,25 @@ const pageTitle = 'Sprite Sheet Extractor';
 				}
 
 				createSceneCanvas(frame) {
+					// Lasso-extracted frames keep the source sheet's size and
+					// resolution, with the sprite placed at its original position.
+					if (frame?.sheetSized && this.image) {
+						const canvas = document.createElement('canvas');
+						canvas.width = this.image.naturalWidth;
+						canvas.height = this.image.naturalHeight;
+						const context = canvas.getContext('2d', { alpha: true });
+						context.save();
+						if (frame.polygon?.length) {
+							context.beginPath();
+							context.moveTo(frame.polygon[0].x - frame.x, frame.polygon[0].y - frame.y);
+							for (const point of frame.polygon.slice(1)) context.lineTo(point.x - frame.x, point.y - frame.y);
+							context.closePath();
+							context.clip();
+						}
+						context.drawImage(this.sourceCanvas || this.image, frame.x, frame.y, frame.w, frame.h, frame.x + frame.offsetX, frame.y + frame.offsetY, frame.w, frame.h);
+						context.restore();
+						return canvas;
+					}
 					const scene = this.getSceneSize(); const canvas = document.createElement('canvas'); canvas.width = scene.width; canvas.height = scene.height;
 					if (!frame || !this.image) return canvas;
 					const sprite = document.createElement('canvas'); this.drawFrameIntoCanvas(frame, sprite, true);
@@ -844,7 +1184,7 @@ const pageTitle = 'Sprite Sheet Extractor';
 				async chooseFolder() {
 					const status = this.querySelector('[data-save-status]');
 					if (!('showDirectoryPicker' in window)) { status.textContent = 'Folder API unavailable. Save uses browser downloads.'; return null; }
-					try { this.directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); status.textContent = `Folder: ${this.directoryHandle.name}`; return this.directoryHandle; }
+					try { this.directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' }); this.autoSaveRoot = null; status.textContent = `Folder: ${this.directoryHandle.name}`; return this.directoryHandle; }
 					catch (error) { if (error?.name !== 'AbortError') status.textContent = `Folder error: ${error.message}`; return null; }
 				}
 
@@ -858,19 +1198,255 @@ const pageTitle = 'Sprite Sheet Extractor';
 					const status = this.querySelector('[data-save-status]'); const button = this.querySelector('[data-save]'); button.disabled = true;
 					try {
 						let directory = this.directoryHandle;
+						if (this.autoSaveRoot && 'getDirectoryHandle' in this.autoSaveRoot) {
+							const now = new Date();
+							const pad = (value) => String(value).padStart(2, '0');
+							const base = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+							let name = base;
+							let counter = 2;
+							for (;;) {
+								try {
+									await this.autoSaveRoot.getDirectoryHandle(name);
+									name = `${base} (${counter})`;
+									counter += 1;
+								} catch {
+									break;
+								}
+							}
+							directory = await this.autoSaveRoot.getDirectoryHandle(name, { create: true });
+						}
 						if (!directory && 'showDirectoryPicker' in window) directory = await this.chooseFolder();
 						for (let index = 0; index < this.frames.length; index += 1) {
 							status.textContent = `Saving ${index + 1} of ${this.frames.length}...`; const blob = await this.frameBlob(this.frames[index]); const name = `frame-${String(index + 1).padStart(3, '0')}.png`;
 							if (directory) { const file = await directory.getFileHandle(name, { create: true }); const writable = await file.createWritable(); await writable.write(blob); await writable.close(); }
 							else { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = name; link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); await new Promise((resolve) => setTimeout(resolve, 140)); }
 						}
-						status.textContent = directory ? `${this.frames.length} PNG frames saved to ${directory.name}.` : `${this.frames.length} PNG downloads started.`;
+						status.textContent = directory ? `${this.frames.length} PNG frames saved to ${this.autoSaveRoot ? this.autoSaveRoot.name + '/' + directory.name : directory.name}.` : `${this.frames.length} PNG downloads started.`;
 					} catch (error) { status.textContent = error?.name === 'AbortError' ? 'Save cancelled.' : `Save failed: ${error.message}`; }
 					finally { button.disabled = false; }
 				}
 			}
 
 			customElements.define('sprite-extractor-app', SpriteExtractorApp);
+		</script>
+
+		<script is:inline>
+			(() => {
+				const bar = document.querySelector('[data-stage-options]');
+				const list = document.querySelector('[data-stage-options-list]');
+				const label = document.querySelector('[data-stage-options-label]');
+				const app = document.querySelector('sprite-extractor-app');
+				const sourceName = document.querySelector('[data-source-name]');
+				const sourceMeta = document.querySelector('[data-source-meta]');
+				if (!bar || !list || !label || !app) return;
+
+				const imageRe = /\.(png|webp|jpe?g|gif|avif)$/i;
+				const project = window.SpriteAnimProject?.getActiveProject?.();
+				const cycle = window.SpriteAnimProject?.getActiveCycle?.();
+
+				const openDb = () => new Promise((resolve, reject) => {
+					const request = indexedDB.open('spriteanim-v2-handles', 1);
+					request.onupgradeneeded = () => {
+						if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+					};
+					request.onsuccess = () => resolve(request.result);
+					request.onerror = () => reject(request.error);
+				});
+				const getRootHandle = async () => {
+					try {
+						const db = await openDb();
+						const handle = await new Promise((resolve, reject) => {
+							const req = db.transaction('handles').objectStore('handles').get('spriteanim-root-handle');
+							req.onsuccess = () => resolve(req.result || null);
+							req.onerror = () => reject(req.error);
+						});
+						db.close();
+						return handle;
+					} catch {
+						return null;
+					}
+				};
+				const collectSheets = async (directory) => {
+					const sheets = [];
+					const collect = async (source) => {
+						for await (const entry of source.values()) {
+							if (entry.kind === 'file' && imageRe.test(entry.name)) {
+								sheets.push({ name: entry.name, file: await entry.getFile() });
+							}
+						}
+					};
+					// Primary: this stage's own folder — unpivoted frames
+					try {
+						await collect(await directory.getDirectoryHandle('stage2 - unpivoted frames'));
+					} catch {}
+					// Fallbacks: frames-sheet stage, the cycle root, then the legacy generated folder
+					try {
+						await collect(await directory.getDirectoryHandle('stage1 - frames-sheet'));
+					} catch {}
+					await collect(directory);
+					try {
+						await collect(await directory.getDirectoryHandle('generated'));
+					} catch {}
+					return sheets.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+				};
+
+				// Wait for the module script to define the custom element
+				// (Astro <script> tags are type="module" and deferred)
+				const waitForApp = () => customElements.whenDefined('sprite-extractor-app');
+
+				const loadSheet = async (sheet) => {
+					await waitForApp();
+					const url = URL.createObjectURL(sheet.file);
+					await app.loadImageSource(url, sheet.name, sheet.file.size);
+				};
+
+				const showNoProject = () => {
+					if (sourceName) sourceName.textContent = 'No image selected';
+					if (sourceMeta) sourceMeta.textContent = 'Set the Project root in \u2699 settings, then select a project and cycle.';
+				};
+
+				const showReconnect = (root) => {
+					if (sourceName) sourceName.textContent = 'Folder access needed';
+					if (sourceMeta) sourceMeta.textContent = 'Browser needs permission to read the project folder.';
+					const actions = document.querySelector('.source-actions');
+					if (!actions) return;
+					const reconnect = document.createElement('button');
+					reconnect.type = 'button';
+					reconnect.className = 'button dark';
+					reconnect.textContent = 'Reconnect Project Folder';
+					reconnect.addEventListener('click', async () => {
+						try {
+							const perm = await root.requestPermission({ mode: 'read' });
+							if (perm === 'granted') {
+								reconnect.remove();
+								await doLoad(root);
+							}
+						} catch (err) {
+							if (sourceMeta) sourceMeta.textContent = 'Permission denied. Try setting Project root again in \u2699 settings.';
+						}
+					});
+					actions.prepend(reconnect);
+				};
+
+				const cycleFolderNames = async (directory) => {
+					const names = [];
+					for await (const entry of directory.values()) {
+						if (entry.kind === 'directory' && !entry.name.startsWith('.') && !entry.name.startsWith('_')) {
+							names.push(entry.name);
+						}
+					}
+					return names.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+				};
+
+				const doLoad = async (root) => {
+					let projectHandle;
+					let targetHandle;
+					try {
+						root = await root.getDirectoryHandle('anim-projects');
+						projectHandle = await root.getDirectoryHandle(project);
+					} catch {
+						try {
+							const projects = await cycleFolderNames(root);
+							if (projects.length) projectHandle = await root.getDirectoryHandle(projects[0]);
+						} catch {}
+						if (!projectHandle) {
+							showNoProject();
+							return;
+						}
+					}
+					try {
+						if (cycle) {
+							targetHandle = await projectHandle.getDirectoryHandle(cycle);
+						} else {
+							const cycles = await cycleFolderNames(projectHandle);
+							targetHandle = cycles.length ? await projectHandle.getDirectoryHandle(cycles[0]) : projectHandle;
+						}
+					} catch {
+						showNoProject();
+						return;
+					}
+					const sheets = await collectSheets(targetHandle);
+					if (!sheets.length) {
+						if (sourceName) sourceName.textContent = 'No images found';
+						if (sourceMeta) sourceMeta.textContent = cycle
+							? 'Place sprite sheet images in ' + project + '/' + cycle + '/stage2 - unpivoted frames/'
+							: 'Place sprite sheet images in ' + project + '/';
+						return;
+					}
+
+					// Auto-save: each "Save All Frames" creates a new timestamped
+					// folder inside the stage2 - unpivoted frames folder.
+					await waitForApp();
+					try {
+						const writeOpts = { mode: 'readwrite' };
+						let wp = await targetHandle.queryPermission(writeOpts);
+						if (wp !== 'granted') wp = await targetHandle.requestPermission(writeOpts);
+						if (wp === 'granted') {
+							let stage2 = targetHandle;
+							try {
+								stage2 = await targetHandle.getDirectoryHandle('stage2 - unpivoted frames', { create: true });
+							} catch {}
+							app.autoSaveRoot = stage2;
+							app.directoryHandle = stage2;
+							const saveStatus = app.querySelector('[data-save-status]');
+							if (saveStatus) saveStatus.textContent = 'Each save creates a new timestamped folder in ' + targetHandle.name + '/stage2 - unpivoted frames';
+						}
+					} catch {}
+
+					// Single sheet: auto-select directly, no options bar
+					if (sheets.length === 1) {
+						bar.hidden = true;
+						await loadSheet(sheets[0]);
+						return;
+					}
+
+					// Multiple sheets: list them in a dropdown
+					label.textContent = 'Frames sheets';
+					list.replaceChildren();
+					sheets.forEach((sheet, index) => {
+						const option = document.createElement('option');
+						option.value = String(index);
+						option.textContent = sheet.name;
+						list.append(option);
+					});
+					// Default-select the latest ChatGPT-generated sheet (newest file),
+					// falling back to the first sheet in the list.
+					const chatgptSheets = sheets
+						.map((sheet, index) => ({ sheet, index }))
+						.filter(({ sheet }) => /chatgpt/i.test(sheet.name))
+						.sort((a, b) => (b.sheet.file.lastModified || 0) - (a.sheet.file.lastModified || 0));
+					const preferred = chatgptSheets[0] || { index: 0 };
+					list.value = String(preferred.index);
+					bar.hidden = false;
+					list.addEventListener('change', () => {
+						const selectedIndex = Number(list.value);
+						if (sheets[selectedIndex]) void loadSheet(sheets[selectedIndex]);
+					});
+
+					// Auto-load the default selection
+					await loadSheet(sheets[preferred.index]);
+				};
+
+				async function init() {
+					if (!project) { showNoProject(); return; }
+					const root = await getRootHandle();
+					if (!root) { showNoProject(); return; }
+
+					// Check permission — queryPermission does NOT need a user gesture
+					try {
+						const perm = await root.queryPermission({ mode: 'read' });
+						if (perm === 'granted') {
+							await doLoad(root);
+						} else {
+							// Need user gesture to re-grant permission
+							showReconnect(root);
+						}
+					} catch {
+						showReconnect(root);
+					}
+				}
+				void init();
+			})();
 		</script>
 	</body>
 </html>

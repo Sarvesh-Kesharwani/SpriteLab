@@ -1,0 +1,13 @@
+{
+  "name": "SpriteLab",
+  "short_name": "SpriteLab",
+  "description": "Turn GIFs and videos into cleaned, sequenced sprite animations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f5f4",
+  "theme_color": "#9cff00",
+  "icons": [
+    { "src": "/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,1320 @@
+---
+	const {
+		active = '',
+		showProjects = true,
+	} = Astro.props;
+
+const chatgptSteps = [
+	{ id: 'gif', label: 'GIF to frames', href: '/gif-to-frame/', title: 'Import, crop, and extract GIF or video frames' },
+	{ id: 'generate', label: 'ChatGPT links', href: '/chat-links/', title: 'Save ChatGPT chat links' },
+	{ id: 'extract', label: 'Extract frames', href: '/sprite-extractor/', title: 'Sheet to individual frames' },
+	{ id: 'sequence', label: 'Frame sequencer', href: '/frame-sequencer/', title: 'Order and position frames' },
+	{ id: 'play', label: 'Play Animations', href: '/play-animations/', title: 'Play saved animation sequences' },
+];
+
+const grokSteps = [
+	{ id: 'gif', label: 'GIF / video frames', href: '/gif-to-frame/', title: 'Crop GIFs and extract frames' },
+	{ id: 'extract', label: 'Clean frames', href: '/gif-to-frame/', title: 'Clean extracted frames' },
+	{ id: 'sequence', label: 'Frame sequencer', href: '/frame-sequencer/', title: 'Order and position frames' },
+];
+---
+
+<header class="pipeline-header">
+	<a class="pipeline-brand" href="/" aria-label="Open home">
+		<img class="brand-logo" src="/assets/spritelab-logo.png" alt="" width="256" height="256" />
+		SpriteLab
+	</a>
+
+	<nav class="pipeline-nav" data-pipeline-nav="chatgpt" aria-label="ChatGPT frames-sheet pipeline">
+		{chatgptSteps.map((step, index) => (
+			<>
+				<a
+					class:list={['pipeline-step', { active: active === step.id }]}
+					href={step.href}
+					title={step.title}
+				>
+					<span class="step-index">{index + 1}</span>
+					<span>{step.label}</span>
+				</a>
+				{index < chatgptSteps.length - 1 && <span class="pipeline-arrow" aria-hidden="true">-&gt;</span>}
+			</>
+		))}
+	</nav>
+
+	<nav class="pipeline-nav" data-pipeline-nav="grok" aria-label="Grok video-to-animation pipeline" hidden>
+		{grokSteps.map((step, index) => (
+			<>
+				<a
+					class:list={['pipeline-step', { active: active === step.id }]}
+					href={step.href}
+					title={step.title}
+				>
+					<span class="step-index">{index + 1}</span>
+					<span>{step.label}</span>
+				</a>
+				{index < grokSteps.length - 1 && <span class="pipeline-arrow" aria-hidden="true">-&gt;</span>}
+			</>
+		))}
+	</nav>
+
+	<div class="pipeline-actions">
+		<div class="pipeline-settings">
+		<button
+			class="settings-button focus-ring"
+			type="button"
+			data-pipeline-settings
+			aria-label="Pipeline settings"
+			aria-haspopup="menu"
+			aria-expanded="false"
+		>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<circle cx="12" cy="12" r="3"></circle>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+			</svg>
+		</button>
+		<div class="settings-popover" data-pipeline-popover>
+			<p class="settings-label">Pipeline</p>
+			<div class="pipeline-toggle" role="group" aria-label="Choose pipeline">
+				<button class="focus-ring" type="button" data-pipeline-option="chatgpt" aria-pressed="true">ChatGPT</button>
+				<button class="focus-ring" type="button" data-pipeline-option="grok" aria-pressed="false">Grok</button>
+			</div>
+			<div class="settings-divider"></div>
+			<div class="settings-folder-row">
+				<span class="settings-label">Samples folder</span>
+				<button class="settings-folder-button focus-ring" type="button" data-samples-folder>Set folder</button>
+			</div>
+			<div class="settings-folder-row">
+				<span class="settings-label">Project root</span>
+				<button class="settings-folder-button focus-ring" type="button" data-project-root>Set folder</button>
+			</div>
+		</div>
+		</div>
+	</div>
+</header>
+
+<script is:inline>
+	(() => {
+		const pipelineKey = 'spriteanim-pipeline';
+		const chatgptNav = document.querySelector('[data-pipeline-nav="chatgpt"]');
+		const grokNav = document.querySelector('[data-pipeline-nav="grok"]');
+		const options = Array.from(document.querySelectorAll('[data-pipeline-option]'));
+		const settingsButton = document.querySelector('[data-pipeline-settings]');
+		const settingsWrap = settingsButton?.parentElement;
+
+		const normalize = (value) => (value === 'grok' ? 'grok' : 'chatgpt');
+
+		const applyPipeline = (next, persist = false) => {
+			next = normalize(next);
+			chatgptNav.hidden = next !== 'chatgpt';
+			grokNav.hidden = next !== 'grok';
+			options.forEach((option) => {
+				const active = option.dataset.pipelineOption === next;
+				option.classList.toggle('active', active);
+				option.setAttribute('aria-pressed', String(active));
+			});
+			if (persist) localStorage.setItem(pipelineKey, next);
+		};
+
+		options.forEach((option) => {
+			option.addEventListener('click', () => applyPipeline(option.dataset.pipelineOption, true));
+		});
+
+		if (settingsButton && settingsWrap) {
+			const setExpanded = (expanded) => settingsButton.setAttribute('aria-expanded', String(expanded));
+			settingsWrap.addEventListener('mouseenter', () => setExpanded(true));
+			settingsWrap.addEventListener('mouseleave', () => setExpanded(false));
+			settingsWrap.addEventListener('focusin', () => setExpanded(true));
+			settingsWrap.addEventListener('focusout', (event) => {
+				if (!settingsWrap.contains(event.relatedTarget)) setExpanded(false);
+			});
+			settingsWrap.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape' && settingsWrap.contains(document.activeElement)) {
+					setExpanded(false);
+					settingsButton.focus();
+				}
+			});
+		}
+
+		const folderButton = document.querySelector('[data-samples-folder]');
+		if (folderButton && 'showDirectoryPicker' in window) {
+			const samplesKey = () => {
+				const project = window.SpriteAnimProject?.getActiveProject?.()
+					|| localStorage.getItem('spriteanim-active-project')
+					|| 'zombie-jump';
+				return `${project}::samples-directory`;
+			};
+			const openDatabase = () => new Promise((resolve, reject) => {
+				const request = indexedDB.open('spriteanim-v2-handles', 1);
+				request.onupgradeneeded = () => {
+					if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+				};
+				request.onsuccess = () => resolve(request.result);
+				request.onerror = () => reject(request.error);
+			});
+			const readHandle = async () => {
+				try {
+					const database = await openDatabase();
+					return await new Promise((resolve, reject) => {
+						const transaction = database.transaction('handles', 'readonly');
+						const request = transaction.objectStore('handles').get(samplesKey());
+						request.onsuccess = () => resolve(request.result || null);
+						request.onerror = () => reject(request.error);
+					});
+				} catch {
+					return null;
+				}
+			};
+			const writeHandle = async (handle) => {
+				const database = await openDatabase();
+				await new Promise((resolve, reject) => {
+					const transaction = database.transaction('handles', 'readwrite');
+					transaction.objectStore('handles').put(handle, samplesKey());
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+			};
+			const applyFolderLabel = async () => {
+				const handle = await readHandle();
+				folderButton.textContent = handle ? handle.name : 'Set folder';
+			};
+			folderButton.addEventListener('click', async () => {
+				try {
+					const picked = await window.showDirectoryPicker({ mode: 'read' });
+					await writeHandle(picked);
+					folderButton.textContent = picked.name;
+					window.dispatchEvent(new CustomEvent('spriteanim-samples-folder-change', { detail: { folder: picked.name } }));
+				} catch (error) {
+					if (error?.name !== 'AbortError') folderButton.textContent = 'Folder error';
+				}
+			});
+			window.addEventListener('spriteanim-project-change', () => void applyFolderLabel());
+			void applyFolderLabel();
+		} else if (folderButton) {
+			folderButton.disabled = true;
+			folderButton.textContent = 'Unavailable';
+		}
+
+		const rootButton = document.querySelector('[data-project-root]');
+		if (rootButton && 'showDirectoryPicker' in window) {
+			const rootKey = 'spriteanim-root-handle';
+			const openRootDb = () => new Promise((resolve, reject) => {
+				const request = indexedDB.open('spriteanim-v2-handles', 1);
+				request.onupgradeneeded = () => {
+					if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+				};
+				request.onsuccess = () => resolve(request.result);
+				request.onerror = () => reject(request.error);
+			});
+			const readRootHandle = async () => {
+				try {
+					const database = await openRootDb();
+					return await new Promise((resolve, reject) => {
+						const request = database.transaction('handles').objectStore('handles').get(rootKey);
+						request.onsuccess = () => resolve(request.result || null);
+						request.onerror = () => reject(request.error);
+					});
+				} catch {
+					return null;
+				}
+			};
+			const writeRootHandle = async (handle) => {
+				const database = await openRootDb();
+				await new Promise((resolve, reject) => {
+					const transaction = database.transaction('handles', 'readwrite');
+					transaction.objectStore('handles').put(handle, rootKey);
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+			};
+			const applyRootLabel = async () => {
+				const handle = await readRootHandle();
+				rootButton.textContent = handle ? handle.name : 'Set folder';
+			};
+			rootButton.addEventListener('click', async () => {
+				try {
+					const picked = await window.showDirectoryPicker({ mode: 'readwrite' });
+					await writeRootHandle(picked);
+					rootButton.textContent = picked.name;
+					window.dispatchEvent(new CustomEvent('spriteanim-root-folder-change', { detail: { folder: picked.name } }));
+				} catch (error) {
+					if (error?.name !== 'AbortError') rootButton.textContent = 'Folder error';
+				}
+			});
+			window.addEventListener('spriteanim-root-folder-change', () => void applyRootLabel());
+			void applyRootLabel();
+		} else if (rootButton) {
+			rootButton.disabled = true;
+			rootButton.textContent = 'Unavailable';
+		}
+
+		try {
+			applyPipeline(localStorage.getItem(pipelineKey));
+		} catch {
+			applyPipeline('chatgpt');
+		}
+	})();
+</script>
+
+{showProjects && (
+	<project-rail class="project-rail">
+		<div class="project-group">
+			<div class="project-rail-copy">
+				<strong>Projects</strong>
+				<span data-project-path>D:\SpriteAnimProjects\anim-projects</span>
+			</div>
+			<div data-project-list class="project-list" aria-label="Project selector"></div>
+			<button data-add-project class="project-add" type="button">New project</button>
+		</div>
+		<span class="rail-divider" role="separator" aria-hidden="true"></span>
+		<div class="project-group cycle-group">
+			<div class="project-rail-copy">
+				<strong>Anim cycles</strong>
+				<span data-cycle-path>No cycle selected</span>
+			</div>
+			<div data-cycle-list class="project-list" aria-label="Animation cycle selector"></div>
+			<button data-add-cycle class="project-add" type="button">New cycle</button>
+		</div>
+	</project-rail>
+)}
+
+<script is:inline>
+	(() => {
+		const defaultProjects = ['zombie-jump', 'run-cycle'];
+		const projectKey = 'spriteanim-projects';
+		const activeKey = 'spriteanim-active-project';
+		const cycleKey = 'spriteanim-cycles';
+		const activeCycleKey = 'spriteanim-active-cycle';
+		const root = 'D:\\SpriteAnimProjects\\anim-projects';
+
+		const slug = (value) => (value || '')
+			.trim()
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-+|-+$/g, '');
+
+		window.SpriteAnimProject = {
+			getActiveProject() {
+				return localStorage.getItem(activeKey) || defaultProjects[0];
+			},
+			getStorageKey(key) {
+				return `${this.getActiveProject()}::${key}`;
+			},
+			getCycles() {
+				try {
+					const all = JSON.parse(localStorage.getItem(cycleKey) || 'null') || {};
+					return Array.isArray(all[this.getActiveProject()]) ? all[this.getActiveProject()] : [];
+				} catch {
+					return [];
+				}
+			},
+			getActiveCycle() {
+				try {
+					const all = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+					return all[this.getActiveProject()] || '';
+				} catch {
+					return '';
+				}
+			},
+			getRootPath() {
+				return root;
+			},
+			async getAnimationRootHandle(baseHandle, create = false) {
+				return baseHandle?.getDirectoryHandle('anim-projects', { create });
+			},
+		};
+
+		if (!customElements.get('project-rail')) {
+			customElements.define('project-rail', class ProjectRail extends HTMLElement {
+				connectedCallback() {
+					this.list = this.querySelector('[data-project-list]');
+					this.path = this.querySelector('[data-project-path]');
+					this.addButton = this.querySelector('[data-add-project]');
+					this.cycleList = this.querySelector('[data-cycle-list]');
+					this.cyclePath = this.querySelector('[data-cycle-path]');
+					this.addCycleButton = this.querySelector('[data-add-cycle]');
+					this.addButton?.addEventListener('click', () => void this.addProject());
+					this.addCycleButton?.addEventListener('click', () => void this.addCycle());
+					document.addEventListener('click', () => this.closeMenus());
+					this.rootHandle = null;
+					this.diskProjects = [];
+					this.diskCycles = new Map();
+					this.diskLoaded = false;
+					this.render();
+					window.addEventListener('spriteanim-root-folder-change', () => void this.refreshRootFolder());
+					void this.refreshRootFolder();
+					this.watchTimer = setInterval(() => void this.refreshRootFolder(), 2000);
+				}
+
+				disconnectedCallback() {
+					if (this.watchTimer) clearInterval(this.watchTimer);
+				}
+
+				getProjects() {
+					if (this.rootHandle && this.diskLoaded) return [...this.diskProjects];
+					try {
+						const parsed = JSON.parse(localStorage.getItem(projectKey) || 'null');
+						if (Array.isArray(parsed) && parsed.length) return [...new Set(parsed.map(slug).filter(Boolean))];
+					} catch {}
+					localStorage.setItem(projectKey, JSON.stringify(defaultProjects));
+					return defaultProjects;
+				}
+
+				getActive() {
+					const projects = this.getProjects();
+					const first = projects[0] || '';
+					const active = slug(localStorage.getItem(activeKey) || '') || first;
+					if (this.rootHandle && this.diskLoaded) {
+						// Disk list is authoritative: correct a stale selection.
+						if (!projects.includes(active)) localStorage.setItem(activeKey, first);
+						return projects.includes(active) ? active : first;
+					}
+					// Disk list is still loading: never replace the stored selection
+					// with fallback defaults, or a newly created project gets deselected.
+					return active;
+				}
+
+				setActive(project) {
+					const next = slug(project);
+					if (!next) return;
+					localStorage.setItem(activeKey, next);
+					window.dispatchEvent(new CustomEvent('spriteanim-project-change', { detail: { project: next } }));
+					if (location.pathname !== '/') window.location.reload();
+					this.render();
+				}
+
+				getCycles() {
+					const project = this.getActive();
+					if (this.rootHandle && this.diskLoaded) return [...(this.diskCycles.get(project) || [])];
+					let all = {};
+					try {
+						all = JSON.parse(localStorage.getItem(cycleKey) || 'null') || {};
+					} catch {}
+					if (!Array.isArray(all[project])) {
+						const seed = this.getProjects().filter((name) => name !== project);
+						all[project] = seed;
+						localStorage.setItem(cycleKey, JSON.stringify(all));
+					}
+					return all[project].map(slug).filter(Boolean);
+				}
+
+				getActiveCycle() {
+					const cycles = this.getCycles();
+					let all = {};
+					try {
+						all = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+					} catch {}
+					const active = slug(all[this.getActive()] || '');
+					return cycles.includes(active) ? active : (cycles[0] || '');
+				}
+
+				setActiveCycle(cycle) {
+					const next = slug(cycle);
+					if (!next) return;
+					const project = this.getActive();
+					let all = {};
+					try {
+						all = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+					} catch {}
+					all[project] = next;
+					localStorage.setItem(activeCycleKey, JSON.stringify(all));
+					window.dispatchEvent(new CustomEvent('spriteanim-cycle-change', { detail: { project, cycle: next } }));
+					if (location.pathname !== '/') window.location.reload();
+					this.render();
+				}
+
+				async addCycle() {
+					if ('showDirectoryPicker' in window) {
+						if (!this.rootHandle) {
+							const connected = await this.connectRootFolder();
+							if (!connected) return;
+						}
+					}
+					const name = window.prompt('Cycle name');
+					const next = slug(name);
+					if (!next) return;
+					const project = this.getActive();
+					if ('showDirectoryPicker' in window) {
+						try {
+							const projectHandle = await this.rootHandle.getDirectoryHandle(project);
+							const cycleHandle = await projectHandle.getDirectoryHandle(next, { create: true });
+							await cycleHandle.getDirectoryHandle('stage1 - frames-sheet', { create: true });
+							await cycleHandle.getDirectoryHandle('stage2 - unpivoted frames', { create: true });
+							await cycleHandle.getDirectoryHandle('stage3 - pivoted frames', { create: true });
+							await this.refreshRootFolder();
+							this.setActiveCycle(next);
+							return;
+						} catch (error) {
+							window.alert(`Could not create cycle folder: ${error?.message || error}`);
+							return;
+						}
+					}
+					let all = {};
+					try {
+						all = JSON.parse(localStorage.getItem(cycleKey) || 'null') || {};
+					} catch {}
+					const cycles = Array.isArray(all[project]) ? all[project] : [];
+					if (!cycles.includes(next)) cycles.push(next);
+					all[project] = cycles;
+					localStorage.setItem(cycleKey, JSON.stringify(all));
+					this.setActiveCycle(next);
+				}
+
+				async addProject() {
+					if ('showDirectoryPicker' in window) {
+						if (!this.rootHandle) {
+							const connected = await this.connectRootFolder();
+							if (!connected) return;
+						}
+					}
+					const name = window.prompt('Project name');
+					const next = slug(name);
+					if (!next) return;
+					if ('showDirectoryPicker' in window) {
+						try {
+							await this.rootHandle.getDirectoryHandle(next, { create: true });
+							await this.refreshRootFolder();
+							this.setActive(next);
+							return;
+						} catch (error) {
+							window.alert(`Could not create project folder: ${error?.message || error}`);
+							return;
+						}
+					}
+					const projects = this.getProjects();
+					if (!projects.includes(next)) projects.push(next);
+					localStorage.setItem(projectKey, JSON.stringify(projects));
+					this.setActive(next);
+				}
+
+				rawCycles() {
+					try {
+						return JSON.parse(localStorage.getItem(cycleKey) || 'null') || {};
+					} catch {
+						return {};
+					}
+				}
+
+				closeMenus() {
+					this.querySelectorAll('.rail-chip').forEach((chip) => {
+						chip.classList.remove('menu-open');
+						chip.querySelector('[data-chip-menu-button]')?.setAttribute('aria-expanded', 'false');
+					});
+				}
+
+				createChip({ label, active, onSelect, onAction }) {
+					const wrap = document.createElement('span');
+					wrap.className = 'rail-chip';
+					const button = document.createElement('button');
+					button.type = 'button';
+					button.className = 'project-chip';
+					button.dataset.active = String(active);
+					button.textContent = label;
+					button.addEventListener('click', () => {
+						this.closeMenus();
+						onSelect(label);
+					});
+					wrap.append(button);
+					const menuButton = document.createElement('button');
+					menuButton.type = 'button';
+					menuButton.className = 'chip-menu-button';
+					menuButton.dataset.chipMenuButton = '';
+					menuButton.setAttribute('aria-label', `Actions for ${label}`);
+					menuButton.setAttribute('aria-haspopup', 'menu');
+					menuButton.setAttribute('aria-expanded', 'false');
+					menuButton.textContent = '\u22ef';
+					menuButton.addEventListener('click', (event) => {
+						event.stopPropagation();
+						this.closeMenus();
+						const open = wrap.classList.toggle('menu-open');
+						menuButton.setAttribute('aria-expanded', String(open));
+					});
+					wrap.append(menuButton);
+					const menu = document.createElement('span');
+					menu.className = 'chip-menu';
+					menu.setAttribute('role', 'menu');
+					[['rename', 'Rename'], ['left', 'Move left'], ['right', 'Move right'], ['delete', 'Delete']].forEach(([action, text]) => {
+						const item = document.createElement('button');
+						item.type = 'button';
+						item.dataset.action = action;
+						item.textContent = text;
+						item.addEventListener('click', () => {
+							wrap.classList.remove('menu-open');
+							menuButton.setAttribute('aria-expanded', 'false');
+							onAction(action, label);
+						});
+						menu.append(item);
+					});
+					wrap.append(menu);
+					return wrap;
+				}
+
+				openHandleDatabase() {
+					return new Promise((resolve, reject) => {
+						const request = indexedDB.open('spriteanim-v2-handles', 1);
+						request.onupgradeneeded = () => {
+							if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+						};
+						request.onsuccess = () => resolve(request.result);
+						request.onerror = () => reject(request.error);
+					});
+				}
+
+				async getRootHandle() {
+					try {
+						const database = await this.openHandleDatabase();
+						const handle = await new Promise((resolve, reject) => {
+							const request = database.transaction('handles').objectStore('handles').get('spriteanim-root-handle');
+							request.onsuccess = () => resolve(request.result || null);
+							request.onerror = () => reject(request.error);
+						});
+						database.close();
+						return handle;
+					} catch {
+						return null;
+					}
+				}
+
+				async connectRootFolder() {
+					if (!('showDirectoryPicker' in window)) {
+						window.alert('Folder access is not supported in this browser.');
+						return null;
+					}
+					try {
+						const picked = await window.showDirectoryPicker({ mode: 'readwrite' });
+						const database = await this.openHandleDatabase();
+						await new Promise((resolve, reject) => {
+							const transaction = database.transaction('handles', 'readwrite');
+							transaction.objectStore('handles').put(picked, 'spriteanim-root-handle');
+							transaction.oncomplete = () => resolve();
+							transaction.onerror = () => reject(transaction.error);
+						});
+						database.close();
+						this.rootHandle = await picked.getDirectoryHandle('anim-projects', { create: true });
+						await this.refreshRootFolder();
+						window.dispatchEvent(new CustomEvent('spriteanim-root-folder-change', { detail: { folder: picked.name } }));
+						return picked;
+					} catch (error) {
+						if (error?.name !== 'AbortError') window.alert(`Could not connect project folder: ${error?.message || error}`);
+						return null;
+					}
+				}
+
+				async listDirectoryNames(handle) {
+					const names = [];
+					for await (const entry of handle.values()) {
+						if (entry.kind === 'directory') names.push(entry.name);
+					}
+					return names.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+				}
+
+				isProjectFolder(name) {
+					return !name.startsWith('.') && !name.startsWith('_');
+				}
+
+				async refreshRootFolder() {
+					const baseHandle = await this.getRootHandle();
+					if (!baseHandle) {
+						if (this.diskLoaded) {
+							this.diskLoaded = false;
+							this.diskProjects = [];
+							this.diskCycles = new Map();
+							this.render();
+						}
+						return;
+					}
+
+					try {
+						let permission = await baseHandle.queryPermission({ mode: 'read' });
+						if (permission !== 'granted') {
+							permission = await baseHandle.requestPermission({ mode: 'read' });
+						}
+						if (permission !== 'granted') return;
+						const handle = await baseHandle.getDirectoryHandle('anim-projects', { create: true });
+						this.rootHandle = handle;
+
+						const projects = (await this.listDirectoryNames(handle)).filter((name) => this.isProjectFolder(name));
+						const cycles = new Map();
+						for (const project of projects) {
+							const sub = await handle.getDirectoryHandle(project);
+							const subs = (await this.listDirectoryNames(sub)).filter((name) => this.isProjectFolder(name));
+							cycles.set(project, subs);
+						}
+
+						const changed = !this.diskLoaded
+							|| JSON.stringify(projects) !== JSON.stringify(this.diskProjects)
+							|| JSON.stringify(Array.from(cycles.entries())) !== JSON.stringify(Array.from(this.diskCycles.entries()));
+						this.diskLoaded = true;
+						this.diskProjects = projects;
+						this.diskCycles = cycles;
+						if (changed) this.render();
+					} catch {
+						// transient permission/read error; retry on next poll
+					}
+				}
+
+				async copyDirectory(source, destination) {
+					for await (const entry of source.values()) {
+						if (entry.kind === 'directory') {
+							const sub = await destination.getDirectoryHandle(entry.name, { create: true });
+							await this.copyDirectory(entry, sub);
+						} else {
+							const file = await entry.getFile();
+							const target = await destination.getFileHandle(entry.name, { create: true });
+							const writable = await target.createWritable();
+							await writable.write(file);
+							await writable.close();
+						}
+					}
+				}
+
+				async renameDirectory(parent, oldName, newName) {
+					const source = await parent.getDirectoryHandle(oldName);
+					const destination = await parent.getDirectoryHandle(newName, { create: true });
+					await this.copyDirectory(source, destination);
+					await parent.removeEntry(oldName, { recursive: true });
+				}
+
+				async renameProject(name) {
+					const next = slug(window.prompt(`Rename project "${name}"`, name));
+					if (!next || next === name) return;
+					if (this.rootHandle) {
+						try {
+							await this.renameDirectory(this.rootHandle, name, next);
+							await this.refreshRootFolder();
+							if (localStorage.getItem(activeKey) === name) this.setActive(next);
+						} catch (error) {
+							window.alert(`Could not rename project folder: ${error?.message || error}`);
+						}
+						return;
+					}
+					const projects = this.getProjects();
+					const index = projects.indexOf(name);
+					if (index === -1) return;
+					projects[index] = next;
+					localStorage.setItem(projectKey, JSON.stringify(projects));
+					if (localStorage.getItem(activeKey) === name) localStorage.setItem(activeKey, next);
+					this.migrateProjectStorage(name, next);
+					this.render();
+				}
+
+				migrateProjectStorage(from, to) {
+					try {
+						const cycles = this.rawCycles();
+						if (Array.isArray(cycles[from])) {
+							cycles[to] = cycles[from];
+							delete cycles[from];
+							localStorage.setItem(cycleKey, JSON.stringify(cycles));
+						}
+						const activeCycles = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+						if (activeCycles[from]) {
+							activeCycles[to] = activeCycles[from];
+							delete activeCycles[from];
+							localStorage.setItem(activeCycleKey, JSON.stringify(activeCycles));
+						}
+					} catch {}
+					void this.migrateHandleKey(`${from}::samples-directory`, `${to}::samples-directory`);
+				}
+
+				async migrateHandleKey(from, to) {
+					try {
+						const database = await this.openHandleDatabase();
+						const handle = await new Promise((resolve, reject) => {
+							const request = database.transaction('handles').objectStore('handles').get(from);
+							request.onsuccess = () => resolve(request.result || null);
+							request.onerror = () => reject(request.error);
+						});
+						if (handle) {
+							await new Promise((resolve, reject) => {
+								const transaction = database.transaction('handles', 'readwrite');
+								const store = transaction.objectStore('handles');
+								store.put(handle, to);
+								store.delete(from);
+								transaction.oncomplete = () => resolve();
+								transaction.onerror = () => reject(transaction.error);
+							});
+						}
+						database.close();
+					} catch {}
+				}
+
+				async deleteProject(name) {
+					if (!window.confirm(`Delete project "${name}"?`)) return;
+					if (this.rootHandle) {
+						try {
+							await this.rootHandle.removeEntry(name, { recursive: true });
+							await this.refreshRootFolder();
+							const projects = this.getProjects();
+							if (this.getActive() === name) this.setActive(projects[0] || '');
+						} catch (error) {
+							window.alert(`Could not delete project folder: ${error?.message || error}`);
+						}
+						return;
+					}
+					const projects = this.getProjects();
+					const nextProjects = projects.filter((project) => project !== name);
+					if (!nextProjects.length) {
+						window.alert('Cannot delete the last project.');
+						return;
+					}
+					localStorage.setItem(projectKey, JSON.stringify(nextProjects));
+					try {
+						const cycles = this.rawCycles();
+						delete cycles[name];
+						localStorage.setItem(cycleKey, JSON.stringify(cycles));
+						const activeCycles = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+						delete activeCycles[name];
+						localStorage.setItem(activeCycleKey, JSON.stringify(activeCycles));
+					} catch {}
+					void this.deleteHandleKey(`${name}::samples-directory`);
+					if (localStorage.getItem(activeKey) === name) {
+						localStorage.setItem(activeKey, nextProjects[0]);
+						window.dispatchEvent(new CustomEvent('spriteanim-project-change', { detail: { project: nextProjects[0] } }));
+						if (location.pathname !== '/') window.location.reload();
+					}
+					this.render();
+				}
+
+				async deleteHandleKey(key) {
+					try {
+						const database = await this.openHandleDatabase();
+						await new Promise((resolve, reject) => {
+							const transaction = database.transaction('handles', 'readwrite');
+							transaction.objectStore('handles').delete(key);
+							transaction.oncomplete = () => resolve();
+							transaction.onerror = () => reject(transaction.error);
+						});
+						database.close();
+					} catch {}
+				}
+
+				moveProject(name, direction) {
+					const projects = this.getProjects();
+					const index = projects.indexOf(name);
+					const target = index + (direction === 'left' ? -1 : 1);
+					if (index === -1 || target < 0 || target >= projects.length) return;
+					[projects[index], projects[target]] = [projects[target], projects[index]];
+					localStorage.setItem(projectKey, JSON.stringify(projects));
+					this.render();
+				}
+
+				async renameCycle(name) {
+					const project = this.getActive();
+					const next = slug(window.prompt(`Rename cycle "${name}"`, name));
+					if (!next || next === name) return;
+					if (this.rootHandle) {
+						try {
+							const projectHandle = await this.rootHandle.getDirectoryHandle(project);
+							await this.renameDirectory(projectHandle, name, next);
+							await this.refreshRootFolder();
+						} catch (error) {
+							window.alert(`Could not rename cycle folder: ${error?.message || error}`);
+						}
+						return;
+					}
+					const all = this.rawCycles();
+					const cycles = Array.isArray(all[project]) ? all[project] : [];
+					const index = cycles.indexOf(name);
+					if (index === -1) return;
+					cycles[index] = next;
+					all[project] = cycles;
+					localStorage.setItem(cycleKey, JSON.stringify(all));
+					const activeCycles = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+					if (activeCycles[project] === name) activeCycles[project] = next;
+					localStorage.setItem(activeCycleKey, JSON.stringify(activeCycles));
+					this.render();
+				}
+
+				async deleteCycle(name) {
+					if (!window.confirm(`Delete cycle "${name}"?`)) return;
+					const project = this.getActive();
+					if (this.rootHandle) {
+						try {
+							const projectHandle = await this.rootHandle.getDirectoryHandle(project);
+							await projectHandle.removeEntry(name, { recursive: true });
+							await this.refreshRootFolder();
+						} catch (error) {
+							window.alert(`Could not delete cycle folder: ${error?.message || error}`);
+						}
+						return;
+					}
+					const all = this.rawCycles();
+					const cycles = (Array.isArray(all[project]) ? all[project] : []).filter((cycle) => cycle !== name);
+					all[project] = cycles;
+					localStorage.setItem(cycleKey, JSON.stringify(all));
+					const activeCycles = JSON.parse(localStorage.getItem(activeCycleKey) || 'null') || {};
+					if (activeCycles[project] === name) delete activeCycles[project];
+					localStorage.setItem(activeCycleKey, JSON.stringify(activeCycles));
+					window.dispatchEvent(new CustomEvent('spriteanim-cycle-change', { detail: { project, cycle: cycles[0] || '' } }));
+					this.render();
+				}
+
+				moveCycle(name, direction) {
+					const project = this.getActive();
+					const all = this.rawCycles();
+					const cycles = Array.isArray(all[project]) ? all[project] : [];
+					const index = cycles.indexOf(name);
+					const target = index + (direction === 'left' ? -1 : 1);
+					if (index === -1 || target < 0 || target >= cycles.length) return;
+					[cycles[index], cycles[target]] = [cycles[target], cycles[index]];
+					all[project] = cycles;
+					localStorage.setItem(cycleKey, JSON.stringify(all));
+					this.render();
+				}
+
+				render() {
+					if (!this.list) return;
+					const active = this.getActive();
+					if (this.path) this.path.textContent = (this.rootHandle && active) ? `${root}\\${active}` : root;
+					const canConnect = 'showDirectoryPicker' in window;
+					const needsConnect = !this.rootHandle || !this.diskLoaded;
+					if (needsConnect && canConnect) {
+						const connect = document.createElement('button');
+						connect.type = 'button';
+						connect.className = 'project-add';
+						connect.textContent = 'Connect folder';
+						connect.title = `Connect ${root} to sync projects from disk`;
+						connect.addEventListener('click', () => void this.connectRootFolder());
+						this.list.replaceChildren(connect);
+					} else {
+						const projects = this.getProjects();
+						this.list.replaceChildren(...projects.map((project) => this.createChip({
+							label: project,
+							active: project === active,
+							onSelect: (name) => this.setActive(name),
+							onAction: (action, name) => {
+								if (action === 'rename') void this.renameProject(name);
+								else if (action === 'delete') void this.deleteProject(name);
+								else this.moveProject(name, action);
+							},
+						})));
+					}
+
+					if (this.cycleList) {
+						const cycles = this.getCycles();
+						const activeCycle = this.getActiveCycle();
+						if (this.cyclePath) this.cyclePath.textContent = activeCycle || 'No cycle selected';
+						if (needsConnect && canConnect) {
+							this.cycleList.replaceChildren();
+						} else if (!cycles.length) {
+							const hint = document.createElement('span');
+							hint.className = 'rail-hint';
+							hint.textContent = 'No cycles yet';
+							this.cycleList.replaceChildren(hint);
+						} else {
+							this.cycleList.replaceChildren(...cycles.map((cycle) => this.createChip({
+								label: cycle,
+								active: cycle === activeCycle,
+								onSelect: (name) => this.setActiveCycle(name),
+								onAction: (action, name) => {
+									if (action === 'rename') void this.renameCycle(name);
+									else if (action === 'delete') void this.deleteCycle(name);
+									else this.moveCycle(name, action);
+								},
+							})));
+						}
+					}
+				}
+			});
+		}
+	})();
+</script>
+
+<style is:global>
+	.pipeline-header {
+		position: sticky;
+		top: 0;
+		z-index: 30;
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		gap: 1rem;
+		align-items: center;
+		min-height: 4rem;
+		border-bottom: 1px solid #dfe4df;
+		background: rgba(255, 255, 255, 0.94);
+		padding: 0.65rem clamp(1rem, 3vw, 2.5rem);
+		backdrop-filter: blur(16px);
+	}
+
+	.pipeline-brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #171917;
+		font-size: 0.95rem;
+		font-weight: 800;
+		text-decoration: none;
+	}
+
+	.brand-logo {
+		width: 1.25rem;
+		height: 1.25rem;
+		object-fit: contain;
+	}
+
+	.pipeline-nav {
+		display: flex;
+		min-width: 0;
+		align-items: center;
+		gap: 0.45rem;
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+
+	.pipeline-nav[hidden] {
+		display: none;
+	}
+
+	.pipeline-step {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		border: 1px solid #d3d8d3;
+		border-radius: 999px;
+		background: #fff;
+		color: #303630;
+		padding: 0.48rem 0.72rem;
+		font-size: 0.78rem;
+		font-weight: 720;
+		text-decoration: none;
+	}
+
+	.pipeline-step.active {
+		border-color: #74a900;
+		background: #a8ee19;
+		color: #111;
+	}
+
+	.step-index {
+		display: grid;
+		width: 1.25rem;
+		height: 1.25rem;
+		place-items: center;
+		border-radius: 999px;
+		background: #edf2ed;
+		font-size: 0.68rem;
+		font-weight: 850;
+	}
+
+	.pipeline-step.active .step-index {
+		background: #111;
+		color: #fff;
+	}
+
+	.pipeline-arrow {
+		color: #7d847d;
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 0.72rem;
+	}
+
+	.pipeline-settings {
+		position: relative;
+	}
+
+	.pipeline-actions {
+		display: flex;
+		align-items: center;
+		justify-self: end;
+		gap: 0.45rem;
+	}
+
+	.settings-button {
+		display: grid;
+		width: 2.5rem;
+		height: 2.5rem;
+		place-items: center;
+		border: 1px solid #d3d8d3;
+		border-radius: 999px;
+		background: #fff;
+		color: #596159;
+		transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+		text-decoration: none;
+	}
+
+	.settings-button:hover {
+		border-color: #74a900;
+		color: #111;
+	}
+
+	.settings-button svg {
+		width: 1.15rem;
+		height: 1.15rem;
+	}
+
+	.pipeline-settings:hover .settings-button,
+	.pipeline-settings:focus-within .settings-button {
+		transform: rotate(45deg);
+	}
+
+	.settings-popover {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		right: 0;
+		z-index: 40;
+		width: min(13rem, calc(100vw - 2rem));
+		border: 1px solid #dfe4df;
+		border-radius: 0.65rem;
+		background: #fff;
+		padding: 0.7rem;
+		box-shadow: 0 18px 48px rgba(20, 24, 20, 0.12);
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-0.3rem);
+		transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s linear 0.16s;
+	}
+
+	.pipeline-settings:hover .settings-popover,
+	.pipeline-settings:focus-within .settings-popover {
+		opacity: 1;
+		visibility: visible;
+		transform: translateY(0);
+		transition-delay: 0s;
+	}
+
+	.settings-label {
+		margin: 0 0 0.45rem;
+		color: #7d847d;
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.pipeline-toggle {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.35rem;
+		border: 1px solid #d3d8d3;
+		border-radius: 0.5rem;
+		background: #f4f6f4;
+		padding: 0.25rem;
+	}
+
+	.pipeline-toggle button {
+		border: 0;
+		border-radius: 0.35rem;
+		background: transparent;
+		color: #596159;
+		padding: 0.45rem 0.5rem;
+		font-size: 0.78rem;
+		font-weight: 720;
+		white-space: nowrap;
+	}
+
+	.pipeline-toggle button.active {
+		background: #a8ee19;
+		color: #111;
+		box-shadow: 0 0 0 1px #74a900 inset;
+	}
+
+	.settings-divider {
+		height: 1px;
+		background: #eef1ee;
+		margin: 0.7rem 0 0.6rem;
+	}
+
+	.settings-folder-row {
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	.settings-folder-button {
+		overflow: hidden;
+		border: 1px solid #d3d8d3;
+		border-radius: 0.4rem;
+		background: #f8faf8;
+		color: #333933;
+		padding: 0.4rem 0.6rem;
+		font-size: 0.75rem;
+		font-weight: 720;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.project-rail {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		border-bottom: 1px solid #e4e7e4;
+		background: #fbfcfb;
+		padding: 0.65rem clamp(1rem, 3vw, 2.5rem);
+	}
+
+	.project-group {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		min-width: 0;
+	}
+
+	.cycle-group {
+		margin-left: auto;
+	}
+
+	.rail-divider {
+		flex: none;
+		align-self: stretch;
+		width: 1px;
+		background: #dfe4df;
+	}
+
+	.project-rail-copy {
+		display: grid;
+		gap: 0.1rem;
+		min-width: 11rem;
+	}
+
+	.project-rail-copy strong {
+		font-size: 0.76rem;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	.project-rail-copy span {
+		color: #747a74;
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 0.68rem;
+	}
+
+	.project-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.rail-hint {
+		color: #747a74;
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 0.72rem;
+		white-space: nowrap;
+	}
+
+	.project-chip,
+	.project-add {
+		border: 1px solid #d2d7d2;
+		border-radius: 999px;
+		background: #fff;
+		color: #333933;
+		padding: 0.45rem 0.72rem;
+		font-size: 0.75rem;
+		font-weight: 720;
+		white-space: nowrap;
+	}
+
+	.project-chip[data-active="true"] {
+		border-color: #74a900;
+		background: #a8ee19;
+		color: #111;
+	}
+
+	.rail-chip {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.rail-chip .project-chip {
+		border-radius: 999px 0 0 999px;
+	}
+
+	.chip-menu-button {
+		flex: 0 0 auto;
+		width: 1.45rem;
+		height: 1.55rem;
+		padding: 0;
+		border: 1px solid #d2d7d2;
+		border-left: 0;
+		border-radius: 0 999px 999px 0;
+		background: #fff;
+		color: #6f756f;
+		font-size: 0.8rem;
+		line-height: 1;
+	}
+
+	.chip-menu-button:hover {
+		background: #f0f3f0;
+		color: #171917;
+	}
+
+	.project-chip[data-active="true"] + .chip-menu-button {
+		border-color: #74a900;
+		background: #d9f5a8;
+		color: #3f4f1c;
+	}
+
+	.chip-menu {
+		position: absolute;
+		top: calc(100% + 5px);
+		left: 0;
+		z-index: 50;
+		display: none;
+		min-width: 8.5rem;
+		padding: 0.3rem;
+		border: 1px solid #dfe4df;
+		border-radius: 0.5rem;
+		background: #fff;
+		box-shadow: 0 14px 34px rgba(20, 24, 20, 0.14);
+	}
+
+	.rail-chip.menu-open .chip-menu {
+		display: grid;
+	}
+
+	.chip-menu button {
+		border: 0;
+		border-radius: 0.35rem;
+		background: transparent;
+		color: #333933;
+		padding: 0.4rem 0.55rem;
+		font-size: 0.75rem;
+		font-weight: 620;
+		text-align: left;
+	}
+
+	.chip-menu button:hover {
+		background: #f1f4f1;
+	}
+
+	.chip-menu button[data-action="delete"] {
+		color: #a12828;
+	}
+
+	.project-add {
+		background: #171917;
+		color: #fff;
+	}
+
+	@media (max-width: 980px) {
+		.pipeline-header {
+			grid-template-columns: 1fr;
+		}
+
+		.project-rail {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.6rem;
+		}
+
+		.project-group {
+			flex-wrap: wrap;
+		}
+
+		.cycle-group {
+			margin-left: 0;
+		}
+
+		.rail-divider {
+			width: auto;
+			height: 1px;
+		}
+
+		.pipeline-actions {
+			position: absolute;
+			top: 0.7rem;
+			right: clamp(1rem, 3vw, 2.5rem);
+		}
+
+		.pipeline-nav {
+			padding-right: 3rem;
+		}
+	}
+</style>

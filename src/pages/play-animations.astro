@@ -1,0 +1,453 @@
+---
+import PipelineHeader from '../components/PipelineHeader.astro';
+
+const pageTitle = 'Play Animations · SpriteLab';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="description" content="Play every saved animation sequence as a GIF, grouped by project and animation." />
+		<title>{pageTitle}</title>
+		<style is:global>
+			:root {
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+				color: #171917;
+				background: #f4f5f4;
+			}
+
+			* { box-sizing: border-box; }
+			[hidden] { display: none !important; }
+
+			body {
+				min-width: 320px;
+				min-height: 100vh;
+				margin: 0;
+				background: #f4f5f4;
+			}
+
+			button { font: inherit; cursor: pointer; }
+
+			main {
+				width: min(1240px, calc(100% - 32px));
+				margin: clamp(18px, 3vw, 38px) auto clamp(36px, 5vw, 64px);
+			}
+
+			.play-status {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 14px;
+				margin-bottom: 20px;
+				padding: 14px 18px;
+				border: 1px solid #d9ddd9;
+				border-radius: 8px;
+				background: #fff;
+				font-size: 0.82rem;
+				color: #4d534d;
+			}
+
+			.connect-button {
+				flex: 0 0 auto;
+				height: 36px;
+				padding: 0 14px;
+				border: 1px solid #171917;
+				border-radius: 6px;
+				color: #fff;
+				background: #171917;
+				font-size: 0.78rem;
+				font-weight: 680;
+			}
+
+			.project {
+				margin-bottom: 26px;
+			}
+
+			.project-name {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin: 0 0 14px;
+				font-size: 1.05rem;
+				letter-spacing: -0.01em;
+			}
+
+			.project-name::before {
+				width: 9px;
+				height: 9px;
+				border-radius: 50%;
+				background: #238f43;
+				content: "";
+			}
+
+			.animation {
+				margin: 0 0 22px;
+				padding: 16px 18px;
+				border: 1px solid #dfe3df;
+				border-radius: 8px;
+				background: #fff;
+			}
+
+			.animation-name {
+				margin: 0 0 14px;
+				color: #333933;
+				font-size: 0.92rem;
+			}
+
+			.sequence-grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+				gap: 14px;
+			}
+
+			.sequence-card {
+				overflow: hidden;
+				border: 1px solid #e1e4e1;
+				border-radius: 7px;
+				background: #fbfcfb;
+				box-shadow: 0 8px 22px rgba(20, 24, 20, 0.05);
+			}
+
+			.sequence-gif {
+				display: block;
+				width: 100%;
+				aspect-ratio: 1 / 1;
+				object-fit: contain;
+				background-color: #fff;
+				background-image:
+					linear-gradient(45deg, #e9ece9 25%, transparent 25%),
+					linear-gradient(-45deg, #e9ece9 25%, transparent 25%),
+					linear-gradient(45deg, transparent 75%, #e9ece9 75%),
+					linear-gradient(-45deg, transparent 75%, #e9ece9 75%);
+				background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+				background-size: 20px 20px;
+			}
+
+			.sequence-caption {
+				padding: 9px 11px;
+				border-top: 1px solid #e4e7e4;
+			}
+
+			.sequence-name {
+				overflow: hidden;
+				font-family: "SFMono-Regular", Consolas, monospace;
+				font-size: 0.72rem;
+				font-weight: 680;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+
+			.sequence-meta {
+				display: block;
+				margin-top: 3px;
+				color: #7a817a;
+				font-size: 0.66rem;
+			}
+
+			.edit-sequence-button {
+				width: 100%;
+				height: 32px;
+				margin-top: 9px;
+				border: 1px solid #cfd4cf;
+				border-radius: 5px;
+				color: #333933;
+				background: #fff;
+				font-size: 0.7rem;
+				font-weight: 680;
+			}
+
+			.edit-sequence-button:hover { color: #fff; background: #238f43; border-color: #238f43; }
+
+			.empty-state {
+				padding: 42px 24px;
+				border: 1px dashed #c3c9c3;
+				border-radius: 8px;
+				color: #6f756f;
+				background: #fbfcfb;
+				text-align: center;
+				font-size: 0.82rem;
+				line-height: 1.55;
+			}
+
+			.empty-state strong {
+				display: block;
+				margin-bottom: 6px;
+				color: #333933;
+				font-size: 0.95rem;
+			}
+		</style>
+	</head>
+	<body>
+		<PipelineHeader active="play" />
+
+		<main>
+			<play-animations-app>
+				<div class="play-status" data-play-status>
+					<span data-status-copy>Connecting to the project folder…</span>
+					<button class="connect-button" data-connect hidden type="button">Connect project folder</button>
+				</div>
+				<div data-projects></div>
+			</play-animations-app>
+		</main>
+
+		<script>
+			import { GIFEncoder, quantize, applyPalette } from 'gifenc';
+
+			const imageRe = /\.(png|webp|jpe?g|gif)$/i;
+
+			const openDatabase = () => new Promise((resolve, reject) => {
+				const request = indexedDB.open('spriteanim-v2-handles', 1);
+				request.onupgradeneeded = () => {
+					if (!request.result.objectStoreNames.contains('handles')) request.result.createObjectStore('handles');
+				};
+				request.onsuccess = () => resolve(request.result);
+				request.onerror = () => reject(request.error);
+			});
+
+			const readHandle = async (key) => {
+				try {
+					const database = await openDatabase();
+					const handle = await new Promise((resolve, reject) => {
+						const request = database.transaction('handles').objectStore('handles').get(key);
+						request.onsuccess = () => resolve(request.result || null);
+						request.onerror = () => reject(request.error);
+					});
+					database.close();
+					return handle;
+				} catch {
+					return null;
+				}
+			};
+
+			const writeHandle = async (key, handle) => {
+				const database = await openDatabase();
+				await new Promise((resolve, reject) => {
+					const transaction = database.transaction('handles', 'readwrite');
+					transaction.objectStore('handles').put(handle, key);
+					transaction.oncomplete = () => resolve();
+					transaction.onerror = () => reject(transaction.error);
+				});
+				database.close();
+			};
+
+			const naturalCompare = (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+
+			const listDirectories = async (handle) => {
+				const names = [];
+				for await (const entry of handle.values()) {
+					if (entry.kind === 'directory' && !entry.name.startsWith('.') && !entry.name.startsWith('_')) names.push(entry.name);
+				}
+				return names.sort(naturalCompare);
+			};
+
+			const listImageFiles = async (handle) => {
+				const files = [];
+				for await (const entry of handle.values()) {
+					if (entry.kind === 'file' && imageRe.test(entry.name)) files.push({ name: entry.name, file: await entry.getFile() });
+				}
+				return files.sort((a, b) => naturalCompare(a.name, b.name));
+			};
+
+			const loadPixels = (file) => new Promise((resolve, reject) => {
+				const url = URL.createObjectURL(file);
+				const image = new Image();
+				image.onload = () => {
+					const canvas = document.createElement('canvas');
+					canvas.width = image.naturalWidth;
+					canvas.height = image.naturalHeight;
+					const context = canvas.getContext('2d', { willReadFrequently: true });
+					context.clearRect(0, 0, canvas.width, canvas.height);
+					context.drawImage(image, 0, 0);
+					const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+					URL.revokeObjectURL(url);
+					resolve({ data, width: canvas.width, height: canvas.height });
+				};
+				image.onerror = () => {
+					URL.revokeObjectURL(url);
+					reject(new Error('Could not load ' + file.name));
+				};
+				image.src = url;
+			});
+
+			const buildGif = async (files, delay = 100) => {
+				const gif = GIFEncoder();
+				for (const { file } of files) {
+					const { data, width, height } = await loadPixels(file);
+					const palette = quantize(data, 256, { format: 'rgba4444', oneBitAlpha: true });
+					const index = applyPalette(data, palette, 'rgba4444');
+					gif.writeFrame(index, width, height, { palette, delay, transparent: true, transparentIndex: palette.length });
+				}
+				gif.finish();
+				return new Blob([gif.bytes()], { type: 'image/gif' });
+			};
+
+			class PlayAnimationsApp extends HTMLElement {
+				connectedCallback() {
+					this.status = this.querySelector('[data-play-status]');
+					this.statusCopy = this.querySelector('[data-status-copy]');
+					this.connectButton = this.querySelector('[data-connect]');
+					this.projects = this.querySelector('[data-projects]');
+					this.connectButton?.addEventListener('click', () => void this.connectFolder());
+					void this.init();
+				}
+
+				setStatus(text) {
+					if (this.statusCopy) this.statusCopy.textContent = text;
+				}
+
+				async connectFolder() {
+					try {
+						let root = await readHandle('spriteanim-root-handle');
+						if (root) {
+							const permission = await root.requestPermission({ mode: 'read' });
+							if (permission !== 'granted') {
+								this.setStatus('Permission denied. Try again from \u2699 settings.');
+								return;
+							}
+						} else {
+							root = await window.showDirectoryPicker({ mode: 'read' });
+							await writeHandle('spriteanim-root-handle', root);
+						}
+						if (this.connectButton) this.connectButton.hidden = true;
+						await this.load(root);
+					} catch (error) {
+						if (error?.name !== 'AbortError') this.setStatus('Folder error: ' + (error?.message || error));
+					}
+				}
+
+				async init() {
+					const root = await readHandle('spriteanim-root-handle');
+					if (!root) {
+						this.setStatus('Connect D:\\SpriteAnimProjects to read animations from its anim-projects folder.');
+						if (this.connectButton) this.connectButton.hidden = false;
+						return;
+					}
+					try {
+						const permission = await root.queryPermission({ mode: 'read' });
+						if (permission === 'granted') {
+							await this.load(root);
+						} else {
+							this.setStatus('Reconnect the project folder to read animations.');
+							if (this.connectButton) this.connectButton.hidden = false;
+						}
+					} catch {
+						this.setStatus('Reconnect the project folder to read animations.');
+						if (this.connectButton) this.connectButton.hidden = false;
+					}
+				}
+
+				async load(root) {
+					this.projects.replaceChildren();
+					this.setStatus('Loading animations…');
+					root = await root.getDirectoryHandle('anim-projects');
+					let totalSequences = 0;
+					const projects = await listDirectories(root);
+					for (const projectName of projects) {
+						this.setStatus('Loading ' + projectName + '…');
+						const projectHandle = await root.getDirectoryHandle(projectName);
+						const projectEl = document.createElement('section');
+						projectEl.className = 'project';
+						const heading = document.createElement('h2');
+						heading.className = 'project-name';
+						heading.textContent = projectName;
+						projectEl.append(heading);
+						const animations = await listDirectories(projectHandle);
+						for (const animationName of animations) {
+							this.setStatus(`Loading ${projectName} → ${animationName}…`);
+							const animationHandle = await projectHandle.getDirectoryHandle(animationName);
+							const animationEl = document.createElement('section');
+							animationEl.className = 'animation';
+							const animationHeading = document.createElement('h3');
+							animationHeading.className = 'animation-name';
+							animationHeading.textContent = animationName;
+							const grid = document.createElement('div');
+							grid.className = 'sequence-grid';
+							animationEl.append(animationHeading, grid);
+							let found = false;
+							try {
+								const stage3 = await animationHandle.getDirectoryHandle('stage3 - pivoted frames');
+								const versionNames = await listDirectories(stage3);
+								versionNames.sort((a, b) => b.localeCompare(a, undefined, { numeric: true, sensitivity: 'base' }));
+								for (const versionName of versionNames) {
+									const versionHandle = await stage3.getDirectoryHandle(versionName);
+									const files = await listImageFiles(versionHandle);
+									if (files.length) {
+										grid.append(await this.makeSequenceCard(versionName, files, projectName, animationName, versionName));
+										found = true;
+										totalSequences += 1;
+									}
+								}
+								const directFiles = await listImageFiles(stage3);
+								if (directFiles.length) {
+									grid.append(await this.makeSequenceCard('stage3 - pivoted frames', directFiles, projectName, animationName, ''));
+									found = true;
+									totalSequences += 1;
+								}
+							} catch {}
+							if (found) projectEl.append(animationEl);
+						}
+						if (projectEl.children.length > 1) this.projects.append(projectEl);
+					}
+					if (!totalSequences) {
+						const empty = document.createElement('div');
+						empty.className = 'empty-state';
+						const strong = document.createElement('strong');
+						strong.textContent = 'No animations saved yet';
+						const copy = document.createElement('span');
+						copy.textContent = 'Save a sequence from the Frame sequencer (it goes into stage3 - pivoted frames) and it will appear here as a GIF.';
+						empty.append(strong, copy);
+						this.projects.append(empty);
+					}
+					this.setStatus(totalSequences ? `${totalSequences} sequence${totalSequences === 1 ? '' : 's'} found.` : 'No sequences found.');
+				}
+
+				async makeSequenceCard(name, files, project, cycle, sequence) {
+					const card = document.createElement('article');
+					card.className = 'sequence-card';
+					const image = document.createElement('img');
+					image.className = 'sequence-gif';
+					image.alt = name;
+					try {
+						const gif = await buildGif(files);
+						image.src = URL.createObjectURL(gif);
+					} catch {
+						image.alt = 'Could not build GIF';
+					}
+					const caption = document.createElement('div');
+					caption.className = 'sequence-caption';
+					const nameEl = document.createElement('span');
+					nameEl.className = 'sequence-name';
+					nameEl.textContent = name;
+					const meta = document.createElement('span');
+					meta.className = 'sequence-meta';
+					meta.textContent = `${files.length} frame${files.length === 1 ? '' : 's'}`;
+					const editButton = document.createElement('button');
+					editButton.type = 'button';
+					editButton.className = 'edit-sequence-button';
+					editButton.textContent = 'Edit in Stage 3';
+					editButton.setAttribute('aria-label', `Edit ${name} in Stage 3 Frame Sequencer`);
+					editButton.addEventListener('click', () => this.editSequence(project, cycle, sequence));
+					caption.append(nameEl, meta, editButton);
+					card.append(image, caption);
+					return card;
+				}
+
+				editSequence(project, cycle, sequence) {
+					localStorage.setItem('spriteanim-active-project', project);
+					let activeCycles = {};
+					try { activeCycles = JSON.parse(localStorage.getItem('spriteanim-active-cycle') || 'null') || {}; } catch {}
+					activeCycles[project] = cycle;
+					localStorage.setItem('spriteanim-active-cycle', JSON.stringify(activeCycles));
+					localStorage.setItem('spriteanim-edit-stage3-sequence', JSON.stringify({ project, cycle, sequence }));
+					window.location.href = '/frame-sequencer/';
+				}
+			}
+
+			customElements.define('play-animations-app', PlayAnimationsApp);
+		</script>
+	</body>
+</html>
