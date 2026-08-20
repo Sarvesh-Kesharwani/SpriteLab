@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "spritelab",
+  "compatibility_date": "2026-08-20",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash"
+  },
+  "r2_buckets": [
+    {
+      "binding": "SPRITELAB_ASSETS",
+      "bucket_name": "spritelab-assets"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "SPRITELAB_METADATA",
+      "database_name": "spritelab-metadata",
+      "database_id": "019ec7a5-e9ab-4ab0-a214-c1d181ee7118"
+    }
+  ]
+}
